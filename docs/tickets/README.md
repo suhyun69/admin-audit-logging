@@ -46,7 +46,7 @@
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | MERGED |
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | MERGED |
 | [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | IN_PROGRESS |
-| [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | IN_PROGRESS |
+| [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | MERGED |
 
 
 ## 배정과 상태 규칙
