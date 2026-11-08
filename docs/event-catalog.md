@@ -28,6 +28,8 @@ CLIENT는 브라우저 신고(ATTEMPTED), SECURITY/HTTP는 서버 관찰, BUSINE
 
 추가 검증 규칙:
 
+- CLIENT의 화면 경로는 정제된 `metadata.pagePath`로 보존한다. 허용 화면만 저장하고 query/hash는 제거한다. digest만 저장해 PAGE_VIEW의 대상 화면을 잃지 않도록 한다.
+
 - resourceType/resourceId는 함께 지정하거나 함께 생략한다. USER는 양수 회원 ID, AUDIT_LOG는 UUID다. 상태 버튼은 USER resource가 필수이며 pagePath의 회원 ID와 일치해야 한다.
 - 중복 digest는 인증 actor와 정규화된 payload 필드로 계산하고 서버 requestId/receivedAt은 제외한다.
 - CLIENT 수집의 X-Interaction-ID를 전달했다면 body interactionId와 같아야 한다. 불일치는 400이다.
