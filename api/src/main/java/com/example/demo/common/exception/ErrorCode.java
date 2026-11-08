@@ -1,34 +1,23 @@
 package com.example.demo.common.exception;
 
-/**
- * 애플리케이션 공통 에러 분류.
- *
- * <p>HTTP 상태 코드를 담지 않는다. HTTP로의 번역은 웹 계층
- * ({@code common.web.GlobalExceptionHandler})이 담당하므로,
- * 도메인은 이 enum에 의존해도 HTTP를 알게 되지 않는다.
- */
+/** Framework-neutral codes and safe public messages. HTTP mapping belongs to the web boundary. */
 public enum ErrorCode {
+    VALIDATION_ERROR("요청 값이 올바르지 않습니다."),
+    INVALID_CURSOR("페이지 커서가 올바르지 않습니다."),
+    UNAUTHENTICATED("로그인이 필요합니다."),
+    INVALID_CREDENTIALS("아이디 또는 비밀번호가 올바르지 않습니다."),
+    ACCESS_DENIED("이 작업을 수행할 권한이 없습니다."),
+    CSRF_INVALID("보안 토큰이 올바르지 않습니다."),
+    USER_NOT_FOUND("회원을 찾을 수 없습니다."),
+    AUDIT_NOT_FOUND("감사 기록을 찾을 수 없습니다."),
+    RESOURCE_NOT_FOUND("리소스를 찾을 수 없습니다."),
+    VERSION_CONFLICT("데이터가 변경되었습니다. 새로 조회해 주세요."),
+    EVENT_CONFLICT("이벤트 식별자가 충돌했습니다."),
+    PAYLOAD_TOO_LARGE("요청 크기 제한을 초과했습니다."),
+    RATE_LIMITED("요청 횟수 제한을 초과했습니다."),
+    INTERNAL_ERROR("서버 내부 오류가 발생했습니다.");
 
-    /** 요청한 리소스가 없음. */
-    NOT_FOUND("Not Found"),
-
-    /** 입력 값이 규칙에 맞지 않음. */
-    INVALID_INPUT("Bad Request"),
-
-    /** 현재 상태에서 수행할 수 없는 요청. */
-    CONFLICT("Conflict"),
-
-    /** 분류되지 않은 내부 오류. */
-    INTERNAL_ERROR("Internal Server Error");
-
-    private final String title;
-
-    ErrorCode(String title) {
-        this.title = title;
-    }
-
-    /** 응답 본문의 error 필드에 쓰이는 표기. */
-    public String getTitle() {
-        return title;
-    }
+    private final String message;
+    ErrorCode(String message) { this.message = message; }
+    public String getMessage() { return message; }
 }
