@@ -1,7 +1,7 @@
 # ADM-010 — Next.js URL 정규화에 의한 동일 출처 차단 수정
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-010-next-origin-normalization`
 - 시작 기준: ADM-002와 API-007이 통합된 최신 integration
 - 선행 티켓: ADM-002, API-007
@@ -25,12 +25,12 @@ admin/next.config.ts의 공식 URL 정규화 비활성 설정과 실제 Next.js 
 
 ## 작업 및 승인 기록
 
-- 구현 요약: ADM-003 실제 Next.js 연동에서 발견한 선행 통합 결함
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 구현 요약: 원래 Origin 보존·strict BFF검증 유지·canonical 실행 문서
+- 변경 파일 / 커밋 SHA: aed783433c6463093675e364a12a202ab1049fb4
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-010-next-origin-normalization, push 성공
+- 검증 명령 / 결과: 각canonical 실제Origin/인증8·unit11·lint/typecheck/build PASS
 - 미해결 사항 / 전달 사항: API-009 이후 ADM-003 최종 연동 재검증
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: aed783433c6463093675e364a12a202ab1049fb4: qa 설정·실HTTP회귀·canonical문서 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 8d99501b6634671a66a3f9857abd4497acf2d020; integration push 성공
+- 통합 smoke 결과: 각canonical 실제Origin/인증8·unit11·lint/typecheck/build PASS

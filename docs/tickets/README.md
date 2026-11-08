@@ -15,7 +15,7 @@
 | [ADM-007](ADM-007-audit-explorer.md) | admin | Explorer·본인 활동 | ADM-004, API-013 | TODO |
 | [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | TODO |
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | TODO |
-| [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | IN_PROGRESS |
+| [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | MERGED |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
 | [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | MERGED |
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |
