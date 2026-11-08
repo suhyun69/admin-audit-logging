@@ -1,0 +1,13 @@
+spring:
+  flyway:
+    locations: classpath:db/migration,classpath:db/local
+  datasource:
+    password: ${DB_PASSWORD:localpass}
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+
+audit:
+  cookie-secure: false

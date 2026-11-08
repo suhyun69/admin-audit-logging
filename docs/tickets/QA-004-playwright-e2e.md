@@ -1,0 +1,40 @@
+# QA-004 — MVP 브라우저 E2E
+
+- 담당: qa
+- 상태: MERGED
+- 브랜치: `codex/qa-004-playwright-e2e`
+- 시작 기준: QA-003·ADM-003·API-012 통합 후 격리 실행 도구와 인증 브라우저 검증을 선행 개발한다. 전체 선행 티켓 통합 후 최신 integration에서 전체 MVP를 검증해야 최종 승인한다.
+- 개발 시작 선행: QA-003, ADM-003, API-012
+- 통합 검증 선행: QA-002, QA-003, QA-005, ADM-009
+- 선행 티켓: QA-002, QA-003, QA-005, ADM-009
+- 검토·승인: orchestra
+
+## 목표와 수정 범위
+
+admin/tests/e2e, Playwright 설정, docs/qa/QA-004.md
+
+## 완료 기준
+
+ADMIN 로그인→검색→123 정지→감사 검색·timeline, VIEWER 직접 변경 차단, CLIENT 전송 오류에도 업무 성공
+
+## 검증
+
+격리 PostgreSQL·API·Next.js 대상으로 Playwright 실행, DB 결과·trace·실패 근거 기록
+
+검증 명령·실행 환경·실제 결과를 아래 보고에 기록한다. 필요한 의존 기능이 아직 없으면 통과로 간주하지 않고 NOT RUN으로 보고한다.
+
+## 커밋·푸시·머지 조건
+
+이 티켓의 고정 브랜치에서 실제 커밋·원격 푸시한 뒤 검토를 요청한다. orchestra 승인 후 integration에 머지·푸시하고 필요한 통합 검증을 수행한다. 코드 티켓은 자체 테스트와 해당 범위의 qa 검토를 포함한다. 검증 상세·변경 범위를 보고하고, 미래 QA 회귀 티켓을 현재 티켓의 선행 조건으로 추가하지 않는다.
+
+## 작업 및 승인 기록
+
+- 구현 요약: 전체MVP DB연결·역할·타임라인·summary·권한·오류회귀
+- 변경 파일 / 커밋 SHA: 42b1433bd6adee2fc083056963571a15859fbcb6
+- 원격 브랜치 / 푸시 결과: origin/codex/qa-004-playwright-e2e, push 성공
+- 검증 명령 / 결과: production실브라우저13/13 artifact2/2 fail0 skip0; lint typecheck PASS
+- 미해결 사항 / 전달 사항: 미작성
+- qa 검토 대상 SHA / 결과: 42b1433bd6adee2fc083056963571a15859fbcb6: orchestra exact42b1433 diff·safe-summary13행·격리cleanup검토 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: ed2ebeb8d0edaeee659429baf11f1c1d67e8f25e; integration push 성공
+- 통합 smoke 결과: production실브라우저13/13 artifact2/2 fail0 skip0; lint typecheck PASS

@@ -1,0 +1,40 @@
+# ADM-003 — 로그인·인증 레이아웃
+
+- 담당: admin
+- 상태: MERGED
+- 브랜치: `codex/adm-003-auth-layout`
+- 시작 기준: ADM-002와 ORC-003이 통합된 최신 integration에서 계약 기반 UI 개발을 시작한다. API-009는 아래 통합 검증 선행 조건이다.
+- 개발 시작 선행: ADM-002, ORC-003
+- 통합 검증 선행: API-009, ADM-010
+- 선행 티켓: ADM-002, API-009, ADM-010
+- 검토·승인: orchestra
+
+## 목표와 수정 범위
+
+admin/ 로그인·auth·layout
+
+## 완료 기준
+
+CSRF 획득·로그인·me·로그아웃, 역할 메뉴, 401 재인증, 사용자 전환과 로그아웃 Query 캐시 삭제
+
+## 검증
+
+실제 BFF/API 로그인·실패·로그아웃·CSRF·다른 사용자 캐시 격리 확인
+
+검증 명령·실행 환경·실제 결과를 아래 보고에 기록한다. 필요한 의존 기능이 아직 없으면 통과로 간주하지 않고 NOT RUN으로 보고한다.
+
+## 커밋·푸시·머지 조건
+
+이 티켓의 고정 브랜치에서 실제 커밋·원격 푸시한 뒤 검토를 요청한다. orchestra 승인 후 integration에 머지·푸시하고 필요한 통합 검증을 수행한다. 코드 티켓은 자체 테스트와 해당 범위의 qa 검토를 포함한다. 검증 상세·변경 범위를 보고하고, 미래 QA 회귀 티켓을 현재 티켓의 선행 조건으로 추가하지 않는다.
+
+## 작업 및 승인 기록
+
+- 구현 요약: 한국어 로그인·역할별 layout·세션 캐시격리·실BFF인증 연동
+- 변경 파일 / 커밋 SHA: f7fdfc961d3d5524b48edf744179dee1e62781cc
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-003-auth-layout, push 성공
+- 검증 명령 / 결과: unit13/lint/typecheck/build·dev/prod auth8+Origin7·DB중복/PII0 PASS; 브라우저E2E는QA004
+- 미해결 사항 / 전달 사항: 미작성
+- qa 검토 대상 SHA / 결과: f7fdfc961d3d5524b48edf744179dee1e62781cc: qa 정적/mock·실BFF GET/csrf 독립 확인 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: ea55cf2dcbc92ae004103dcaba5cd2060a83dcba; integration push 성공
+- 통합 smoke 결과: unit13/lint/typecheck/build·dev/prod auth8+Origin7·DB중복/PII0 PASS; 브라우저E2E는QA004

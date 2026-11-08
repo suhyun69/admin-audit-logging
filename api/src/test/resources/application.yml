@@ -1,0 +1,16 @@
+# Integration tests receive isolated PostgreSQL credentials from Testcontainers.
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
+logging:
+  level:
+    root: WARN
