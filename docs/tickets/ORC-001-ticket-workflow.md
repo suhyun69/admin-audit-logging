@@ -1,7 +1,7 @@
 # ORC-001 — 티켓·협업·브랜치 규칙 확정
 
 - 담당: orchestra
-- 상태: IN_REVIEW
+- 상태: APPROVED
 - 브랜치: `codex/orc-001-ticket-workflow`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: 없음
@@ -27,12 +27,12 @@ AGENTS.md, docs/agent-workflow.md, docs/branch-strategy.md, docs/tickets/
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 38개 티켓·협업·브랜치 규칙과 추적표 작성, qa 독립 검토 지적 반영
+- 구현 요약: 38개 티켓·역할·브랜치·검증 추적 정의
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 문서 정적 검사 PASS (ID·branch 유일성, 의존 DAG, 목록 일치, 로컬 링크)
+- 검증 명령 / 결과: 문서 정적 검사 PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: 70a86fc: qa 독립 검토 PASS, 권장 문구 반영
+- orchestra 결정 / 근거: 승인: 요구사항·변경·검증 증거 확인
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN
