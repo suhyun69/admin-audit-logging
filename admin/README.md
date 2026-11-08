@@ -65,3 +65,13 @@ ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit
 ```
 
 이 브라우저 smoke는 Playwright 설치가 필요합니다. 별도 worktree에 설치한 실행기를 읽기 전용으로 재사용하려면 `PLAYWRIGHT_MODULE`에 해당 `playwright/index.mjs` 절대 경로를 지정할 수 있습니다. 포커스·Escape·중복 제출·409·수집 실패 독립성·세 역할·404를 실제 API와 DB로 검증하며, trace·쿠키·토큰·비밀번호는 기록하지 않습니다. 선택적으로 `ADMIN_SMOKE_SCREENSHOT_DIR`을 지정하면 가짜 개발 시드 화면만 캡처합니다.
+
+
+감사 Explorer는 ADMIN의 전체 감사 조회와 각 역할의 본인 활동을 분리합니다. 한국 시간 입력을 UTC로 변환하며 현재 시각 기준 최근 24시간을 기본값으로 고정하고 최대 31일까지 조회합니다. 커서는 서버 문자열을 그대로 전달해 마이크로초·UUID 정렬 정밀도를 유지합니다. 비관리자 본인 조회에는 actorId를 보내지 않고 ADMIN 상세 요청·링크를 렌더링하지 않습니다. ADMIN의 행 상세 버튼은 요청 정보·메타데이터·변경 전후를 미리보기 패널로 표시합니다. CLIENT ATTEMPTED는 성공과 구분해 '시도'로 표시합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node --experimental-strip-types tests/smoke/audit-explorer.mjs
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 node tests/smoke/audit-explorer-browser.mjs
+```
+
+HTTP smoke는 격리 DB에 같은 마이크로초의 전용 fixture 22건을 삽입하고 검증 후 해당 fixture만 제거합니다. 브라우저 smoke는 기본 Playwright 또는 `PLAYWRIGHT_MODULE` 경로를 사용해 기간 검증·필터·페이지·상세 패널·오류 복구와 VIEWER/OPERATOR 권한을 확인합니다. 쿠키·토큰·검색 원문이나 trace는 출력·저장하지 않습니다.
