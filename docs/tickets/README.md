@@ -27,8 +27,8 @@
 | [API-008](API-008-csrf-authorization.md) | api | CSRF·역할과 서비스 권한 | API-007 | MERGED |
 | [API-009](API-009-security-http-audit.md) | api | SECURITY·HTTP 수집 | API-008 | MERGED |
 | [API-010](API-010-users-read.md) | api | 회원 목록·상세 조회 | API-009 | MERGED |
-| [API-011](API-011-users-status.md) | api | 회원 상태 변경과 낙관적 잠금 | API-010, API-017 | IN_PROGRESS |
-| [API-012](API-012-client-events.md) | api | CLIENT 수집·멱등성·제한 | API-009, ORC-004 | TODO |
+| [API-011](API-011-users-status.md) | api | 회원 상태 변경과 낙관적 잠금 | API-010, API-017 | MERGED |
+| [API-012](API-012-client-events.md) | api | CLIENT 수집·멱등성·제한 | API-009, ORC-004 | IN_PROGRESS |
 | [API-013](API-013-audit-search.md) | api | 감사 검색과 본인 활동 | API-012 | TODO |
 | [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | TODO |
 | [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | TODO |
