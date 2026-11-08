@@ -1,7 +1,7 @@
 # API-013 — 감사 검색과 본인 활동
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-013-audit-search`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: API-012
@@ -27,12 +27,12 @@ ADMIN 전체 검색, 인증 사용자 본인 조회, 복합 UUID/time keyset, �
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 감사 검색·본인범위·복합커서·EXPLAIN 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: ADMIN전체/본인검색·모든필터·정밀keyset·조회감사
+- 변경 파일 / 커밋 SHA: dae7cbad1c5dbc6d5e764256d8cd7ff013b0b0ca
+- 원격 브랜치 / 푸시 결과: origin/codex/api-013-audit-search, push 성공
+- 검증 명령 / 결과: 29tests PASS; 100k 실제EXPLAIN index선택·forcing없음·조건명시
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 실제 context·페이지/권한·독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: dae7cbad1c5dbc6d5e764256d8cd7ff013b0b0ca: qa 범위·nativeUUID·시간경계·실행계획 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 75ed829f0ece5c2d9db3a95455da22166603d126; integration push 성공
+- 통합 smoke 결과: 29tests PASS; 100k 실제EXPLAIN index선택·forcing없음·조건명시
