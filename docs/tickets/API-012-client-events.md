@@ -15,6 +15,8 @@ api/audit CLIENT controller/usecase·validation
 
 allowlist·크기·rate limit·시간 검증, 서버 actor/session/result, 최초 201·재전송 200·위조/충돌 처리
 
+정제된 화면 경로는 metadata.pagePath에 보존하고 AuditPrivacy metadata 허용 목록·검증을 확장한다. digest에만 넣고 원래 화면 정보를 잃지 않도록 한다. query/hash와 비허용 경로는 저장하지 않는다.
+
 ## 검증
 
 CLIENT-01/02, 동시 중복·다른 actor·다른 payload·429·민감 path 정제 검사

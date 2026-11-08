@@ -1,23 +1,12 @@
 package com.example.demo.common.web;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.common.request.RequestContext;
+import java.util.UUID;
 
-import java.time.Instant;
-import java.util.Map;
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public record ErrorResponse(
-        Instant timestamp,
-        int status,
-        String error,
-        String message,
-        Map<String, String> fieldErrors
-) {
-    public static ErrorResponse of(int status, String error, String message) {
-        return new ErrorResponse(Instant.now(), status, error, message, null);
-    }
-
-    public static ErrorResponse of(int status, String error, String message, Map<String, String> fieldErrors) {
-        return new ErrorResponse(Instant.now(), status, error, message, fieldErrors);
+public record ErrorResponse(String code, String message, UUID requestId) {
+    public static ErrorResponse of(ErrorCode code) {
+        UUID requestId = RequestContext.current().map(RequestContext::requestId).orElseGet(UUID::randomUUID);
+        return new ErrorResponse(code.name(), code.getMessage(), requestId);
     }
 }

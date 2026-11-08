@@ -4,6 +4,7 @@ server:
     session:
       cookie:
         name: AUDIT_CSRF_SESSION
+        path: /
         http-only: true
         same-site: lax
         secure: ${COOKIE_SECURE:true}
@@ -42,3 +43,6 @@ springdoc:
 logging:
   level:
     root: INFO
+
+audit:
+  cookie-secure: ${COOKIE_SECURE:true}

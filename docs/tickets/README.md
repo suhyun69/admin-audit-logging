@@ -1,6 +1,6 @@
 # 구현 티켓 목록
 
-재검토 결과 38개 티켓으로 세분화했다. 현재 상태는 아래 목록과 각 티켓의 증거 기록을 따른다. ORC-002의 api/.git 제거 부분만 사용자 요청으로 선행 수행했다.
+재검토 결과 39개 티켓으로 세분화했다. 현재 상태는 아래 목록과 각 티켓의 증거 기록을 따른다. ORC-002의 api/.git 제거 부분만 사용자 요청으로 선행 수행했다.
 각 브랜치는 선행 작업이 승인·원격 integration에 통합된 시점에 생성한다.
 [브랜치 전략](../branch-strategy.md)과 [재검토 결과](../ticket-review.md)를 따른다.
 
@@ -20,10 +20,10 @@
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |
 | [API-003](API-003-audit-schema.md) | api | 감사 스키마 V2 | API-002 | MERGED |
 | [API-004](API-004-local-seed.md) | api | 개발 전용 시드 V3 | API-003 | MERGED |
-| [API-005](API-005-request-context.md) | api | 요청 식별자와 공통 오류 | API-004, ORC-004 | IN_PROGRESS |
-| [API-006](API-006-audit-writer.md) | api | 원자적·독립 감사 저장 | API-005 | TODO |
-| [API-007](API-007-session-auth.md) | api | DB 세션 로그인·로그아웃 | API-006 | TODO |
-| [API-008](API-008-csrf-authorization.md) | api | CSRF·역할과 서비스 권한 | API-007 | TODO |
+| [API-005](API-005-request-context.md) | api | 요청 식별자와 공통 오류 | API-004, ORC-004 | MERGED |
+| [API-006](API-006-audit-writer.md) | api | 원자적·독립 감사 저장 | API-005, API-016 | MERGED |
+| [API-007](API-007-session-auth.md) | api | DB 세션 로그인·로그아웃 | API-006 | MERGED |
+| [API-008](API-008-csrf-authorization.md) | api | CSRF·역할과 서비스 권한 | API-007 | IN_PROGRESS |
 | [API-009](API-009-security-http-audit.md) | api | SECURITY·HTTP 수집 | API-008 | TODO |
 | [API-010](API-010-users-read.md) | api | 회원 목록·상세 조회 | API-009 | TODO |
 | [API-011](API-011-users-status.md) | api | 회원 상태 변경과 낙관적 잠금 | API-010 | TODO |
@@ -31,6 +31,7 @@
 | [API-013](API-013-audit-search.md) | api | 감사 검색과 본인 활동 | API-012 | TODO |
 | [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | TODO |
 | [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | TODO |
+| [API-016](API-016-request-filter-bean-name.md) | api | 요청 컨텍스트 필터 Bean 이름 충돌 수정 | API-005 | MERGED |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
 | [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | MERGED |
 | [INF-003](INF-003-ci-checks.md) | infra | CI 검증 파이프라인 | QA-004, INF-002 | TODO |
@@ -44,6 +45,7 @@
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | TODO |
 | [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | TODO |
 | [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | TODO |
+
 
 ## 배정과 상태 규칙
 
