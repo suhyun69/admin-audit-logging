@@ -1,7 +1,7 @@
 # API-006 — 원자적·독립 감사 저장
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-006-audit-writer`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: API-005, API-016
@@ -27,12 +27,12 @@ commit/rollback·별도 실패 저장·저장 오류를 PostgreSQL에서 검증
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 업무 원자성·독립 실패 감사 writer 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: 업무 참여·독립 저장·best effort 감사 writer 분리
+- 변경 파일 / 커밋 SHA: 5e0f1405f911a04e1a394f125ec8446214b2f6ba
+- 원격 브랜치 / 푸시 결과: origin/codex/api-006-audit-writer, push 성공
+- 검증 명령 / 결과: ArchUnit15+PostgreSQL tx6 PASS; atomic rollback·독립commit·관찰격리
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 5e0f1405f911a04e1a394f125ec8446214b2f6ba: qa 트랜잭션·개인정보·의존성 diff PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: c3abf5fd823fc3722cc778cb32e358c0d75c69b7; integration push 성공
+- 통합 smoke 결과: ArchUnit15+PostgreSQL tx6 PASS; atomic rollback·독립commit·관찰격리

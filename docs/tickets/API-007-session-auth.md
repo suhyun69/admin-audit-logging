@@ -1,7 +1,7 @@
 # API-007 — DB 세션 로그인·로그아웃
 
 - 담당: api
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/api-007-session-auth`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: API-006
@@ -27,12 +27,12 @@ api/auth, security 인증, 인증 controller/usecase, 기존 예제
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: opaque DB세션 로그인·로그아웃 배정
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: 구현 예정
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: 제출 후 실제 context와 독립검토
+- orchestra 결정 / 근거: 검토 대기
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN
