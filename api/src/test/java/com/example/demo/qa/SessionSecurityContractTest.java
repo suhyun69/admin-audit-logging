@@ -48,6 +48,7 @@ class SessionSecurityContractTest extends PostgresTestSupport {
             jdbc.update("INSERT INTO admin_users(username,password_hash,display_name,role) VALUES (?,?,?,?)",
                     role.toLowerCase(java.util.Locale.ROOT), hash, "Contract " + role, role);
         }
+        jdbc.update("INSERT INTO users(id,email,name) OVERRIDING SYSTEM VALUE VALUES (123,'security123@example.test','Security contract member')");
     }
 
     private Bootstrap csrf(Browser browser) throws Exception {
@@ -193,5 +194,65 @@ class SessionSecurityContractTest extends PostgresTestSupport {
         assertThat(com.example.demo.common.request.RequestContext.current()).isEmpty();
         assertThat(org.slf4j.MDC.get("requestId")).isNull();
         assertThat(jdbc.queryForObject("SELECT count(*) FROM audit_logs WHERE row_to_json(audit_logs)::text LIKE '%private-query%'", Integer.class)).isZero();
+    }
+
+    private MvcResult change(Browser actor, Bootstrap token, String target, long version) throws Exception {
+        return mvc.perform(patch("/api/v1/users/123/status").cookie(actor.auth()).session(token.session())
+                        .header("X-CSRF-TOKEN", token.token()).contentType(MediaType.APPLICATION_JSON)
+                        .content(json.writeValueAsString(Map.of("status", target, "version", version))))
+                .andReturn();
+    }
+
+    @Test
+    void actualWriteEndpointHasAdminOperatorPositiveControlsAndViewerCannotChangeDatabase() throws Exception {
+        Browser admin = login("admin");
+        assertThat(change(admin, csrf(admin), "SUSPENDED", 0).getResponse().getStatus()).isEqualTo(200);
+        Browser operator = login("operator");
+        assertThat(change(operator, csrf(operator), "ACTIVE", 1).getResponse().getStatus()).isEqualTo(200);
+        Browser viewer = login("viewer");
+        var denied = change(viewer, csrf(viewer), "SUSPENDED", 2);
+        assertThat(denied.getResponse().getStatus()).isEqualTo(403);
+        assertThat(json.readTree(denied.getResponse().getContentAsString()).get("code").asText()).isEqualTo("ACCESS_DENIED");
+        observations(denied, "AUTH_ACCESS_DENIED");
+        var member = jdbc.queryForMap("SELECT status,version FROM users WHERE id=123");
+        assertThat(member.get("status")).isEqualTo("ACTIVE");
+        assertThat(member.get("version")).isEqualTo(2L);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM audit_logs WHERE request_id=? AND source='BUSINESS'", Integer.class, requestId(denied))).isZero();
+    }
+
+    @Test
+    void oneCsrfTokenSurvivesThreeSequentialAndTwoConcurrentRealMutations() throws Exception {
+        Browser admin = login("admin");
+        Bootstrap token = csrf(admin);
+        String sessionId = token.session().getId();
+        var updatedAt = jdbc.queryForObject("SELECT updated_at FROM users WHERE id=123", java.sql.Timestamp.class);
+        for (int n = 0; n < 3; n++)
+            assertThat(change(admin, token, "ACTIVE", 0).getResponse().getStatus()).isEqualTo(200);
+        var ready = new java.util.concurrent.CountDownLatch(2);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var workers = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            var tasks = new java.util.ArrayList<java.util.concurrent.Future<Integer>>();
+            for (int n = 0; n < 2; n++) tasks.add(workers.submit(() -> {
+                ready.countDown();
+                if (!start.await(5, java.util.concurrent.TimeUnit.SECONDS)) throw new IllegalStateException("Mutation start timeout");
+                return change(admin, token, "ACTIVE", 0).getResponse().getStatus();
+            }));
+            assertThat(ready.await(5, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            start.countDown();
+            for (var result : tasks) assertThat(result.get(10, java.util.concurrent.TimeUnit.SECONDS)).isEqualTo(200);
+        } finally {
+            start.countDown();
+            workers.shutdownNow();
+            assertThat(workers.awaitTermination(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+        }
+        assertThat(token.session().getId().equals(sessionId)).isTrue();
+        assertThat(csrf(admin).token().equals(token.token())).isTrue();
+        assertThat(token.session().getAttribute("SPRING_SECURITY_CONTEXT")).isNull();
+        var row = jdbc.queryForMap("SELECT status,version,updated_at FROM users WHERE id=123");
+        assertThat(row.get("status")).isEqualTo("ACTIVE");
+        assertThat(row.get("version")).isEqualTo(0L);
+        assertThat(row.get("updated_at")).isEqualTo(updatedAt);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM audit_logs WHERE event_type='DATA_UPDATE'", Integer.class)).isZero();
     }
 }
