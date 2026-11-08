@@ -9,6 +9,8 @@
 - 선행 티켓: QA-001, API-011, API-013, ADM-003
 - 검토·승인: orchestra
 
+- 현재 단계: 부분 산출물 feec25c 보존. API-013 최종 검증 선행을 기다리는 동안 QA-003을 순차 수행한다.
+
 ## 목표와 수정 범위
 
 api/src/test/의 qa 전용 보안 계약 테스트, admin/tests/contracts/의 BFF 보안 계약 테스트, docs/qa/QA-002.md
