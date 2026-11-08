@@ -1,7 +1,7 @@
 # API-012 — CLIENT 수집·멱등성·제한
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-012-client-events`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: API-009, ORC-004
@@ -29,12 +29,12 @@ CLIENT-01/02, 동시 중복·다른 actor·다른 payload·429·민감 path 정�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: CLIENT 멱등 수집·제한·위조 방어 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: CLIENT canonical멱등수집·pagePath·서버identity·8KiB/rate/time제한
+- 변경 파일 / 커밋 SHA: 9b128046233bc8679ed7c20646d536405807df12
+- 원격 브랜치 / 푸시 결과: origin/codex/api-012-client-events, push 성공
+- 검증 명령 / 결과: 구조/CLIENT/rate/privacy/mutation 핵심36 PASS, 추가유형/충돌/UTF8/조회·최종CLIENT8/rate3·chunked PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 실제 context·동시중복·독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 9b128046233bc8679ed7c20646d536405807df12: qa strictschema·digest·멱등/limit·실Servlet diff PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: ba9ae812fd1f7256da38591ef3e770767d0bcc30; integration push 성공
+- 통합 smoke 결과: 구조/CLIENT/rate/privacy/mutation 핵심36 PASS, 추가유형/충돌/UTF8/조회·최종CLIENT8/rate3·chunked PASS
