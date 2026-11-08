@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -28,7 +27,8 @@ public class SecurityConfig {
         return http
                 .formLogin(config -> config.disable()).httpBasic(config -> config.disable()).logout(config -> config.disable())
                 .securityContext(config -> config.securityContextRepository(new NullSecurityContextRepository()))
-                .sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.NEVER))
+                // DB-cookie authentication is rebuilt per request; only explicit login/logout rotates CSRF state.
+                .sessionManagement(config -> config.requireExplicitAuthenticationStrategy(true))
                 .requestCache(config -> config.requestCache(new NullRequestCache()))
                 .csrf(config -> config.csrfTokenRepository(csrf).csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(config -> config
