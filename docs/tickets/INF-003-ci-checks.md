@@ -1,7 +1,7 @@
 # INF-003 — CI 검증 파이프라인
 
 - 담당: infra
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/inf-003-ci-checks`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: QA-004, INF-002
@@ -29,12 +29,12 @@
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 실제 원격 CI 및 최종 실행 문서 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: QA004 전체브라우저13/13 MERGED
+- 구현 요약: Java21 Node24 Postgres productionCI·필수카운터·안전artifact·최종실행문서
+- 변경 파일 / 커밋 SHA: 90d866e7a0be549fc5595f578250421106bcc88e
+- 원격 브랜치 / 푸시 결과: origin/codex/inf-003-ci-checks, push 성공
+- 검증 명령 / 결과: Actions42497369200 all4success: API145 Admin30 BFF6 E2E13 artifact2 fail0 skip0; cleanup·safeartifact2files PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: orchestra 개발 배정
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 90d866e7a0be549fc5595f578250421106bcc88e: qa exact90d866e 독립workflow/README리뷰 PASS; root실원격4jobs조회 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 54fafb5fd4e875547b2c929a85dd29a68e02633a; integration push 성공
+- 통합 smoke 결과: Actions42497369200 all4success: API145 Admin30 BFF6 E2E13 artifact2 fail0 skip0; cleanup·safeartifact2files PASS
