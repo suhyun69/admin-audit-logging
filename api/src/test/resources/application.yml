@@ -1,20 +1,16 @@
-# 테스트는 운영/개발용 파일 DB를 건드리지 않도록 인메모리 H2를 쓴다.
+# Integration tests receive isolated PostgreSQL credentials from Testcontainers.
 spring:
-  datasource:
-    url: jdbc:h2:mem:demo-test;DB_CLOSE_DELAY=-1
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
-
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     open-in-view: false
-
-  h2:
-    console:
-      enabled: false
-
+  flyway:
+    enabled: true
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
 logging:
   level:
-    org.hibernate.SQL: INFO
+    root: WARN
