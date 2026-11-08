@@ -47,3 +47,12 @@ ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit
 ```
 
 이 검사는 Docker 접근 권한과 개발 시드가 있는 전용 테스트 DB를 요구합니다. 기본 DB 사용자·이름은 audit/auditdb이며 `ADMIN_SMOKE_DB_USER`, `ADMIN_SMOKE_DB_NAME`으로 재정의할 수 있습니다. 비밀번호·쿠키·토큰 값은 출력하지 않습니다.
+
+
+회원 목록은 검색 제출·상태 필터·키셋 이전/다음 페이지를 지원합니다. 검색/필터를 바꾸면 첫 페이지로 돌아가며, 같은 검색 조건을 다시 제출해도 새 interaction으로 실제 조회합니다. query key에는 사용자·역할·인증 세션 epoch를 포함하고 취소 signal을 전달합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node --experimental-strip-types tests/smoke/users-list.mjs
+```
+
+이 smoke는 격리 DB에서 회원 조회·키셋 페이지·검색·빈 결과·필터 초기화와 CLIENT/HTTP/BUSINESS 상관관계를 확인합니다. 검색어 원문은 CLIENT payload나 감사 metadata에 넣지 않습니다.
