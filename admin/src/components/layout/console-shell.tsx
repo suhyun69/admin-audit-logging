@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Activity, LayoutDashboard, LogOut, ShieldCheck, Users, History } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
+import { RouteTracker } from "@/components/audit/route-tracker";
 import { ProtectedContent } from "@/components/auth/protected-content";
 import { Button } from "@/components/ui/button";
 import { roleLabels } from "@/lib/auth/types";
@@ -20,7 +21,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
     ...(actor?.role === "ADMIN" ? [{ href: "/audit-logs", label: "감사 로그", icon: Activity }] : []),
     { href: "/audit-logs/me", label: "내 활동", icon: History },
   ];
-  return <ProtectedContent><div className="min-h-screen lg:grid lg:grid-cols-[232px_1fr]">
+  return <ProtectedContent><RouteTracker /><div className="min-h-screen lg:grid lg:grid-cols-[232px_1fr]">
     <aside className="flex flex-col bg-[#13223b] text-slate-200 lg:sticky lg:top-0 lg:h-screen">
       <Link href="/dashboard" className="flex items-center gap-3 px-6 py-7"><span className="flex size-10 items-center justify-center rounded-xl bg-blue-500/20 text-blue-300"><ShieldCheck className="size-6" aria-hidden /></span><span><strong className="block text-sm tracking-wider text-white">ADMIN AUDIT</strong><span className="text-xs text-slate-400">관리자 감사 콘솔</span></span></Link>
       <p className="hidden px-6 pb-3 text-[10px] font-semibold tracking-[0.18em] text-slate-500 lg:block">WORKSPACE</p>

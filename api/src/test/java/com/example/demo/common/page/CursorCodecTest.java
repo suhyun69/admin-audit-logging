@@ -22,4 +22,18 @@ class CursorCodecTest {
         for(String value:new String[]{"","@@@",encode("{\"id\":1}")+"=","a".repeat(513)})
             assertThatThrownBy(()->cursors.user(value)).isInstanceOf(ApiException.class);
     }
+    @Test void auditCursorPreservesNativeUuidAndAllSixMicrosecondDigits() {
+        var instant=java.time.Instant.parse("2026-11-08T12:00:00.123456Z");var id=java.util.UUID.fromString("ffffffff-ffff-ffff-ffff-ffffffffffff");
+        assertThat(cursors.audit(cursors.audit(instant,id))).isEqualTo(new AuditCursorPosition(instant,id));
+    }
+    @Test void auditCursorRejectsUnknownDuplicateMalformedAndSubMicrosecondCoordinates() {
+        String id="ffffffff-ffff-ffff-ffff-ffffffffffff";
+        for(String json:new String[]{"{\"occurredAt\":\"2026-11-08T00:00:00Z\",\"id\":\""+id+"\",\"other\":1}",
+                "{\"occurredAt\":\"2026-11-08T00:00:00.000000001Z\",\"id\":\""+id+"\"}",
+                "{\"occurredAt\":\"bad\",\"id\":\""+id+"\"}",
+                "{\"occurredAt\":\"2026-11-08T00:00:00Z\",\"id\":\"1-1-1-1-1\"}",
+                "{\"occurredAt\":\"2026-11-08T00:00:00Z\",\"id\":\""+id+"\",\"id\":\""+id+"\"}"})
+            assertThatThrownBy(()->cursors.audit(encode(json))).isInstanceOfSatisfying(ApiException.class,error->assertThat(error.getErrorCode()).isEqualTo(ErrorCode.INVALID_CURSOR));
+    }
+
 }

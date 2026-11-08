@@ -45,7 +45,8 @@ public class SecurityConfig {
                             var code=exception instanceof CsrfException ? ErrorCode.CSRF_INVALID : ErrorCode.ACCESS_DENIED;
                             audit.failed(code); ApiErrors.write(response,mapper,code);
                         }))
-                .addFilterBefore(new OpaqueSessionFilter(provider),CsrfFilter.class)
+                .addFilterBefore(new ClientPayloadLimitFilter(mapper),CsrfFilter.class)
+                .addFilterBefore(new OpaqueSessionFilter(provider),ClientPayloadLimitFilter.class)
                 .build();
     }
 }
