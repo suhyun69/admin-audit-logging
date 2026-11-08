@@ -1,7 +1,7 @@
 # ADM-003 — 로그인·인증 레이아웃
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-003-auth-layout`
 - 시작 기준: ADM-002와 ORC-003이 통합된 최신 integration에서 계약 기반 UI 개발을 시작한다. API-009는 아래 통합 검증 선행 조건이다.
 - 개발 시작 선행: ADM-002, ORC-003
@@ -29,12 +29,12 @@ CSRF 획득·로그인·me·로그아웃, 역할 메뉴, 401 재인증, 사용�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 계약 기반 인증 UI 선행 개발; API009 연동 검증 전 통합 금지
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: mock·정적 검증부터 진행, 실제 인증 검증 대기
+- 구현 요약: 한국어 로그인·역할별 layout·세션 캐시격리·실BFF인증 연동
+- 변경 파일 / 커밋 SHA: f7fdfc961d3d5524b48edf744179dee1e62781cc
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-003-auth-layout, push 성공
+- 검증 명령 / 결과: unit13/lint/typecheck/build·dev/prod auth8+Origin7·DB중복/PII0 PASS; 브라우저E2E는QA004
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: API009 준비 후 실제 검증과 독립 리뷰
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: f7fdfc961d3d5524b48edf744179dee1e62781cc: qa 정적/mock·실BFF GET/csrf 독립 확인 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: ea55cf2dcbc92ae004103dcaba5cd2060a83dcba; integration push 성공
+- 통합 smoke 결과: unit13/lint/typecheck/build·dev/prod auth8+Origin7·DB중복/PII0 PASS; 브라우저E2E는QA004

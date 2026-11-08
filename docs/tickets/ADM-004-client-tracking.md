@@ -1,9 +1,11 @@
 # ADM-004 — 공통 CLIENT 수집
 
 - 담당: admin
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/adm-004-client-tracking`
-- 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
+- 시작 기준: ADM-003·ORC-004 통합 후 계약 기반 개발을 시작한다. API-012 통합 후 실제 BFF 수집을 검증해야 최종 승인한다.
+- 개발 시작 선행: ADM-003, ORC-004
+- 통합 검증 선행: API-012
 - 선행 티켓: ADM-003, API-012
 - 검토·승인: orchestra
 
@@ -27,12 +29,12 @@ CLIENT-03, 클릭 callback이 전송 오류에도 실행, StrictMode 중복·민
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: 공통 CLIENT 수집 계약기반 개발; 실제 API012 수집 검증 전 통합 금지
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: 구현 예정
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: 제출 후 unit·실BFF 검토
+- orchestra 결정 / 근거: 검토 대기
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN

@@ -1,10 +1,10 @@
 # API-011 — 회원 상태 변경과 낙관적 잠금
 
 - 담당: api
-- 상태: TODO
+- 상태: MERGED
 - 브랜치: `codex/api-011-users-status`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
-- 선행 티켓: API-010
+- 선행 티켓: API-010, API-017
 - 검토·승인: orchestra
 
 ## 목표와 수정 범위
@@ -27,12 +27,12 @@ WRITE-01~04, VIEWER 데이터 불변·동일 상태 무변경 검사
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 구현 요약: 버전 기반 상태변경·statuschanges·rollback후독립실패
+- 변경 파일 / 커밋 SHA: aca41958e963c3fb91ba7429c6a554de8ef0143c
+- 원격 브랜치 / 푸시 결과: origin/codex/api-011-users-status, push 성공
+- 검증 명령 / 결과: Arch15/Status8/Read6 총29PASS; 강제DB경합200/409·원자성/실패격리
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: aca41958e963c3fb91ba7429c6a554de8ef0143c: qa 권한·CAS·tx·강제경합 diff PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 6006f067982c2522f2263a49c17aa87eadec77c3; integration push 성공
+- 통합 smoke 결과: Arch15/Status8/Read6 총29PASS; 강제DB경합200/409·원자성/실패격리

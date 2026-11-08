@@ -13,7 +13,7 @@
 
 ## 완료 기준
 
-확정된 Java/Node 버전·lockfile 사용, API PostgreSQL 테스트·Admin lint/typecheck/build·E2E·Compose 검사, 테스트 결과 보관
+확정된 Java/Node 버전·lockfile 사용, API PostgreSQL 테스트·Admin lint/typecheck/build·E2E·Compose 검사, 테스트 결과 보관. admin/tests/contracts/*.test.ts 독립 BFF 계약 테스트도 CI에서 실제 실행한다.
 
 루트 README를 최종 검증된 명령·local 계정·서비스 주소·CI 및 E2E 실행 절차로 갱신한다. 초기 미구현 상태 문구를 실제 결과에 맞게 정리한다.
 
