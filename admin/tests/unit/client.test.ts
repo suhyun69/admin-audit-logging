@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { apiRequest, ApiError, resetCsrfToken } from "../../src/lib/api/client.ts";
+import { apiRequest, ApiError, getCsrfToken, resetCsrfToken } from "../../src/lib/api/client.ts";
 
 test("CSRF bootstrap is shared and login rotates cached token before the next mutation", async (t) => {
   resetCsrfToken();
@@ -31,4 +31,41 @@ test("typed errors preserve status/code/requestId and 401 invalidates CSRF", asy
   });
   await assert.rejects(apiRequest("/users/123/status",{method:"PATCH",body:{}}),(error:unknown) => error instanceof ApiError && error.status===401 && error.code==="UNAUTHENTICATED" && error.requestId==="request-1");
   denied=false;await apiRequest("/users/123/status",{method:"PATCH",body:{}});assert.equal(issues,2);
+});
+
+
+test("a deferred CSRF response cannot revive a token after a session reset", async (t) => {
+  resetCsrfToken();
+  let resolveOld!: (value: Response) => void;
+  let issues = 0;
+  t.mock.method(globalThis, "fetch", async () => {
+    issues++;
+    if (issues === 1) return new Promise<Response>((resolve) => { resolveOld = resolve; });
+    return Response.json({ token: "new-session-token", headerName: "X-CSRF-TOKEN" });
+  });
+  const oldRequest = getCsrfToken();
+  resetCsrfToken();
+  const newRequest = getCsrfToken();
+  assert.equal((await newRequest).token, "new-session-token");
+  resolveOld(Response.json({ token: "old-session-token", headerName: "X-CSRF-TOKEN" }));
+  assert.equal((await oldRequest).token, "new-session-token");
+  assert.equal((await getCsrfToken()).token, "new-session-token");
+  assert.equal(issues, 2);
+});
+
+
+test("an old rejected CSRF request does not clear a new session request in flight", async (t) => {
+  resetCsrfToken();
+  const pending: ((value: Response) => void)[] = [];
+  t.mock.method(globalThis, "fetch", async () => new Promise<Response>((resolve) => pending.push(resolve)));
+  const oldRequest = getCsrfToken();
+  resetCsrfToken();
+  const newRequest = getCsrfToken();
+  pending[0](Response.json({ code: "INTERNAL_ERROR", message: "오류", requestId: "old" }, { status: 500 }));
+  await assert.rejects(oldRequest, ApiError);
+  const sharedRequest = getCsrfToken();
+  assert.equal(pending.length, 2);
+  pending[1](Response.json({ token: "new-token", headerName: "X-CSRF-TOKEN" }));
+  assert.equal((await newRequest).token, "new-token");
+  assert.equal((await sharedRequest).token, "new-token");
 });

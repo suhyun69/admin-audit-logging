@@ -15,17 +15,22 @@ export class ApiError extends Error {
 type Csrf = { token: string; headerName: string };
 let csrf: Csrf | undefined;
 let csrfRequest: Promise<Csrf> | undefined;
+let csrfGeneration = 0;
 
-export function resetCsrfToken() { csrf = undefined; csrfRequest = undefined; }
+export function resetCsrfToken() { csrfGeneration++; csrf = undefined; csrfRequest = undefined; }
 
 export async function getCsrfToken(): Promise<Csrf> {
   if (csrf) return csrf;
   if (csrfRequest) return csrfRequest;
-  csrfRequest = apiRequest<Csrf>("/auth/csrf").then((value) => {
+  const generation = csrfGeneration;
+  const pending = apiRequest<Csrf>("/auth/csrf").then((value) => {
+    // A login/logout/401 may have crossed a session boundary while this was in flight.
+    if (generation !== csrfGeneration) return getCsrfToken();
     csrf = value;
     return value;
-  }).finally(() => { csrfRequest = undefined; });
-  return csrfRequest;
+  }).finally(() => { if (csrfRequest === pending) csrfRequest = undefined; });
+  csrfRequest = pending;
+  return pending;
 }
 
 export type ApiRequestOptions = Omit<RequestInit, "body"> & { body?: unknown; interactionId?: string };

@@ -11,7 +11,7 @@
 
 ## 준비
 
-Java 21 JDK, Node.js LTS, npm, Docker Engine과 Docker Compose가 필요합니다. Next.js의 최소 요구 버전은 Node.js 20.9이며 새 로컬 환경은 Node.js 24 LTS를 권장합니다. 실제 의존성은 `admin/package-lock.json`, Java 도구 체인은 `api/build.gradle`을 기준으로 사용합니다.
+Java 21 JDK, Node.js LTS, npm, Docker Engine과 Docker Compose가 필요합니다. Next.js 자체 최소 요구 버전은 Node.js 20.9이지만, 본 프로젝트의 테스트 도구 체인은 Node.js 24.0.0 이상을 요구하며 Node.js 24 LTS를 권장합니다. 실제 의존성은 `admin/package-lock.json`, Java 도구 체인은 `api/build.gradle`을 기준으로 사용합니다.
 
 ```bash
 java -version
