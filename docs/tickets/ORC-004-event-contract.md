@@ -1,7 +1,7 @@
 # ORC-004 — 이벤트·개인정보·수집 정책 확정
 
 - 담당: orchestra
-- 상태: TODO
+- 상태: APPROVED
 - 브랜치: `codex/orc-004-event-contract`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ORC-003
@@ -27,12 +27,12 @@ eventId 매핑·동일 payload 판단·다른 actor 충돌, action allowlist, pa
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: 이벤트·개인정보·중복·허용 action·상관관계 정책 확정, api/qa 지적 반영
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: 명세·위조 방어·트랜잭션 정책 독립 리뷰 PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: 4d31317 및 보완 diff: api/qa 리뷰 PASS
+- orchestra 결정 / 근거: 승인: 요구사항·변경·검증 증거 확인
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN
