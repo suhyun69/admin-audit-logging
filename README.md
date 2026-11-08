@@ -1,17 +1,22 @@
 # Admin Audit Logging
 
-관리자 인증·회원 조회·상태 변경과 CLIENT / SECURITY / HTTP / BUSINESS 감사 기록을 연결하는 프로젝트입니다.
+Next.js 관리자 UI, Spring Boot API, PostgreSQL로 관리자 행동과 업무 변경을 감사 기록으로 연결합니다. 브라우저의 CLIENT 시도, 서버의 SECURITY·HTTP 관찰, 확정된 BUSINESS 결과를 구분하고 같은 `interactionId`로 추적합니다.
 
-- `api/`: Java 21, Spring Boot API
-- `admin/`: Next.js App Router 관리자 UI와 같은 출처 BFF
-- `docker-compose.yml`: PostgreSQL 17 로컬 개발 인프라
-- [구현 명세](docs/admin-audit-implementation-spec.md), [API 계약](docs/api-spec.md), [티켓 목록](docs/tickets/README.md)
+| 경로 | 담당 기능 |
+|---|---|
+| `api/` | Java 21·Spring Boot 3.5·Spring Security·Flyway·PostgreSQL |
+| `admin/` | Node.js 24·Next.js App Router·TypeScript·TanStack Query·같은 출처 BFF |
+| `docker-compose.yml` | PostgreSQL 17 로컬 개발 인프라 |
+| `docs/tickets/` | 티켓·브랜치·검증·승인·원격 통합 기록 |
 
-현재 티켓별 구현이 진행 중입니다. 아래 DB 절차는 INF-001/002에서 검증했습니다. API·Admin 실행 명령은 각 구현 티켓 통합 이후 사용하며, 이 문서 작성 시점에 애플리케이션 전체 기동을 검증했다는 뜻은 아닙니다.
+루트 Git 저장소 하나가 `api/`와 `admin/`을 관리합니다. `api/` 안에서 별도 Git 저장소를 초기화하지 않습니다.
 
-## 준비
+## 요구 환경
 
-Java 21 JDK, Node.js LTS, npm, Docker Engine과 Docker Compose가 필요합니다. Next.js 자체 최소 요구 버전은 Node.js 20.9이지만, 본 프로젝트의 테스트 도구 체인은 Node.js 24.0.0 이상을 요구하며 Node.js 24 LTS를 권장합니다. 실제 의존성은 `admin/package-lock.json`, Java 도구 체인은 `api/build.gradle`을 기준으로 사용합니다.
+- Java 21 JDK: API Gradle toolchain과 E2E `JAVA_HOME` 모두 21을 사용합니다.
+- Node.js **24.0.0 이상**, npm: 재현 가능한 CI 기준은 Node.js 24 LTS입니다.
+- Docker Engine과 Docker Compose v2 이상: `--wait` 지원 버전이 필요합니다.
+- 브라우저 E2E는 lockfile의 Playwright Chromium을 별도로 설치합니다.
 
 ```bash
 java -version
@@ -20,7 +25,7 @@ npm --version
 docker compose version
 ```
 
-macOS에서 여러 JDK가 설치되어 있으면 API를 실행할 터미널에서 Java 21을 선택합니다.
+macOS에서 여러 JDK가 설치되어 있으면 실행 터미널에서 Java 21을 선택합니다. 다른 OS는 설치한 JDK 21 경로를 지정합니다.
 
 ```bash
 export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
@@ -28,11 +33,9 @@ export PATH="$JAVA_HOME/bin:$PATH"
 java -version
 ```
 
-다른 OS에서는 설치한 JDK 21 경로를 `JAVA_HOME`에 지정합니다.
+## 로컬 PostgreSQL
 
-## 환경변수와 PostgreSQL
-
-저장소 루트에서 시작합니다. `.env`와 `admin/.env.local`은 Git에 포함되지 않습니다. 예제 비밀번호는 로컬 개발 전용입니다.
+저장소 루트에서 `.env`를 준비하고 PostgreSQL만 Compose로 실행합니다. API와 Admin은 호스트에서 실행합니다.
 
 ```bash
 cp .env.example .env
@@ -42,21 +45,21 @@ docker compose ps
 docker compose exec -T postgres pg_isready -U audit -d auditdb
 ```
 
-Compose는 루트 `.env`를 읽습니다. 기본 접속 정보는 `127.0.0.1:5432`, DB `auditdb`, 사용자 `audit`입니다. 프로젝트 이름 `admin-audit-mvp`와 전용 named volume을 사용하므로 기존 `admin-audit-logging` Compose 프로젝트와 분리됩니다.
-
 | 변수 | 기본값 | 용도 |
 |---|---|---|
 | `POSTGRES_DB` | `auditdb` | 초기 DB 이름 |
 | `POSTGRES_USER` | `audit` | 초기 DB 사용자 |
-| `POSTGRES_PASSWORD` | `localpass` | 로컬 DB 비밀번호 |
-| `DB_HOST_PORT` | `5432` | 호스트 접속 포트, localhost에만 바인딩 |
-| `API_ORIGIN` | `http://localhost:8080` | Next.js 서버의 API upstream |
+| `POSTGRES_PASSWORD` | `localpass` | 로컬 개발 DB 비밀번호 |
+| `DB_HOST_PORT` | `5432` | `127.0.0.1`에 바인딩하는 호스트 포트 |
+| `API_ORIGIN` | `http://localhost:8080` | Next.js 서버 전용 API upstream |
 
-5432가 사용 중이면 `.env`의 `DB_HOST_PORT`를 빈 포트로 바꿉니다. `POSTGRES_*` 값은 **빈 데이터 볼륨을 최초 초기화할 때** 적용되므로 기존 볼륨이 있는 상태에서 환경변수만 바꾸어 DB 계정이 변경되지는 않습니다.
+Compose project는 `admin-audit-mvp`이며 전용 named volume을 사용합니다. 다른 DB와 포트가 충돌하면 `.env`의 `DB_HOST_PORT`를 바꿉니다. `POSTGRES_*`는 빈 volume 최초 초기화에 사용되므로 기존 DB 계정은 환경변수만 바꿔 갱신되지 않습니다.
+
+`.env`와 `admin/.env.local`은 Git에 포함하지 않습니다. 예제 비밀번호·local 시드는 개발용이며 운영에서 사용하지 않습니다.
 
 ## API 실행
 
-Spring Boot는 Compose의 `.env`를 자동으로 읽지 않습니다. 루트에서 아래 명령으로 신뢰하는 로컬 `.env`를 현재 터미널에 export하고 API용 변수로 연결합니다.
+Spring Boot는 Compose의 `.env`를 자동으로 읽지 않습니다. 루트에서 신뢰하는 로컬 `.env`를 현재 터미널에 export하고 DB 설정을 연결합니다.
 
 ```bash
 set -a
@@ -69,11 +72,19 @@ cd api
 ./gradlew bootRun --args='--spring.profiles.active=local'
 ```
 
-API 주소는 `http://localhost:8080`입니다. Flyway가 스키마를 관리하며 `local` 프로필에서만 개발용 관리자·회원 시드를 적용합니다. 운영 환경에서는 예제 자격 증명과 `local` 프로필을 사용하지 않습니다. DB 비밀번호를 바꿨다면 Compose 초기 계정과 `DB_PASSWORD`가 일치해야 합니다.
+API는 `http://localhost:8080`, 준비 상태는 `/actuator/health`입니다. Flyway V1·V2가 업무·감사 스키마를 생성하고 `local`에서만 V3가 BCrypt 관리자 3명과 회원 200명(ID 123 포함)을 삽입합니다. Hibernate는 스키마를 변경하지 않고 검증합니다.
+
+| 아이디 | 역할 | 허용 범위 |
+|---|---|---|
+| `admin` | ADMIN | 회원 조회·상태 변경, 전체 감사·상세·타임라인 |
+| `operator` | OPERATOR | 회원 조회·상태 변경, 본인 활동·대시보드 |
+| `viewer` | VIEWER | 회원 조회, 본인 활동·대시보드; 상태 변경 403 |
+
+세 개발 계정의 비밀번호는 **`local-test-password`**입니다. non-local 프로필에는 개발 시드가 적용되지 않으며 DB 비밀번호와 HTTPS 쿠키 설정을 외부 환경에서 제공해야 합니다.
 
 ## Admin 실행
 
-별도 터미널의 저장소 루트에서 서버 전용 upstream 설정을 만듭니다.
+별도 터미널에서 저장소 루트로 이동합니다. `API_ORIGIN`은 서버 전용이며 `NEXT_PUBLIC_` 접두사를 붙이지 않습니다.
 
 ```bash
 mkdir -p admin
@@ -83,11 +94,65 @@ npm ci
 npm run dev
 ```
 
-Admin 주소는 `http://localhost:3000`입니다. `.env.local`의 `API_ORIGIN`을 `NEXT_PUBLIC_` 변수로 바꾸지 않습니다. 브라우저는 같은 출처 `/api/v1/*`를 호출하고 Next.js 서버가 Spring Boot로 프록시합니다. 로그인은 CSRF 발급 후 수행하며 인증·CSRF 쿠키는 BFF를 통해 전달합니다.
+브라우저는 **`http://localhost:3000`**을 사용합니다. 같은 인증 세션에서 `localhost`와 `127.0.0.1`을 혼용하지 않습니다. `127.0.0.1`을 쓰려면 `npm run dev -- --hostname 127.0.0.1`로 시작하고 브라우저·Origin 모두 그 주소로 통일합니다. BFF는 실제 canonical origin을 검사하며 Host·forwarded 헤더로 검사를 완화하지 않습니다.
 
-## 종료·재시작
+production 실행은 `npm run build` 후 `npm run start`입니다. 화면·자체 smoke 상세는 [Admin 문서](admin/README.md)에 있습니다.
 
-API와 Admin 개발 프로세스는 각 터미널에서 `Ctrl+C`로 종료합니다. 아래 명령은 DB 데이터를 유지합니다.
+## 인증과 MVP 확인
+
+브라우저는 같은 출처 `/api/v1/*`만 호출합니다. BFF가 고정 API upstream으로 인증·CSRF 쿠키와 허용 헤더를 전달합니다.
+
+1. 로그인 전에 `GET /api/v1/auth/csrf`로 CSRF 토큰과 세션 쿠키를 받습니다.
+2. 로그인 POST에 `X-CSRF-TOKEN`을 보내고 인증 쿠키를 받습니다.
+3. 로그인·로그아웃 후 CSRF를 재발급받습니다. 상태 변경 요청도 현재 쿠키와 CSRF 토큰이 필요합니다.
+4. `admin`으로 로그인해 회원 목록에서 ID 123을 찾고 상세에서 상태를 변경합니다.
+5. 감사 Explorer에서 변경 전후 값과 같은 interactionId의 BUTTON_CLICK·HTTP_REQUEST·DATA_UPDATE 타임라인을 확인합니다.
+6. `viewer`로는 조회만 가능하며 직접 변경 요청도 403이고 DB 상태가 바뀌지 않습니다.
+
+UI가 쿠키·CSRF 갱신·인증 캐시 초기화를 처리합니다. CLIENT의 ATTEMPTED는 브라우저가 신고한 시도이며 실제 업무 성공을 뜻하지 않습니다. CLIENT 전송 실패는 회원 변경을 막지 않고, 서버 BUSINESS 성공 감사 저장 실패는 업무 변경도 롤백합니다.
+
+수동 API 검증도 로그인 전 CSRF 발급과 cookie jar가 필요합니다. 명세의 단순 로그인 예시를 CSRF 없이 실행하면 403입니다. 상태 변경은 조회한 최신 `version`을 보내며 충돌은 409입니다. 쿠키·토큰·비밀번호·검색어 원문을 로그나 공유 산출물에 남기지 않습니다.
+
+## 테스트
+
+루트에서 Compose 설정을 확인하고 Java 21 전체 백엔드 테스트와 실행 JAR를 빌드합니다. PostgreSQL 통합 테스트는 Testcontainers를 사용하므로 Docker가 필요하며 H2로 대체하지 않습니다. Spring Bean·필터·Security·프로필 변경에는 실제 SpringBootTest context 부팅 검증도 포함합니다.
+
+```bash
+docker compose --env-file .env.example config --quiet
+cd api
+./gradlew --no-daemon test bootJar
+```
+
+Admin은 다음 검사를 각각 실행합니다. Next.js build는 lint를 대신하지 않습니다.
+
+```bash
+cd admin
+npm ci
+npm run lint
+npm run typecheck
+npm run test:unit
+node --experimental-strip-types --test tests/contracts/*.test.ts
+npm run build
+```
+
+루트에서 경로를 기준으로 실행하거나 각 코드 블록의 시작 디렉터리로 다시 이동합니다. 브라우저 전체 인수 검증은 `admin/`에서 실행합니다.
+
+```bash
+npx --no-install playwright install --with-deps chromium
+npm run test:e2e
+```
+
+E2E harness가 고유 Compose project, random localhost 포트, 전용 **`qa_e2e` DB**와 새 volume을 만들고 API JAR·production Next.js·Chromium을 직접 기동합니다. 별도의 테스트 DB/API/Next.js를 미리 실행할 필요가 없습니다. 준비 상태와 fixture 123을 확인한 뒤 브라우저 테스트를 수행하고 자신이 생성한 프로세스·컨테이너·volume만 정리합니다. 로컬 `auditdb`나 다른 Compose project를 초기화하지 않습니다.
+
+## CI와 검증 결과
+
+GitHub Actions는 Java 21·Node 24에서 Compose 설정, PostgreSQL 계약·백엔드 전체 테스트, Admin lint·typecheck·unit·BFF 계약·build, 격리 production E2E를 실행합니다. 공식 Actions는 immutable commit SHA로 고정합니다. 실행 결과는 [GitHub Actions](https://github.com/suhyun69/admin-audit-logging/actions)와 각 티켓의 정확한 검토·통합 SHA로 확인합니다.
+
+공개 artifact는 `admin/test-results/**/safe-junit.xml`과 `safe-summary.json`만 보관합니다. 시나리오 제목·상태·실행 시간만 담으며 raw HTTP·쿠키·토큰·오류 call log·trace·video·스크린샷·전체 test-results는 업로드하지 않습니다. harness는 private 진단을 임시 디렉터리에 두고 기본적으로 종료 시 삭제합니다.
+
+## 종료와 데이터 보존
+
+API·Admin은 실행 터미널에서 `Ctrl+C`로 종료합니다. 다음 일반 명령은 DB 데이터를 보존합니다.
 
 ```bash
 docker compose stop postgres
@@ -97,37 +162,19 @@ docker compose down
 docker compose up -d --wait postgres
 ```
 
-`stop`/`start`는 일시 중지·재개, `restart`는 재기동, `down`/`up`은 컨테이너 재생성에 사용합니다. `down` 기본 동작은 named volume을 보존합니다.
-
-개발 DB를 완전히 초기화할 때만 아래 명령을 별도로 실행합니다. 이 프로젝트의 PostgreSQL 데이터 볼륨이 삭제됩니다.
+개발 DB의 모든 데이터와 감사 이력을 삭제하려는 경우에만 별도로 volume을 초기화합니다.
 
 ```bash
 docker compose down --volumes
 docker compose up -d --wait postgres
 ```
 
-## 검증
+## 읽을 문서
 
-DB 연결과 실제 버전을 확인합니다. 커스텀 DB 이름·사용자를 설정했다면 명령에도 같은 값을 사용합니다.
+- [구현 명세](docs/admin-audit-implementation-spec.md), [구현 계획](docs/admin-audit-implementation-plan.md)
+- [API 계약](docs/api-spec.md), [이벤트·개인정보 계약](docs/event-catalog.md)
+- [테스트 시나리오](docs/test-scenarios.md), [티켓·검증·승인 기록](docs/tickets/README.md)
+- [에이전트 협업](docs/agent-workflow.md), [브랜치 전략](docs/branch-strategy.md)
+- [Admin 화면·smoke 문서](admin/README.md)
 
-```bash
-docker compose --env-file .env.example config --quiet
-docker compose exec -T postgres psql -U audit -d auditdb -c 'SELECT current_database(), current_user, version();'
-```
-
-구현 통합 후에는 아래 검증을 수행합니다. Testcontainers 테스트에도 Docker가 실행 중이어야 합니다.
-
-```bash
-cd api
-./gradlew test
-```
-
-```bash
-cd admin
-npm run lint
-npm run typecheck
-npm run build
-npm run test:e2e
-```
-
-독립 QA·E2E 실행 환경과 최종 결과는 후속 QA 티켓에서 확정합니다. 진행 상태와 승인·원격 통합 기록은 [티켓 목록](docs/tickets/README.md)을 기준으로 확인합니다.
+SSE, Kafka/Outbox, 관리자 설정 CRUD, 대규모 부하·장기 보존 확장은 MVP 후속 범위입니다.
