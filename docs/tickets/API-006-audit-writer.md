@@ -4,7 +4,7 @@
 - 상태: IN_PROGRESS
 - 브랜치: `codex/api-006-audit-writer`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
-- 선행 티켓: API-005
+- 선행 티켓: API-005, API-016
 - 검토·승인: orchestra
 
 ## 목표와 수정 범위
