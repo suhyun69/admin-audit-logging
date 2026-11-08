@@ -6,7 +6,7 @@ package com.example.demo.common.exception;
 public class NotFoundException extends BusinessException {
 
     public NotFoundException(String message) {
-        super(ErrorCode.NOT_FOUND, message);
+        super(ErrorCode.RESOURCE_NOT_FOUND, message);
     }
 
     /** "리소스를 찾을 수 없습니다. id=3" 형태의 메시지를 만들어 준다. */
