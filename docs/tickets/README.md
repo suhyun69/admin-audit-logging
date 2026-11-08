@@ -31,7 +31,7 @@
 | [API-013](API-013-audit-search.md) | api | 감사 검색과 본인 활동 | API-012 | TODO |
 | [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | TODO |
 | [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | TODO |
-| [API-016](API-016-request-filter-bean-name.md) | api | 요청 컨텍스트 필터 Bean 이름 충돌 수정 | API-005 | IN_PROGRESS |
+| [API-016](API-016-request-filter-bean-name.md) | api | 요청 컨텍스트 필터 Bean 이름 충돌 수정 | API-005 | MERGED |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
 | [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | MERGED |
 | [INF-003](INF-003-ci-checks.md) | infra | CI 검증 파이프라인 | QA-004, INF-002 | TODO |

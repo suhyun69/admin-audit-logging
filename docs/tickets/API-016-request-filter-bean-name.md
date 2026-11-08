@@ -1,7 +1,7 @@
 # API-016 — 요청 컨텍스트 필터 Bean 이름 충돌 수정
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-016-request-filter-bean-name`
 - 시작 기준: API-005가 통합된 최신 integration
 - 선행 티켓: API-005
@@ -25,12 +25,12 @@ Java21·격리 PostgreSQL에서 DemoApplicationTests 실제 contextLoads, Reques
 
 ## 작업 및 승인 기록
 
-- 구현 요약: API-006 실제 context 검증 중 발견한 선행 통합 결함
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 구현 요약: Boot Bean 이름 충돌을 명시적 audit 필터명으로 해소
+- 변경 파일 / 커밋 SHA: 88c18f08af92674608a8ac653f9c7ff05dde493c
+- 원격 브랜치 / 푸시 결과: origin/codex/api-016-request-filter-bean-name, push 성공
+- 검증 명령 / 결과: 실제 Postgres SpringBootTest context+filter3 총4tests PASS
 - 미해결 사항 / 전달 사항: API-006 선행 차단
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 88c18f08af92674608a8ac653f9c7ff05dde493c: qa 한줄수정 독립검토 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 76679537e60b5c55199e1b428b15f0ab932ec149; integration push 성공
+- 통합 smoke 결과: 실제 Postgres SpringBootTest context+filter3 총4tests PASS
