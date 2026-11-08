@@ -13,7 +13,7 @@ SecurityConfig의 명시적 SessionAuthenticationStrategy 설정과 CSRF 반복�
 
 ## 완료 기준
 
-매 요청 DB opaque 인증을 신규 로그인으로 오인해 SessionManagementFilter/CsrfAuthenticationStrategy가 토큰을 삭제하는 동작을 제거한다. Spring 6.5는 NEVER와 explicit strategy 조합을 금지하므로 SecurityContext에 STATELESS + requireExplicitAuthenticationStrategy(true)를 사용한다. 인증은 기존 DB opaque 쿠키 세션을 유지하고 HttpSessionCsrfTokenRepository는 CSRF 전용으로 명시적으로 사용한다. 로그인 controller의 세션 ID 회전·CSRF 초기화, 인증 세션별 바인딩, 만료·로그아웃은 유지한다. CSRF를 끄거나 클라이언트 재시도로 오류를 숨기지 않는다.
+매 요청 DB opaque 인증을 신규 로그인으로 오인해 SessionManagementFilter/CsrfAuthenticationStrategy가 토큰을 삭제하는 동작을 제거한다. Spring 6.5는 sessionCreationPolicy 설정 호출과 explicit strategy 조합을 금지하므로 해당 enum 설정을 제거하고 requireExplicitAuthenticationStrategy(true)만 사용한다. NullSecurityContextRepository·NullRequestCache와 기존 DB opaque 쿠키 인증을 유지하며 HttpSessionCsrfTokenRepository는 CSRF 전용으로 명시적으로 사용한다. 실제 회귀 테스트로 인증 컨텍스트가 HttpSession에 저장되지 않음을 확인한다. 로그인 controller의 세션 ID 회전·CSRF 초기화, 인증 세션별 바인딩, 만료·로그아웃은 유지한다. CSRF를 끄거나 클라이언트 재시도로 오류를 숨기지 않는다.
 
 ## 검증
 
