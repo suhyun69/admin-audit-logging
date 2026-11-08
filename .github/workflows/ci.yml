@@ -1,0 +1,134 @@
+name: CI
+on:
+  push:
+    branches: [master, codex/**]
+  pull_request:
+    branches: [master, codex/integration]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  compose:
+    name: Compose configuration
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - run: docker compose --env-file .env.example config --quiet
+  api:
+    name: Java 21 PostgreSQL contracts
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: api
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            api/build.gradle
+            api/gradle/wrapper/gradle-wrapper.properties
+      - run: ./gradlew --no-daemon test bootJar
+      - name: Report backend test counters
+        run: |
+          python3 - <<'PYTEST'
+          from pathlib import Path
+          import xml.etree.ElementTree as ET
+          totals = dict(tests=0, failures=0, errors=0, skipped=0)
+          reports = list(Path("build/test-results/test").glob("TEST-*.xml"))
+          assert reports, "Backend test reports are required"
+          for report in reports:
+              suite = ET.parse(report).getroot()
+              for key in totals:
+                  totals[key] += int(suite.get(key, "0"))
+          print("Backend counters:", totals)
+          assert totals["tests"] > 0 and all(totals[key] == 0 for key in ("failures", "errors", "skipped"))
+          PYTEST
+  admin:
+    name: Node 24 admin checks
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: admin
+    env:
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm run test:unit
+      - run: node --experimental-strip-types --test tests/contracts/*.test.ts
+      - run: npm run build
+  e2e:
+    name: Isolated production browser contracts
+    needs: [compose, api, admin]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    defaults:
+      run:
+        working-directory: admin
+    env:
+      CI: 'true'
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+          cache-dependency-path: |
+            api/build.gradle
+            api/gradle/wrapper/gradle-wrapper.properties
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: admin/package-lock.json
+      - run: npm ci
+      - run: npx --no-install playwright install --with-deps chromium
+      # The harness owns its random-port DB, API, production Next.js and cleanup.
+      # setup-java exports JAVA_HOME pointing to the required Java 21 installation.
+      - run: npm run test:e2e
+      - name: Report safe browser counters
+        if: always()
+        run: |
+          python3 - <<'PYBROWSER'
+          from pathlib import Path
+          import json
+          reports = list(Path("test-results").glob("**/safe-summary.json"))
+          assert reports, "Safe browser reports are required"
+          totals = dict(tests=0, passed=0, failed=0, skipped=0)
+          for report in reports:
+              summary = json.loads(report.read_text())
+              for case in summary["tests"]:
+                  totals["tests"] += 1
+                  status = case["status"]
+                  totals[status if status in ("passed", "skipped") else "failed"] += 1
+          print("Browser counters:", totals)
+          assert totals["tests"] > 0 and totals["failed"] == totals["skipped"] == 0
+          PYBROWSER
+      - name: Upload allowlisted public browser results
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: safe-browser-results
+          path: |
+            admin/test-results/**/safe-junit.xml
+            admin/test-results/**/safe-summary.json
+          if-no-files-found: warn
+          retention-days: 7
