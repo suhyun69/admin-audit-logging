@@ -30,8 +30,8 @@
 | [API-011](API-011-users-status.md) | api | 회원 상태 변경과 낙관적 잠금 | API-010, API-017 | MERGED |
 | [API-012](API-012-client-events.md) | api | CLIENT 수집·멱등성·제한 | API-009, ORC-004 | MERGED |
 | [API-013](API-013-audit-search.md) | api | 감사 검색과 본인 활동 | API-012 | MERGED |
-| [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | IN_PROGRESS |
-| [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | TODO |
+| [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | MERGED |
+| [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | IN_PROGRESS |
 | [API-016](API-016-request-filter-bean-name.md) | api | 요청 컨텍스트 필터 Bean 이름 충돌 수정 | API-005 | MERGED |
 | [API-017](API-017-explicit-session-strategy.md) | api | CSRF 반복 요청 암묵 전략 결함 수정 | API-009 | MERGED |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
