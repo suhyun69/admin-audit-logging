@@ -20,6 +20,11 @@ class AuditPrivacyTest {
         assertThatThrownBy(() -> AuditPrivacy.pagePath("/unknown/person@example.test")).isInstanceOf(RuntimeException.class);
     }
     @Test
+    void clientPagePathIsPreservedOnlyAfterAllowlistAndQuerySanitization() {
+        assertThat(AuditPrivacy.metadata(Map.of("pagePath","/users/123?q=private#secret"))).containsEntry("pagePath","/users/123");
+        assertThat(AuditPrivacy.metadata(Map.of("pagePath","/private/person@example.test"))).doesNotContainKey("pagePath");
+    }
+    @Test
     void userAgentIsBoundedAndControlCharactersRemoved() {
         assertThat(AuditPrivacy.userAgent("a\r\nb")).isEqualTo("ab");
         assertThat(AuditPrivacy.userAgent("a".repeat(600))).hasSize(512);
