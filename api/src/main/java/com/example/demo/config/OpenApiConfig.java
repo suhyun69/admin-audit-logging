@@ -10,14 +10,14 @@ import org.springframework.context.annotation.Configuration;
 public class OpenApiConfig {
 
     @Bean
-    public OpenAPI demoOpenApi() {
+    public OpenAPI adminAuditOpenApi() {
         return new OpenAPI().info(new Info()
-                .title("Demo API")
+                .title("Admin Audit API")
                 .version("v1")
                 .description("""
-                        할 일(Todo) 관리 API.
+                        관리자 인증, 회원 관리 및 감사 로그 API.
 
-                        구조와 설계 규칙은 저장소 루트의 architecture.md 를 참고한다.
+                        구조와 설계 규칙은 api/architecture.md 를 참고한다.
                         요청/응답은 WebRequest → AppRequest → 도메인 → AppResponse → WebResponse 순으로 변환된다.
                         """)
                 .license(new License().name("Unlicensed")));
