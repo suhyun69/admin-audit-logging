@@ -17,7 +17,7 @@
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | TODO |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
 | [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | MERGED |
-| [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | TODO |
+| [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |
 | [API-003](API-003-audit-schema.md) | api | 감사 스키마 V2 | API-002 | TODO |
 | [API-004](API-004-local-seed.md) | api | 개발 전용 시드 V3 | API-003 | TODO |
 | [API-005](API-005-request-context.md) | api | 요청 식별자와 공통 오류 | API-004, ORC-004 | TODO |
