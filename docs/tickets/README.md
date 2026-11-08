@@ -6,7 +6,7 @@
 
 | ID | 담당 | 작업 | 선행 티켓 | 상태 |
 |---|---|---|---|---|
-| [ADM-001](ADM-001-next-foundation.md) | admin | Next.js 기반 생성 | ORC-003 | TODO |
+| [ADM-001](ADM-001-next-foundation.md) | admin | Next.js 기반 생성 | ORC-003 | MERGED |
 | [ADM-002](ADM-002-api-proxy.md) | admin | 허용 목록 BFF와 API 클라이언트 | ADM-001, ORC-004 | TODO |
 | [ADM-003](ADM-003-auth-layout.md) | admin | 로그인·인증 레이아웃 | ADM-002, API-009 | TODO |
 | [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | TODO |
@@ -32,14 +32,14 @@
 | [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | TODO |
 | [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | TODO |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
-| [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | TODO |
+| [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | MERGED |
 | [INF-003](INF-003-ci-checks.md) | infra | CI 검증 파이프라인 | QA-004, INF-002 | TODO |
 | [ORC-001](ORC-001-ticket-workflow.md) | orchestra | 티켓·협업·브랜치 규칙 확정 | 없음 | MERGED |
 | [ORC-002](ORC-002-repository-baseline.md) | orchestra | 단일 저장소 소스 기준점 확보 | ORC-001 | MERGED |
 | [ORC-003](ORC-003-api-contract.md) | orchestra | API·권한·인증 계약 확정 | ORC-002 | MERGED |
 | [ORC-004](ORC-004-event-contract.md) | orchestra | 이벤트·개인정보·수집 정책 확정 | ORC-003 | MERGED |
 | [ORC-005](ORC-005-mvp-acceptance.md) | orchestra | 최종 검토와 MVP 승인 | INF-003 | TODO |
-| [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | TODO |
+| [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | MERGED |
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | TODO |
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | TODO |
 | [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | TODO |
