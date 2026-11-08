@@ -1,7 +1,7 @@
 # API-008 — CSRF·역할과 서비스 권한
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-008-csrf-authorization`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: API-007
@@ -27,12 +27,12 @@ CSRF 누락·다른 세션 토큰, security matcher·서비스 guard 단위/통�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 세션별 CSRF·역할별 경로/서비스 인가 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: 인증세션별 CSRF·role matcher·서비스guard·자기logout
+- 변경 파일 / 커밋 SHA: 3e456f0a46d27ccc50d67f14505f38a1623bc350
+- 원격 브랜치 / 푸시 결과: origin/codex/api-008-csrf-authorization, push 성공
+- 검증 명령 / 결과: 실제 context·ArchUnit15/Auth5/CSRF4 PASS, role추가후CSRF4 PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 실제 context와 독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 3e456f0a46d27ccc50d67f14505f38a1623bc350: qa CSRF·경로/서비스권한 diff PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 65d01aa55e0571e27759f460bc00d712c4345506; integration push 성공
+- 통합 smoke 결과: 실제 context·ArchUnit15/Auth5/CSRF4 PASS, role추가후CSRF4 PASS

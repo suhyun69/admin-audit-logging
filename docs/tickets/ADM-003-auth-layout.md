@@ -5,8 +5,8 @@
 - 브랜치: `codex/adm-003-auth-layout`
 - 시작 기준: ADM-002와 ORC-003이 통합된 최신 integration에서 계약 기반 UI 개발을 시작한다. API-009는 아래 통합 검증 선행 조건이다.
 - 개발 시작 선행: ADM-002, ORC-003
-- 통합 검증 선행: API-009
-- 선행 티켓: ADM-002, API-009
+- 통합 검증 선행: API-009, ADM-010
+- 선행 티켓: ADM-002, API-009, ADM-010
 - 검토·승인: orchestra
 
 ## 목표와 수정 범위

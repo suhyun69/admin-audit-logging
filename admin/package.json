@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "test": "npm run test:unit",
     "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",
-    "test:smoke:auth": "node tests/smoke/auth-http.mjs"
+    "test:smoke:auth": "node tests/smoke/auth-http.mjs",
+    "test:smoke:origin": "node tests/smoke/origin-http.mjs"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.5.0",
