@@ -10,6 +10,7 @@ import { SessionBoundary } from "@/lib/auth/session";
 
 type AuthContextValue = {
   actor: Actor | null;
+  sessionEpoch: number;
   loading: boolean;
   error: Error | null;
   login: (username: string, password: string) => Promise<void>;
@@ -87,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return <AuthContext.Provider value={{
     actor: suspended ? null : me.data ?? null,
+    sessionEpoch: epoch,
     loading: suspended || (!isPublic && me.isPending),
     error: me.error,
     login,
