@@ -32,7 +32,7 @@
 | GET | /audit-logs/interactions/{id} | UUID | 200 `{items:[AuditDetail],nextCursor,hasNext}`, ADMIN, 시간/id 오름차순, size/cursor 지원 |
 | GET | /audit-logs/summary | from,to | 200 Summary, 인증; ADMIN 전체·나머지 본인 |
 
-`/audit-logs/me`, `/summary`, `/interactions/*` 고정 경로는 UUID 상세보다 우선한다.
+`/audit-logs/me`, `/summary`, `/interactions/*` 고정 경로는 UUID 상세보다 우선한다. interaction은 전체 기간을 대상으로 size/cursor만 허용하며 from/to 등 미지원 필터는 400이다. 존재하지 않는 interaction은 빈 page 200, 없는 상세 UUID는 AUDIT_NOT_FOUND 404다. 상세·변경·타임라인은 동일 REPEATABLE_READ snapshot으로 읽고 metadata/path/UA/변경 필드를 출력 시에도 정제한다.
 
 CLIENT 필드 상세는 [이벤트 계약](event-catalog.md)에 정의한다(ORC-004에서 추가).
 

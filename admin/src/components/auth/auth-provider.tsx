@@ -5,10 +5,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { ApiError, apiRequest, resetCsrfToken } from "@/lib/api/client";
 import { authQueryKey, type Actor } from "@/lib/auth/types";
+import { resetClientTrackingSession } from "@/lib/audit/track-event";
 import { SessionBoundary } from "@/lib/auth/session";
 
 type AuthContextValue = {
   actor: Actor | null;
+  sessionEpoch: number;
   loading: boolean;
   error: Error | null;
   login: (username: string, password: string) => Promise<void>;
@@ -37,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const clearBoundary = useCallback(async () => {
     setSuspended(true);
+    resetClientTrackingSession();
     resetCsrfToken();
     const next = await boundary.reset(queryClient);
     if (boundary.isCurrent(next)) setEpoch(next);
@@ -85,6 +88,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return <AuthContext.Provider value={{
     actor: suspended ? null : me.data ?? null,
+    sessionEpoch: epoch,
     loading: suspended || (!isPublic && me.isPending),
     error: me.error,
     login,

@@ -35,3 +35,33 @@ ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13001 npm run test:smoke:origin
 
 서버 hostname을 `localhost`로 지정한 경우에는 테스트 URL도 `http://localhost:13001`을 사용합니다. 잘못된 비밀번호로 upstream 도달 여부만 확인하므로 개발용 시드가 있는 격리 API·DB를 대상으로 실행합니다. 누락·외부 Origin과 위조 Host·X-Forwarded-Host가 거부되는지 확인합니다.
 
+
+
+공통 CLIENT 수집은 `src/lib/audit/track-event.ts`의 `trackEvent`, `trackUserSearch`, `trackFilterChange`를 사용합니다. 주요 회원 상태 버튼은 `AuditButton`의 `onClick(interactionId)`에서 업무 PATCH에 같은 ID를 전달합니다. RouteTracker는 인증된 화면 진입을 기록하며 검색어·query/hash·actor·result는 전송하지 않습니다. 전송은 업무 callback을 기다리게 하지 않고 같은 payload로 최대 세 번만 재시도합니다. 로그인·로그아웃·401 경계에서는 이전 세션의 미완료 수집을 취소합니다.
+
+
+CLIENT 실제 연동 smoke는 동일한 격리 API·DB에서 최초 201·동일 재전송 200, 인증 신원·세션·ATTEMPTED·pagePath 정제, 버튼/HTTP/업무 변경 상관관계를 DB와 함께 확인합니다. 수집 요청만 네트워크 실패시켜도 회원 변경 callback이 계속 성공하는지도 검사합니다. 회원 123의 상태는 원래 상태로 복원하지만 검증 과정에서 version과 감사 이력은 증가합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node --experimental-strip-types tests/smoke/client-events.mjs
+```
+
+이 검사는 Docker 접근 권한과 개발 시드가 있는 전용 테스트 DB를 요구합니다. 기본 DB 사용자·이름은 audit/auditdb이며 `ADMIN_SMOKE_DB_USER`, `ADMIN_SMOKE_DB_NAME`으로 재정의할 수 있습니다. 비밀번호·쿠키·토큰 값은 출력하지 않습니다.
+
+
+회원 목록은 검색 제출·상태 필터·키셋 이전/다음 페이지를 지원합니다. 검색/필터를 바꾸면 첫 페이지로 돌아가며, 같은 검색 조건을 다시 제출해도 새 interaction으로 실제 조회합니다. query key에는 사용자·역할·인증 세션 epoch를 포함하고 취소 signal을 전달합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node --experimental-strip-types tests/smoke/users-list.mjs
+```
+
+이 smoke는 격리 DB에서 회원 조회·키셋 페이지·검색·빈 결과·필터 초기화와 CLIENT/HTTP/BUSINESS 상관관계를 확인합니다. 검색어 원문은 CLIENT payload나 감사 metadata에 넣지 않습니다.
+
+
+회원 상세는 ADMIN·OPERATOR의 상태 변경과 VIEWER의 조회 전용 화면을 구분합니다. 확인 모달은 버튼 클릭에서 만든 interactionId와 당시 version을 유지하며 중복 확인·변경 중 닫기를 막습니다. 409가 발생하면 최신 정보를 조회하고 다시 확인하도록 안내합니다. 성공 시 현재 사용자·역할·세션 범위의 상세와 목록 캐시를 무효화합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node tests/smoke/user-detail-browser.mjs
+```
+
+이 브라우저 smoke는 Playwright 설치가 필요합니다. 별도 worktree에 설치한 실행기를 읽기 전용으로 재사용하려면 `PLAYWRIGHT_MODULE`에 해당 `playwright/index.mjs` 절대 경로를 지정할 수 있습니다. 포커스·Escape·중복 제출·409·수집 실패 독립성·세 역할·404를 실제 API와 DB로 검증하며, trace·쿠키·토큰·비밀번호는 기록하지 않습니다. 선택적으로 `ADMIN_SMOKE_SCREENSHOT_DIR`을 지정하면 가짜 개발 시드 화면만 캡처합니다.

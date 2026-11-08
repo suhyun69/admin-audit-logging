@@ -1,19 +1,19 @@
 # ADM-007 — Explorer·본인 활동
 
 - 담당: admin
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/adm-007-audit-explorer`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
-- 선행 티켓: ADM-004, API-013
+- 선행 티켓: ADM-004, API-013, API-014
 - 검토·승인: orchestra
 
 ## 목표와 수정 범위
 
-admin/ audit 검색·필터·테이블·본인 활동
+admin/ audit 검색·필터·테이블·본인 활동·ADMIN 상세 미리보기 패널
 
 ## 완료 기준
 
-ADMIN 전체·다른 역할 본인 scope, 기간/actor/type/result 등 계약 필터와 keyset, ATTEMPTED 표시
+ADMIN 전체·다른 역할 본인 scope, 기간/actor/type/result 등 계약 필터와 keyset, ATTEMPTED 표시. ADMIN은 행 선택으로 상세 패널을 열어 request 정보·metadata·변경 전후를 확인하며 전체 상세·타임라인 페이지 링크는 ADM-008에서 완성한다. 비ADMIN 본인 활동에는 ADMIN 전용 상세 요청·링크를 노출하지 않는다.
 
 ## 검증
 
@@ -27,12 +27,12 @@ ADMIN 전체·다른 역할 본인 scope, 기간/actor/type/result 등 계약 �
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: Explorer필터·본인활동·ADMIN 상세패널 배정
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: 구현 예정
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: 제출 후 실BFF/브라우저·독립검토
+- orchestra 결정 / 근거: 검토 대기
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN

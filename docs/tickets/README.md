@@ -9,10 +9,10 @@
 | [ADM-001](ADM-001-next-foundation.md) | admin | Next.js 기반 생성 | ORC-003 | MERGED |
 | [ADM-002](ADM-002-api-proxy.md) | admin | 허용 목록 BFF와 API 클라이언트 | ADM-001, ORC-004 | MERGED |
 | [ADM-003](ADM-003-auth-layout.md) | admin | 로그인·인증 레이아웃 | ADM-002, API-009, ADM-010 | MERGED |
-| [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | IN_PROGRESS |
-| [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | TODO |
-| [ADM-006](ADM-006-users-detail.md) | admin | 회원 상세·상태 확인 모달 | ADM-005, API-011 | TODO |
-| [ADM-007](ADM-007-audit-explorer.md) | admin | Explorer·본인 활동 | ADM-004, API-013 | TODO |
+| [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | MERGED |
+| [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | MERGED |
+| [ADM-006](ADM-006-users-detail.md) | admin | 회원 상세·상태 확인 모달 | ADM-005, API-011 | MERGED |
+| [ADM-007](ADM-007-audit-explorer.md) | admin | Explorer·본인 활동 | ADM-004, API-013, API-014 | IN_PROGRESS |
 | [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | TODO |
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | TODO |
 | [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | MERGED |
@@ -29,9 +29,9 @@
 | [API-010](API-010-users-read.md) | api | 회원 목록·상세 조회 | API-009 | MERGED |
 | [API-011](API-011-users-status.md) | api | 회원 상태 변경과 낙관적 잠금 | API-010, API-017 | MERGED |
 | [API-012](API-012-client-events.md) | api | CLIENT 수집·멱등성·제한 | API-009, ORC-004 | MERGED |
-| [API-013](API-013-audit-search.md) | api | 감사 검색과 본인 활동 | API-012 | IN_PROGRESS |
-| [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | TODO |
-| [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | TODO |
+| [API-013](API-013-audit-search.md) | api | 감사 검색과 본인 활동 | API-012 | MERGED |
+| [API-014](API-014-audit-details.md) | api | 감사 상세·타임라인 | API-013, API-011 | MERGED |
+| [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | MERGED |
 | [API-016](API-016-request-filter-bean-name.md) | api | 요청 컨텍스트 필터 Bean 이름 충돌 수정 | API-005 | MERGED |
 | [API-017](API-017-explicit-session-strategy.md) | api | CSRF 반복 요청 암묵 전략 결함 수정 | API-009 | MERGED |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
@@ -43,10 +43,10 @@
 | [ORC-004](ORC-004-event-contract.md) | orchestra | 이벤트·개인정보·수집 정책 확정 | ORC-003 | MERGED |
 | [ORC-005](ORC-005-mvp-acceptance.md) | orchestra | 최종 검토와 MVP 승인 | INF-003 | TODO |
 | [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | MERGED |
-| [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | IN_PROGRESS |
+| [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | MERGED |
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | MERGED |
 | [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | IN_PROGRESS |
-| [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | TODO |
+| [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | MERGED |
 
 
 ## 배정과 상태 규칙

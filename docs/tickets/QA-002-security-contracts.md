@@ -1,7 +1,7 @@
 # QA-002 — 인증·권한 독립 검증
 
 - 담당: qa
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/qa-002-security-contracts`
 - 시작 기준: QA-001·API-009·ADM-002 통합 후 인증·BFF 테스트 개발을 시작하고 최종 선행 충족 후 최신 integration에서 전체 재검증한다.
 - 개발 시작 선행: QA-001, API-009, ADM-002
@@ -9,7 +9,7 @@
 - 선행 티켓: QA-001, API-011, API-013, ADM-003
 - 검토·승인: orchestra
 
-- 현재 단계: 부분 산출물 feec25c 보존. API-013 최종 검증 선행을 기다리는 동안 QA-003을 순차 수행한다.
+- 현재 단계: 모든 선행 통합과 최종 양성/음성 대조를 완료했다.
 
 ## 목표와 수정 범위
 
@@ -31,12 +31,12 @@ AUTH-01~03·ACL-01~02, CSRF·BFF 쿠키·세션 만료·위조·SECURITY 중복�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 인증·BFF 계약 테스트 선행 개발, 실제회원/감사API 준비 후 최종검증
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 개발중; 최종선행 전 미완료
+- 구현 요약: 세션·CSRF·role·본인감사범위·BFF 독립 검증 최종완료
+- 변경 파일 / 커밋 SHA: b5de8f1fb03d7fd6e25a05b774ba61826820279e
+- 원격 브랜치 / 푸시 결과: origin/codex/qa-002-security-contracts, push 성공
+- 검증 명령 / 결과: Postgres 보안10/BFF독립6/Next실인증8 PASS·skip0·scope양성·반복CSRF
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: orchestra 검토 예정
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: b5de8f1fb03d7fd6e25a05b774ba61826820279e: orchestra 실제양성/음성대조·격리·실행증거 승인
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 36c1a4a12d3f64d90137c4acbf483e9a24cf166c; integration push 성공
+- 통합 smoke 결과: Postgres 보안10/BFF독립6/Next실인증8 PASS·skip0·scope양성·반복CSRF

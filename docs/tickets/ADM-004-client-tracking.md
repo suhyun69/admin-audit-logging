@@ -1,7 +1,7 @@
 # ADM-004 — 공통 CLIENT 수집
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-004-client-tracking`
 - 시작 기준: ADM-003·ORC-004 통합 후 계약 기반 개발을 시작한다. API-012 통합 후 실제 BFF 수집을 검증해야 최종 승인한다.
 - 개발 시작 선행: ADM-003, ORC-004
@@ -29,12 +29,12 @@ CLIENT-03, 클릭 callback이 전송 오류에도 실행, StrictMode 중복·민
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 공통 CLIENT 수집 계약기반 개발; 실제 API012 수집 검증 전 통합 금지
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: 세션경계 안전·비차단·멱등재시도·공통Route/AuditButton추적
+- 변경 파일 / 커밋 SHA: 7fd406197744ec16a5f64fbcf6f632e3c5446971
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-004-client-tracking, push 성공
+- 검증 명령 / 결과: unit20/lint/typecheck/build·prodCLIENT201/200/DB1·interaction연결·수집실패업무성공PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 unit·실BFF 검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 7fd406197744ec16a5f64fbcf6f632e3c5446971: qa 정적/mock·실BFF smoke 증거 최종PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 8fdf1e5ab7b7221a0d2014b05a4ed40add82d6df; integration push 성공
+- 통합 smoke 결과: unit20/lint/typecheck/build·prodCLIENT201/200/DB1·interaction연결·수집실패업무성공PASS
