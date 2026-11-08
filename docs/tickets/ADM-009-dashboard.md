@@ -1,7 +1,7 @@
 # ADM-009 — 역할별 대시보드
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-009-dashboard`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ADM-008, ADM-006, API-015
@@ -27,12 +27,12 @@ admin/ dashboard·요약 query, admin/README.md 최종 화면·인증·실행·�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 역할별 대시보드 마지막UI 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: ADM008 ADM006 API015 MERGED
+- 구현 요약: 서버집계 역할별대시보드·최근10건·24h새로고침·최종Admin문서
+- 변경 파일 / 커밋 SHA: f2a7384c3577b5f3780942185e7f47302e5fb3cc
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-009-dashboard, push 성공
+- 검증 명령 / 결과: 30unit lint typecheck build; real3role SQL/API/browser counts recent IDs refresh PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: orchestra 개발 배정
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: f2a7384c3577b5f3780942185e7f47302e5fb3cc: qa f2a7384 exactSHA 독립리뷰 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: dcd26d0618ca33fba6323829e0020155f588881f; integration push 성공
+- 통합 smoke 결과: 30unit lint typecheck build; real3role SQL/API/browser counts recent IDs refresh PASS
