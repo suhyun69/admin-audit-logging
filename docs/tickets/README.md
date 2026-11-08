@@ -19,8 +19,8 @@
 | [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | MERGED |
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |
 | [API-003](API-003-audit-schema.md) | api | 감사 스키마 V2 | API-002 | MERGED |
-| [API-004](API-004-local-seed.md) | api | 개발 전용 시드 V3 | API-003 | TODO |
-| [API-005](API-005-request-context.md) | api | 요청 식별자와 공통 오류 | API-004, ORC-004 | TODO |
+| [API-004](API-004-local-seed.md) | api | 개발 전용 시드 V3 | API-003 | MERGED |
+| [API-005](API-005-request-context.md) | api | 요청 식별자와 공통 오류 | API-004, ORC-004 | IN_PROGRESS |
 | [API-006](API-006-audit-writer.md) | api | 원자적·독립 감사 저장 | API-005 | TODO |
 | [API-007](API-007-session-auth.md) | api | DB 세션 로그인·로그아웃 | API-006 | TODO |
 | [API-008](API-008-csrf-authorization.md) | api | CSRF·역할과 서비스 권한 | API-007 | TODO |
