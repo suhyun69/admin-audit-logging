@@ -22,7 +22,7 @@ public class AuditRequestMapper {
                 actor == null ? null : actor.role(), actor == null ? null : actor.sessionId(),
                 request.interactionId(), request.requestId(), AuditSource.valueOf(request.source()),
                 request.resourceType(), request.resourceId(), http == null ? null : http.method(),
-                http == null ? null : AuditPrivacy.requestPath(http.path()), http == null ? null : http.statusCode(),
+                http == null || http.path() == null ? null : AuditPrivacy.requestPath(http.path()), http == null ? null : http.statusCode(),
                 http == null ? null : http.durationMs(), AuditResult.valueOf(request.result()),
                 http == null ? null : http.ipAddress(), http == null ? null : AuditPrivacy.userAgent(http.userAgent()),
                 http == null ? null : http.errorCode(), AuditPrivacy.metadata(request.metadata()));
