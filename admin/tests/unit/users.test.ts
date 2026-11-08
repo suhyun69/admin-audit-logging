@@ -38,3 +38,16 @@ test("the real API query helper forwards the UI operation interaction ID with a 
   });
   assert.deepEqual(await fetchUsers(state,controller.signal),{items:[],nextCursor:null,hasNext:false});
 });
+
+test("status mutation sends only the selected status/version with the original interaction", async (t) => {
+  const {changeUserStatus,userDetailQueryKey,usersQueryPrefix}=await import("../../src/lib/users/queries.ts");
+  const {resetCsrfToken}=await import("../../src/lib/api/client.ts");resetCsrfToken();
+  t.mock.method(globalThis,"fetch",async (path:string,init:RequestInit) => {
+    if (path==="/api/v1/auth/csrf") return Response.json({token:"csrf",headerName:"X-CSRF-TOKEN"});
+    assert.equal(path,"/api/v1/users/123/status");assert.equal(init.method,"PATCH");assert.deepEqual(JSON.parse(String(init.body)),{status:"SUSPENDED",version:7});assert.equal(new Headers(init.headers).get("X-Interaction-ID"),"original-button-interaction");
+    return Response.json({id:123,previousStatus:"ACTIVE",currentStatus:"SUSPENDED",version:8});
+  });
+  assert.equal((await changeUserStatus({id:"123",status:"SUSPENDED",version:7,interactionId:"original-button-interaction"})).version,8);
+  assert.deepEqual(userDetailQueryKey(actor,3,"123").slice(0,-2),usersQueryPrefix(actor,3));
+  resetCsrfToken();
+});
