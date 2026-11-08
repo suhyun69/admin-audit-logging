@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.stereotype.Repository;
 import java.sql.Timestamp;
 import java.time.Instant;
-import java.util.List;
+import java.util.*;
 
 @Repository
 public class AuditQueryPersistenceAdapter implements AuditQueryPort {
@@ -28,6 +28,31 @@ public class AuditQueryPersistenceAdapter implements AuditQueryPort {
         }
         sql.append(" ORDER BY occurred_at DESC,id DESC LIMIT :limit");
         return jdbc.query(sql.toString(),params,rows);
+    }
+    @Override public Optional<AuditEvent> detail(UUID id) {
+        return jdbc.query("SELECT *,host(ip_address) AS ip_host FROM audit_logs WHERE id=:id",new MapSqlParameterSource("id",id),rows).stream().findFirst();
+    }
+    @Override public List<AuditEvent> interaction(UUID id,int limit,AuditPosition cursor) {
+        var sql=new StringBuilder("SELECT *,host(ip_address) AS ip_host FROM audit_logs WHERE interaction_id=:interaction");
+        var params=new MapSqlParameterSource("interaction",id).addValue("limit",limit);
+        if(cursor!=null) {
+            sql.append(" AND (occurred_at,id)>(:time,:id)");params.addValue("time",Timestamp.from(cursor.occurredAt())).addValue("id",cursor.id());
+        }
+        sql.append(" ORDER BY occurred_at ASC,id ASC LIMIT :limit");return jdbc.query(sql.toString(),params,rows);
+    }
+    @Override public Map<UUID,List<AuditChange>> changes(List<UUID> ids) {
+        if(ids.isEmpty())return Map.of();
+        var result=new LinkedHashMap<UUID,List<AuditChange>>();
+        jdbc.query("""
+                SELECT audit_log_id,field_name,before_value #>> '{}' before_text,after_value #>> '{}' after_text
+                FROM audit_log_changes WHERE audit_log_id IN (:ids) AND field_name='status'
+                AND before_value IN ('"ACTIVE"'::jsonb,'"SUSPENDED"'::jsonb) AND after_value IN ('"ACTIVE"'::jsonb,'"SUSPENDED"'::jsonb)
+                ORDER BY id
+                """,new MapSqlParameterSource("ids",ids),(org.springframework.jdbc.core.RowCallbackHandler)rs->{
+                    result.computeIfAbsent(rs.getObject("audit_log_id",UUID.class),key->new ArrayList<>())
+                            .add(new AuditChange(rs.getString("field_name"),rs.getString("before_text"),rs.getString("after_text")));
+                });
+        result.replaceAll((id,changes)->List.copyOf(changes));return Map.copyOf(result);
     }
     // PostgreSQL timestamps are discrete microseconds. Ceil both boundaries to preserve >= and < for nanosecond inputs.
     private Timestamp boundary(Instant value) {
