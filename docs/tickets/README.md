@@ -7,7 +7,7 @@
 | ID | 담당 | 작업 | 선행 티켓 | 상태 |
 |---|---|---|---|---|
 | [ADM-001](ADM-001-next-foundation.md) | admin | Next.js 기반 생성 | ORC-003 | MERGED |
-| [ADM-002](ADM-002-api-proxy.md) | admin | 허용 목록 BFF와 API 클라이언트 | ADM-001, ORC-004 | TODO |
+| [ADM-002](ADM-002-api-proxy.md) | admin | 허용 목록 BFF와 API 클라이언트 | ADM-001, ORC-004 | IN_PROGRESS |
 | [ADM-003](ADM-003-auth-layout.md) | admin | 로그인·인증 레이아웃 | ADM-002, API-009 | TODO |
 | [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | TODO |
 | [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | TODO |
@@ -16,7 +16,7 @@
 | [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | TODO |
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | TODO |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
-| [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | TODO |
+| [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | IN_PROGRESS |
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | TODO |
 | [API-003](API-003-audit-schema.md) | api | 감사 스키마 V2 | API-002 | TODO |
 | [API-004](API-004-local-seed.md) | api | 개발 전용 시드 V3 | API-003 | TODO |
