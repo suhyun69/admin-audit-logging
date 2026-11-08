@@ -1,9 +1,11 @@
 # QA-002 — 인증·권한 독립 검증
 
 - 담당: qa
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/qa-002-security-contracts`
-- 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
+- 시작 기준: QA-001·API-009·ADM-002 통합 후 인증·BFF 테스트 개발을 시작하고 최종 선행 충족 후 최신 integration에서 전체 재검증한다.
+- 개발 시작 선행: QA-001, API-009, ADM-002
+- 통합 검증 선행: API-011, API-013, ADM-003
 - 선행 티켓: QA-001, API-011, API-013, ADM-003
 - 검토·승인: orchestra
 
@@ -27,12 +29,12 @@ AUTH-01~03·ACL-01~02, CSRF·BFF 쿠키·세션 만료·위조·SECURITY 중복�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: 인증·BFF 계약 테스트 선행 개발, 실제회원/감사API 준비 후 최종검증
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: 개발중; 최종선행 전 미완료
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: orchestra 검토 예정
+- orchestra 결정 / 근거: 검토 대기
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN
