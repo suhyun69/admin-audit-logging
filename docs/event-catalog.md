@@ -26,6 +26,14 @@ CLIENT는 브라우저 신고(ATTEMPTED), SECURITY/HTTP는 서버 관찰, BUSINE
 
 ## 멱등성과 상관관계
 
+추가 검증 규칙:
+
+- resourceType/resourceId는 함께 지정하거나 함께 생략한다. USER는 양수 회원 ID, AUDIT_LOG는 UUID다. 상태 버튼은 USER resource가 필수이며 pagePath의 회원 ID와 일치해야 한다.
+- 중복 digest는 인증 actor와 정규화된 payload 필드로 계산하고 서버 requestId/receivedAt은 제외한다.
+- CLIENT 수집의 X-Interaction-ID를 전달했다면 body interactionId와 같아야 한다. 불일치는 400이다.
+- CLIENT-02의 위조 필드는 400으로 거부하고 CLIENT 이벤트를 만들지 않는다. 정상 payload에서는 인증 사용자로 저장되는지 별도 확인한다.
+- 로그인 실패의 입력 username은 actorName에도 복사하지 않는다.
+
 CLIENT eventId = audit_logs.id。동일 ID·인증 actor·정규화 payload는 최초201/재전송200, 동일 ID의 다른 actor 또는 다른 payload는409, 기존 정보 노출 금지. 정규화 payload의 digest를 보존해 중복 판정하며 actor/session/result 등은 요청 body로 결정하지 않는다. 동시 중복은 PK unique와 안전한 conflict 처리로 1행만 남긴다.
 
 업무 버튼에서 생성한 interactionId를 CLIENT와 PATCH의 X-Interaction-ID에 공유한다. requestId는 매 HTTP 요청 서버 생성, CLIENT 수집 요청과 업무 PATCH는 다른 requestId다. interactionId는 조작 가능한 연결 값이며 권한 증명이 아니다.
