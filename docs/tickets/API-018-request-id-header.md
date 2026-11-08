@@ -26,3 +26,5 @@
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
 - 통합 커밋 / 원격 반영: 444581b5352de000ba28256a7a826ffd4e0330af; integration push 성공
 - 통합 smoke 결과: Java21 Postgres17 전체145 tests 30 suites 0fail 0error 0skip; bootJar PASS
+
+- 통합 후 독립 실HTTP: 최신 API18080/Next BFF13000 각각 새 익명 CSRF 후 잘못된 로그인401. raw header 개수1·단일 canonical UUID·body.requestId 일치 PASS. 로그인 성공·업무 변경 없음.
