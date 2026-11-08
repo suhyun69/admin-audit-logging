@@ -52,7 +52,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> method(HttpRequestMethodNotSupportedException exception) {
         var body = ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED);
-        var builder = ResponseEntity.status(405).header("X-Request-ID", body.requestId().toString());
+        var builder = ResponseEntity.status(405);
         var methods = exception.getSupportedHttpMethods();
         if (methods != null) builder.allow(methods.toArray(org.springframework.http.HttpMethod[]::new));
         return builder.body(body);
@@ -73,8 +73,9 @@ public class GlobalExceptionHandler {
         return response(ErrorCode.INTERNAL_ERROR);
     }
 
+    // RequestContextFilter owns X-Request-ID; ResponseEntity headers append in a real Servlet response.
     private ResponseEntity<ErrorResponse> response(ErrorCode code) {
         var body = ErrorResponse.of(code);
-        return ResponseEntity.status(ApiErrors.status(code)).header("X-Request-ID", body.requestId().toString()).body(body);
+        return ResponseEntity.status(ApiErrors.status(code)).body(body);
     }
 }
