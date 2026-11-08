@@ -29,6 +29,10 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     @Override public Optional<User> findById(long id) {
         return jdbc.query("SELECT * FROM users WHERE id=:id",new MapSqlParameterSource("id",id),(rs,n)->map(rs)).stream().findFirst();
     }
+    @Override public boolean changeStatus(long id,long expectedVersion,UserStatus target) {
+        return jdbc.update("UPDATE users SET status=:status,version=version+1,updated_at=now() WHERE id=:id AND version=:version",
+                new MapSqlParameterSource().addValue("id",id).addValue("version",expectedVersion).addValue("status",target.name()))==1;
+    }
     private User map(ResultSet rs) throws SQLException {
         return new User(rs.getLong("id"),rs.getString("email"),rs.getString("name"),UserStatus.valueOf(rs.getString("status")),rs.getLong("version"),
                 rs.getTimestamp("created_at").toInstant(),rs.getTimestamp("updated_at").toInstant());
