@@ -1,6 +1,7 @@
 import { test, expect, type Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { uuid } from "./helpers";
 
 const password = "local-test-password";
 async function login(page: Page, username: string) {
@@ -25,7 +26,11 @@ test("anonymous console redirects to login and invalid credentials show a privat
   await expect(page).toHaveURL(/\/login$/);
   await page.getByLabel("아이디", { exact: true }).fill("admin");
   await page.getByLabel("비밀번호", { exact: true }).fill("invalid-contract-password");
+  const rejected = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/auth/login" && response.request().method() === "POST");
   await page.getByRole("button", { name: "로그인", exact: true }).click();
+  const response = await rejected;
+  const requestId = uuid(response.headers()["x-request-id"]);
+  expect((await response.json()).requestId).toBe(requestId);
   await expect(page.getByRole("alert").filter({ hasText: "아이디 또는 비밀번호를 확인해 주세요." })).toBeVisible();
   await expect(page.getByLabel("비밀번호", { exact: true })).toHaveValue("");
   await expect(page).toHaveURL(/\/login$/);

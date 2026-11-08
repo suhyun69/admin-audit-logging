@@ -158,7 +158,7 @@ try {
     QA_E2E_PUBLIC_RESULTS: publicResults,
   };
   console.log(`E2E isolated project ${project}; trace/video disabled`);
-  await command(process.execPath, [path.join(admin, "node_modules", "@playwright", "test", "cli.js"), "test", ...process.argv.slice(2)], e2eEnv, "playwright");
+  await command(process.execPath, [path.join(admin, "node_modules", "@playwright", "test", "cli.js"), "test", ...process.argv.slice(2)], e2eEnv, "playwright", admin, 600_000);
   console.log("PASS browser scenarios; safe artifacts:", path.relative(admin, publicResults));
 } catch (error) {
   failure = true;
