@@ -71,7 +71,33 @@ test("MVP search confirmation and Explorer preview use the exact committed inter
   await apply(page, interaction);
   await expect(page.locator('tbody tr[data-source="CLIENT"][data-result="ATTEMPTED"]')).toHaveCount(1);
   await expect(page.locator('tbody tr[data-source="CLIENT"]').getByText("시도", { exact: true })).toBeVisible();
-  // Full detail/timeline link traversal is extended here after ADM-008 is integrated.
+  await page.getByRole("button", { name: "BUTTON_CLICK 로그 상세 보기", exact: true }).click();
+  await page.getByRole("dialog").getByRole("link", { name: "전체 상세 보기", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "감사 기록 상세", exact: true })).toBeVisible();
+  await expect(page.getByText("브라우저가 신고한 시도입니다.", { exact: false })).toBeVisible();
+  const timelineRequest = page.waitForRequest(item => new URL(item.url()).pathname === `/api/v1/audit-logs/interactions/${interaction}`);
+  await page.getByRole("link", { name: "타임라인 보기", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "상호작용 타임라인", exact: true })).toBeVisible();
+  const fetched = await timelineRequest;
+  expect(new URL(fetched.url()).searchParams.has("from")).toBe(false);
+  expect(fetched.headers()["x-interaction-id"]).not.toBe(interaction);
+  await expect(page.locator('ol li[data-source="CLIENT"][data-result="ATTEMPTED"]')).toHaveCount(1);
+  await expect(page.locator(`ol li[data-log-id="${business}"]`)).toBeVisible();
+  const confirmed = page.locator(`ol li[data-log-id="${business}"]`);
+  await expect(confirmed).toContainText("ACTIVE");
+  await expect(confirmed).toContainText("SUSPENDED");
+  const dbIds: string[] = JSON.parse(database(`SELECT json_agg(id ORDER BY occurred_at,id)::text FROM audit_logs WHERE interaction_id='${interaction}'`));
+  await expect.poll(() => page.locator("ol li[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")))).toEqual(dbIds);
+  expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='HTTP' AND request_path LIKE '%/audit-logs%'`)).toBe(0);
+  const missing = randomUUID();
+  const failed = page.waitForResponse(item => new URL(item.url()).pathname === `/api/v1/audit-logs/${missing}`);
+  await page.goto(`/audit-logs/${missing}`);
+  const failure = await failed;
+  expect(failure.status()).toBe(404);
+  expect(uuid(failure.headers()["x-request-id"])).toBe((await failure.json()).requestId);
+  await expect(page.getByRole("heading", { name: "감사 기록을 찾을 수 없습니다.", exact: true })).toBeVisible();
+  await page.goto(`/audit-logs/interactions/${missing}`);
+  await expect(page.getByRole("heading", { name: "연결된 기록이 없습니다.", exact: true })).toBeVisible();
 });
 
 test("Explorer preserves opaque cursor order and validates dates before requests", async ({ page }) => {
@@ -138,10 +164,14 @@ test("VIEWER and OPERATOR own activity rows never trigger global detail requests
     expect(count(`SELECT count(*) FROM audit_logs WHERE id IN (${ids}) AND actor_id<>${owner}`)).toBe(0);
     await page.goto("/audit-logs");
     await expect(page.getByRole("heading", { name: "접근 권한이 없습니다.", exact: true })).toBeVisible();
+    for (const path of [`/audit-logs/${randomUUID()}`, `/audit-logs/interactions/${randomUUID()}`]) {
+      await page.goto(path);
+      await expect(page.getByRole("heading", { name: "접근 권한이 없습니다.", exact: true })).toBeVisible();
+    }
     await page.getByRole("button", { name: "로그아웃", exact: true }).click();
     await expect(page).toHaveURL(/\/login$/);
   }
   expect(seen.some(url => new URL(url).pathname === "/api/v1/audit-logs/me")).toBe(true);
   expect(seen.filter(url => new URL(url).pathname === "/api/v1/audit-logs/me").every(url => !new URL(url).searchParams.has("actorId"))).toBe(true);
-  expect(seen.some(url => new URL(url).pathname === "/api/v1/audit-logs" || /^\/api\/v1\/audit-logs\/[0-9a-f-]{36}$/.test(new URL(url).pathname))).toBe(false);
+  expect(seen.some(url => new URL(url).pathname === "/api/v1/audit-logs" || /^\/api\/v1\/audit-logs\/(?:interactions\/)?[0-9a-f-]{36}$/.test(new URL(url).pathname))).toBe(false);
 });
