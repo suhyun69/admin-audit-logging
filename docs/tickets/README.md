@@ -37,7 +37,7 @@
 | [ORC-001](ORC-001-ticket-workflow.md) | orchestra | 티켓·협업·브랜치 규칙 확정 | 없음 | MERGED |
 | [ORC-002](ORC-002-repository-baseline.md) | orchestra | 단일 저장소 소스 기준점 확보 | ORC-001 | MERGED |
 | [ORC-003](ORC-003-api-contract.md) | orchestra | API·권한·인증 계약 확정 | ORC-002 | APPROVED |
-| [ORC-004](ORC-004-event-contract.md) | orchestra | 이벤트·개인정보·수집 정책 확정 | ORC-003 | TODO |
+| [ORC-004](ORC-004-event-contract.md) | orchestra | 이벤트·개인정보·수집 정책 확정 | ORC-003 | APPROVED |
 | [ORC-005](ORC-005-mvp-acceptance.md) | orchestra | 최종 검토와 MVP 승인 | INF-003 | TODO |
 | [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | TODO |
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | TODO |
