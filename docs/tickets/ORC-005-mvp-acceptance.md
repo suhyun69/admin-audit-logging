@@ -1,9 +1,10 @@
 # ORC-005 — 최종 검토와 MVP 승인
 
 - 담당: orchestra
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/orc-005-mvp-acceptance`
-- 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
+- 개발 시작 기준: QA-004가 승인·원격 통합된 최신 `codex/integration`; 원격 CI 실행과 병렬로 인수 문서 초안을 작성한다.
+- 최종 승인·통합 선행: INF-003 및 본 티켓을 제외한 모든 티켓 MERGED, 실제 원격 CI 성공. 초안 작성은 인수 승인으로 간주하지 않는다.
 - 선행 티켓: INF-003
 - 검토·승인: qa 또는 관련 담당의 독립 검토 후 orchestra 통합 결정; 최종 결과 사용자 보고
 
