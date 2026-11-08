@@ -1,6 +1,6 @@
 # 관리자 감사 MVP 최종 인수 보고
 
-작성일: 2026-11-09 (Asia/Seoul). 담당: orchestra. 현재는 원격 CI 결과를 기다리는 검토 초안이다. 아래 로컬 실행 결과와 실제 원격 결과를 구분한다.
+작성일: 2026-11-09 (Asia/Seoul). 담당: orchestra. MVP 구현과 실제 원격 CI가 모두 통과했다. 최종 인수 문서의 독립 검토 후 master 반영을 수행한다. 아래 로컬 실행 결과와 실제 원격 결과를 구분한다.
 
 ## 구현 범위
 
@@ -20,7 +20,7 @@
 | 최종 브라우저 | [QA-004](qa/QA-004.md): 13/13 PASS·실패/스킵0, artifact 계약2/2 PASS. 인증4·회원5·감사3·대시보드1. 제품 기준e993e99·테스트소스b5ef398, 실행audit-e2e-1794153154628-5d0b388e |
 | 환경·스키마 | INF-001/002 실제 healthy·재시작 데이터 보존. V1/V2와 local 전용V3, 관리자3·회원200/ID123. non-local은 V1/V2만 적용 |
 | 대표 쿼리 | [API-013 실행 계획](qa/API-013-query-plan.md): 실제10만행 분포에서 EXPLAIN 증거. HTTP 부하 성능 통과를 주장하지 않음 |
-| 원격 CI | [INF-003 검증 run](https://github.com/suhyun69/admin-audit-logging/actions/runs/42497369200), SHA90d866e. 현재 진행 중; 최종 성공 확인 후 확정 |
+| 원격 CI | [INF-003 검증 run](https://github.com/suhyun69/admin-audit-logging/actions/runs/42497369200), SHA90d866e. 4/4 jobs success. API145·Admin30·BFF6·브라우저13·artifact 계약2, 실패/스킵0. 자체 cleanup 및 공개 artifact 정확히2파일 확인 |
 
 로컬 전체 브라우저는 Java21.0.10·Node26.8.1·Playwright1.65.0·production Next와 실제 API/DB에서 실행했다. 원격 CI는 Ubuntu24.04·Java21·Node24로 별도 실행한다. 인증 쿠키·raw error·trace·비공개 서버 로그를 artifact로 업로드하지 않고 safe-junit.xml/safe-summary.json만 보관한다.
 
@@ -42,7 +42,7 @@
 
 [루트 README](../README.md)의 Java21/Node24·Compose·API·Admin 명령과 local 계정을 따른다. 개발 DB와 E2E DB는 분리한다. E2E는 고유 Compose 프로젝트·임의 포트·전용 DB·프로세스를 만들고 종료 시 소유한 것만 정리한다. 실제 최종 실행은 label 기준 남은 컨테이너·볼륨0과 private 진단 삭제까지 확인했다.
 
-최종 승인 시 모든 티켓의 dependency ID·비순환성, 소스/merge 커밋의 integration 포함 및 원격 게시, 작업 트리 상태를 검사한다. ORC-005도 독립 검토 후 integration에 반영하고 master로 머지·푸시한다. 최종 master 반영 SHA는 해당 티켓과 Git 이력에 기록한다.
+본 티켓 외41개 티켓은 모두 승인·원격 integration에 통합됐다. 모든 티켓의 dependency ID·비순환성과 소스/merge 커밋의 integration 포함을 검사했고, 통합 소스의 원격 게시도 확인했다. ORC-005도 독립 검토 후 integration에 반영하고 master로 머지·푸시한다. 최종 master 반영 SHA는 해당 티켓과 Git 이력에 기록한다.
 
 ## 범위와 제한
 

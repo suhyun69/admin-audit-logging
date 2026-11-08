@@ -471,18 +471,18 @@ Backend: JUnit 5 + Spring Security Test + Testcontainers(PostgreSQL). Frontend: 
 
 ### 완료 체크리스트
 
-- [ ] `docker compose up -d`로 PostgreSQL 기동
-- [ ] Flyway 3개 버전 정상 적용
-- [ ] Spring Security 로그인/로그아웃/인가
-- [ ] 회원 목록·상세·상태 변경 API
-- [ ] SECURITY / HTTP / BUSINESS / CLIENT 로그 수집
-- [ ] 성공 로그와 업무 트랜잭션 원자성
-- [ ] 클라이언트 이벤트 멱등성
-- [ ] Next.js Admin 전체 화면
-- [ ] 감사 로그 필터·Keyset·상세
-- [ ] 같은 interactionId 기반 추적
-- [ ] JUnit, Testcontainers, Playwright 통과
-- [ ] README 실행·테스트 절차 작성
+- [x] `docker compose up -d`로 PostgreSQL 기동
+- [x] Flyway 3개 버전 정상 적용
+- [x] Spring Security 로그인/로그아웃/인가
+- [x] 회원 목록·상세·상태 변경 API
+- [x] SECURITY / HTTP / BUSINESS / CLIENT 로그 수집
+- [x] 성공 로그와 업무 트랜잭션 원자성
+- [x] 클라이언트 이벤트 멱등성
+- [x] Next.js Admin 전체 화면
+- [x] 감사 로그 필터·Keyset·상세
+- [x] 같은 interactionId 기반 추적
+- [x] JUnit, Testcontainers, Playwright 통과
+- [x] README 실행·테스트 절차 작성
 
 실제 구현 경로는 `api/`, `admin/`, `docker-compose.yml`이며 초기 생성 명령을 기존 저장소에서 다시 실행하지 않는다. 구현 계약의 구체적인 허용값·권한·CSRF·오류는 [API 계약](api-spec.md)과 [이벤트 계약](event-catalog.md), 최종 결과는 [인수 보고](mvp-acceptance.md)를 따른다.
 
@@ -495,4 +495,4 @@ Backend: JUnit 5 + Spring Security Test + Testcontainers(PostgreSQL). Frontend: 
 - [Spring Security Authentication Events](https://docs.spring.io/spring-security/reference/servlet/authentication/events.html)
 - [Spring Transaction-bound Events](https://docs.spring.io/spring-framework/reference/data-access/transaction/event.html)
 
-> **주의:** 이 파일은 상세 구현 명세이지 완성된 실행 소스가 아니다. 특히 실제 CSRF 토큰 발급/전파, 인증 쿠키 프록시, 테스트 데이터 생성 및 Spring Security 필터 순서는 구현하면서 통합 테스트로 검증해야 한다.
+> **검증 완료:** 위 MVP 체크리스트는 실제 PostgreSQL·production 브라우저·Java21/Node24 원격 CI로 확인했다. CSRF 발급/전파·쿠키 프록시·필터·테스트 데이터의 증거와 후속 범위는 [최종 인수 보고](mvp-acceptance.md), 실행은 [README](../README.md)를 따른다.
