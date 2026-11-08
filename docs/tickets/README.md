@@ -8,7 +8,7 @@
 |---|---|---|---|---|
 | [ADM-001](ADM-001-next-foundation.md) | admin | Next.js 기반 생성 | ORC-003 | MERGED |
 | [ADM-002](ADM-002-api-proxy.md) | admin | 허용 목록 BFF와 API 클라이언트 | ADM-001, ORC-004 | MERGED |
-| [ADM-003](ADM-003-auth-layout.md) | admin | 로그인·인증 레이아웃 | ADM-002, API-009 | TODO |
+| [ADM-003](ADM-003-auth-layout.md) | admin | 로그인·인증 레이아웃 | ADM-002, API-009 | IN_PROGRESS |
 | [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | TODO |
 | [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | TODO |
 | [ADM-006](ADM-006-users-detail.md) | admin | 회원 상세·상태 확인 모달 | ADM-005, API-011 | TODO |
