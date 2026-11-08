@@ -24,7 +24,7 @@ public class SecurityConfig {
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
     @Bean AuthenticationProvider sessionAuthenticationProvider(AuthUseCase auth) { return new OpaqueSessionAuthenticationProvider(auth); }
     @Bean CsrfTokenRepository csrfTokenRepository() { return new SessionBoundCsrfTokenRepository(); }
-    @Bean SecurityFilterChain securityFilterChain(HttpSecurity http,AuthenticationProvider provider,CsrfTokenRepository csrf,ObjectMapper mapper) throws Exception {
+    @Bean SecurityFilterChain securityFilterChain(HttpSecurity http,AuthenticationProvider provider,CsrfTokenRepository csrf,ObjectMapper mapper,SecurityAuditRecorder audit) throws Exception {
         return http
                 .formLogin(config -> config.disable()).httpBasic(config -> config.disable()).logout(config -> config.disable())
                 .securityContext(config -> config.securityContextRepository(new NullSecurityContextRepository()))
@@ -40,9 +40,11 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/settings/admins","/api/v1/settings/admins/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/**").authenticated().anyRequest().denyAll())
                 .exceptionHandling(config -> config
-                        .authenticationEntryPoint((request,response,exception) -> ApiErrors.write(response,mapper,ErrorCode.UNAUTHENTICATED))
-                        .accessDeniedHandler((request,response,exception) -> ApiErrors.write(response,mapper,
-                                exception instanceof CsrfException ? ErrorCode.CSRF_INVALID : ErrorCode.ACCESS_DENIED)))
+                        .authenticationEntryPoint((request,response,exception) -> { audit.failed(ErrorCode.UNAUTHENTICATED); ApiErrors.write(response,mapper,ErrorCode.UNAUTHENTICATED); })
+                        .accessDeniedHandler((request,response,exception) -> {
+                            var code=exception instanceof CsrfException ? ErrorCode.CSRF_INVALID : ErrorCode.ACCESS_DENIED;
+                            audit.failed(code); ApiErrors.write(response,mapper,code);
+                        }))
                 .addFilterBefore(new OpaqueSessionFilter(provider),CsrfFilter.class)
                 .build();
     }

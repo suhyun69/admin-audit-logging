@@ -2,6 +2,9 @@ package com.example.demo.common.web;
 
 import com.example.demo.common.exception.BusinessException;
 import com.example.demo.common.exception.ErrorCode;
+import com.example.demo.common.request.SecurityFailureObserver;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -22,6 +25,16 @@ import jakarta.validation.ConstraintViolationException;
 public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+    private final List<SecurityFailureObserver> securityObservers;
+    public GlobalExceptionHandler() { this.securityObservers=List.of(); }
+    @Autowired public GlobalExceptionHandler(List<SecurityFailureObserver> observers) { this.securityObservers=List.copyOf(observers); }
+    private void observeSecurity(ErrorCode code) {
+        for(var observer:securityObservers) {
+            try { observer.failed(code); }
+            catch(RuntimeException exception) { log.error("Security observation failed type={}",exception.getClass().getSimpleName()); }
+        }
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> business(BusinessException exception) { return response(exception.getErrorCode()); }
 
@@ -31,10 +44,10 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> invalid(Exception exception) { return response(ErrorCode.VALIDATION_ERROR); }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> denied(AccessDeniedException exception) { return response(ErrorCode.ACCESS_DENIED); }
+    public ResponseEntity<ErrorResponse> denied(AccessDeniedException exception) { observeSecurity(ErrorCode.ACCESS_DENIED); return response(ErrorCode.ACCESS_DENIED); }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<ErrorResponse> unauthenticated(AuthenticationException exception) { return response(ErrorCode.UNAUTHENTICATED); }
+    public ResponseEntity<ErrorResponse> unauthenticated(AuthenticationException exception) { observeSecurity(ErrorCode.UNAUTHENTICATED); return response(ErrorCode.UNAUTHENTICATED); }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorResponse> method(HttpRequestMethodNotSupportedException exception) {

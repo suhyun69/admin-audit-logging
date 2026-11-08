@@ -25,6 +25,9 @@ public record AuditWriteAppRequest(UUID id, Instant occurredAt, String eventType
         return new AuditWriteAppRequest(this.id, occurredAt, eventType, action, source, result, actor,
                 interactionId, requestId, type, id, values, changes, http);
     }
+    public AuditWriteAppRequest actor(ActorSnapshot value) {
+        return new AuditWriteAppRequest(id,occurredAt,eventType,action,source,result,value,interactionId,requestId,resourceType,resourceId,metadata,changes,http);
+    }
     public AuditWriteAppRequest http(AuditHttpAppRequest value) {
         return new AuditWriteAppRequest(id, occurredAt, eventType, action, source, result, actor,
                 interactionId, requestId, resourceType, resourceId, metadata, changes, value);
