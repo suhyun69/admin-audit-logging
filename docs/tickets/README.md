@@ -12,8 +12,8 @@
 | [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | MERGED |
 | [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | MERGED |
 | [ADM-006](ADM-006-users-detail.md) | admin | 회원 상세·상태 확인 모달 | ADM-005, API-011 | MERGED |
-| [ADM-007](ADM-007-audit-explorer.md) | admin | Explorer·본인 활동 | ADM-004, API-013, API-014 | IN_PROGRESS |
-| [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | TODO |
+| [ADM-007](ADM-007-audit-explorer.md) | admin | Explorer·본인 활동 | ADM-004, API-013, API-014 | MERGED |
+| [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | IN_PROGRESS |
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | TODO |
 | [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | MERGED |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
@@ -48,6 +48,8 @@
 | [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | IN_PROGRESS |
 | [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | MERGED |
 
+
+| [API-018](API-018-request-id-header.md) | api | 오류 requestId 단일 헤더 보장 | API-005, QA-002 | IN_PROGRESS |
 
 ## 배정과 상태 규칙
 
