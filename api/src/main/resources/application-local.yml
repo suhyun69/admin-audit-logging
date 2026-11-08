@@ -1,0 +1,8 @@
+spring:
+  datasource:
+    password: ${DB_PASSWORD:localpass}
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false

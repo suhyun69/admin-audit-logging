@@ -34,7 +34,8 @@ class ArchitectureTest {
             ROOT + ".controller..",
             ROOT + ".usecase..",
             ROOT + ".common..",
-            ROOT + ".config.."
+            ROOT + ".config..",
+            ROOT + ".security.."
     };
 
     // ------------------------------------------------------------------
@@ -44,6 +45,7 @@ class ArchitectureTest {
 
     @ArchTest
     static final ArchRule 계층_의존_방향 = layeredArchitecture().consideringOnlyDependenciesInLayers()
+            .optionalLayer("Security").definedBy(ROOT + ".security..")
             .optionalLayer("Controller").definedBy(ROOT + ".controller..")
             .optionalLayer("UseCase").definedBy(ROOT + ".usecase..")
             .optionalLayer("DomainService").definedBy(ROOT + "..application..")
@@ -51,13 +53,21 @@ class ArchitectureTest {
             .optionalLayer("Persistence").definedBy(ROOT + "..adapter..")
 
             .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
-            .whereLayer("UseCase").mayOnlyBeAccessedByLayers("Controller")
+            .whereLayer("UseCase").mayOnlyBeAccessedByLayers("Controller", "Security")
             .whereLayer("DomainService").mayOnlyBeAccessedByLayers("UseCase", "Persistence")
             .whereLayer("Persistence").mayNotBeAccessedByAnyLayer().allowEmptyShould(true);
 
     // ------------------------------------------------------------------
     // 2. 도메인 격리
     // ------------------------------------------------------------------
+
+    @ArchTest
+    static final ArchRule security는_유스케이스_인터페이스만_참조한다 =
+            noClasses().that().resideInAPackage(ROOT + ".security..")
+                    .should().dependOnClassesThat().resideInAnyPackage(
+                            ROOT + ".usecase.impl..", "..domain..", "..application..", "..adapter..")
+                    .because("보안 어댑터는 유스케이스 인터페이스를 통해서만 업무를 호출한다")
+                    .allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 도메인은_프레임워크를_모른다 =
