@@ -13,11 +13,11 @@ admin/next.config.ts의 공식 URL 정규화 비활성 설정과 실제 Next.js 
 
 ## 완료 기준
 
-127.0.0.1을 localhost로 정규화해 정당한 동일 출처 mutation을 403 처리하던 문제를 해결한다. skipProxyUrlNormalize 공식 설정을 사용하고 Host/X-Forwarded-*를 신뢰하는 방식으로 검증을 완화하지 않는다. localhost·127 동일 출처는 통과하고 외부 Origin·누락 Origin·위조 forwarded header는 거부한다.
+127.0.0.1을 localhost로 정규화해 정당한 동일 출처 mutation을 403 처리하던 문제를 해결한다. skipProxyUrlNormalize 공식 설정을 사용하고 Host/X-Forwarded-*를 신뢰하는 방식으로 검증을 완화하지 않는다. 서버 canonical hostname을 localhost 또는 127로 각각 지정했을 때 해당 동일 출처는 통과하고 외부 Origin·누락 Origin·위조 forwarded header는 거부한다.
 
 ## 검증
 
-별도 Next.js 실제 서버와 임시 PostgreSQL/API 환경에서 두 origin의 로그인·로그아웃 BFF smoke 및 악성 Origin 거부 확인. unit/lint/typecheck/build 검증과 공식 문서 근거 기록.
+별도 Next.js 실제 서버와 임시 PostgreSQL/API 환경에서 서버 hostname을 각각 localhost/127로 기동해 일치하는 두 origin의 로그인·로그아웃 BFF smoke 및 악성 Origin 거부 확인. unit/lint/typecheck/build 검증과 공식 문서 근거 기록. Next 서버의 canonical hostname과 브라우저 주소를 일치시키는 실행 방법을 문서화한다.
 
 ## 커밋·푸시·머지 조건
 
