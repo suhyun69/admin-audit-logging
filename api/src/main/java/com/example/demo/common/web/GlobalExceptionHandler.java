@@ -19,7 +19,7 @@ import java.util.Map;
 /**
  * 애플리케이션 전역 예외 처리.
  *
- * <p>개별 도메인 예외(TodoNotFoundException 등)를 알지 못한다.
+ * <p>개별 도메인 예외를 알지 못한다.
  * 공통 타입 {@link BusinessException} 하나만 처리하므로 도메인이 늘어도 이 파일은 그대로다.
  * HTTP로의 번역은 여기서만 일어나고, 도메인/유스케이스 계층은 HTTP를 모른다.
  */
@@ -63,7 +63,7 @@ public class GlobalExceptionHandler {
                         "요청 본문을 읽을 수 없습니다."));
     }
 
-    /** 경로 변수/쿼리 파라미터 타입 불일치(예: /api/todos/abc). */
+    /** 경로 변수/쿼리 파라미터 타입 불일치(예: /api/v1/users/abc). */
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorResponse> handleTypeMismatch(MethodArgumentTypeMismatchException e) {
         return ResponseEntity.badRequest()

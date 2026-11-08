@@ -7,7 +7,7 @@ import java.util.function.Function;
  * 페이지 조회 결과. 프레임워크 중립 타입이다.
  *
  * <p>계층을 지나며 내용물 타입만 바꿔야 하는 경우가 많아 {@link #map(Function)} 을 둔다.
- * (예: {@code PageResult<Todo>} → {@code PageResult<TodoAppResponse>})
+ * (예: {@code PageResult<User>} → {@code PageResult<UserAppResponse>})
  */
 public record PageResult<T>(
         List<T> content,

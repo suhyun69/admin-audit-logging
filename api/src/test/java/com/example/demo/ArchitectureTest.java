@@ -38,21 +38,22 @@ class ArchitectureTest {
     };
 
     // ------------------------------------------------------------------
+    // 예제 제거 직후 비어 있는 계층만 허용한다. 새 도메인에는 같은 규칙이 적용된다.
     // 1. 계층 의존 방향
     // ------------------------------------------------------------------
 
     @ArchTest
     static final ArchRule 계층_의존_방향 = layeredArchitecture().consideringOnlyDependenciesInLayers()
-            .layer("Controller").definedBy(ROOT + ".controller..")
-            .layer("UseCase").definedBy(ROOT + ".usecase..")
-            .layer("DomainService").definedBy(ROOT + "..application..")
-            .layer("Domain").definedBy(ROOT + "..domain..")
-            .layer("Persistence").definedBy(ROOT + "..adapter..")
+            .optionalLayer("Controller").definedBy(ROOT + ".controller..")
+            .optionalLayer("UseCase").definedBy(ROOT + ".usecase..")
+            .optionalLayer("DomainService").definedBy(ROOT + "..application..")
+            .optionalLayer("Domain").definedBy(ROOT + "..domain..")
+            .optionalLayer("Persistence").definedBy(ROOT + "..adapter..")
 
             .whereLayer("Controller").mayNotBeAccessedByAnyLayer()
             .whereLayer("UseCase").mayOnlyBeAccessedByLayers("Controller")
             .whereLayer("DomainService").mayOnlyBeAccessedByLayers("UseCase", "Persistence")
-            .whereLayer("Persistence").mayNotBeAccessedByAnyLayer();
+            .whereLayer("Persistence").mayNotBeAccessedByAnyLayer().allowEmptyShould(true);
 
     // ------------------------------------------------------------------
     // 2. 도메인 격리
@@ -63,7 +64,7 @@ class ArchitectureTest {
             noClasses().that().resideInAPackage("..domain..")
                     .should().dependOnClassesThat()
                     .resideInAnyPackage("jakarta..", "org.springframework..", "org.hibernate..")
-                    .because("도메인 모델은 순수 자바여야 한다");
+                    .because("도메인 모델은 순수 자바여야 한다").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 도메인서비스는_JPA를_모른다 =
@@ -71,31 +72,31 @@ class ArchitectureTest {
                     .should().dependOnClassesThat()
                     .resideInAnyPackage("jakarta.persistence..", "org.hibernate..",
                             "org.springframework.data..")
-                    .because("영속성 기술은 어댑터 안에 갇혀 있어야 한다");
+                    .because("영속성 기술은 어댑터 안에 갇혀 있어야 한다").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 컨트롤러는_도메인모델을_모른다 =
             noClasses().that().resideInAPackage(ROOT + ".controller..")
                     .should().dependOnClassesThat().resideInAPackage("..domain..")
-                    .because("웹 계층은 AppResponse 까지만 본다 (WebRequest → AppRequest → 도메인 → AppResponse → WebResponse)");
+                    .because("웹 계층은 AppResponse 까지만 본다 (WebRequest → AppRequest → 도메인 → AppResponse → WebResponse)").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule common은_도메인을_모른다 =
             noClasses().that().resideInAPackage(ROOT + ".common..")
                     .should().dependOnClassesThat().resideInAPackage("..domain..")
-                    .because("공통 기반은 개별 도메인에 종속되면 안 된다");
+                    .because("공통 기반은 개별 도메인에 종속되면 안 된다").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 컨트롤러는_유스케이스_구현체를_모른다 =
             noClasses().that().resideInAPackage(ROOT + ".controller..")
                     .should().dependOnClassesThat().resideInAPackage(ROOT + ".usecase.impl..")
-                    .because("컨트롤러는 유스케이스 인터페이스에만 의존한다");
+                    .because("컨트롤러는 유스케이스 인터페이스에만 의존한다").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 도메인서비스는_다른_도메인을_모른다 =
             noClasses().that().resideInAPackage("..application..")
                     .should(dependOnAnotherDomain())
-                    .because("도메인 간 조율은 유스케이스 구현체의 몫이다");
+                    .because("도메인 간 조율은 유스케이스 구현체의 몫이다").allowEmptyShould(true);
 
     // ------------------------------------------------------------------
     // 3. 네이밍 규칙
@@ -105,30 +106,30 @@ class ArchitectureTest {
     static final ArchRule 웹_DTO_네이밍 =
             classes().that().resideInAPackage(ROOT + ".controller.dto..")
                     .should().haveSimpleNameEndingWith("WebRequest")
-                    .orShould().haveSimpleNameEndingWith("WebResponse");
+                    .orShould().haveSimpleNameEndingWith("WebResponse").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 유스케이스_DTO_네이밍 =
             classes().that().resideInAPackage(ROOT + ".usecase.dto..")
                     .should().haveSimpleNameEndingWith("AppRequest")
-                    .orShould().haveSimpleNameEndingWith("AppResponse");
+                    .orShould().haveSimpleNameEndingWith("AppResponse").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 유스케이스_인터페이스_네이밍 =
             classes().that().resideInAPackage(ROOT + ".usecase")
                     .should().haveSimpleNameEndingWith("UseCase")
-                    .andShould().beInterfaces();
+                    .andShould().beInterfaces().allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 유스케이스_구현체_네이밍 =
             classes().that().resideInAPackage(ROOT + ".usecase.impl..")
-                    .should().haveSimpleNameEndingWith("UseCaseImpl");
+                    .should().haveSimpleNameEndingWith("UseCaseImpl").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 아웃바운드_포트_네이밍 =
             classes().that().resideInAPackage("..port.out..")
                     .should().haveSimpleNameEndingWith("Port")
-                    .andShould().beInterfaces();
+                    .andShould().beInterfaces().allowEmptyShould(true);
 
     // ------------------------------------------------------------------
     // 4. 트랜잭션 경계
@@ -139,19 +140,19 @@ class ArchitectureTest {
             classes().that().resideInAPackage("..application..")
                     .and().haveSimpleNameEndingWith("Service")
                     .should(beTransactionalWith(Propagation.MANDATORY))
-                    .because("트랜잭션 경계는 유스케이스 구현체에 있다");
+                    .because("트랜잭션 경계는 유스케이스 구현체에 있다").allowEmptyShould(true);
 
     @ArchTest
     static final ArchRule 유스케이스_구현체는_트랜잭션_경계다 =
             classes().that().resideInAPackage(ROOT + ".usecase.impl..")
                     .should(openTransactionBoundary())
-                    .because("여러 도메인 서비스 호출을 한 트랜잭션으로 묶기 위해서다");
+                    .because("여러 도메인 서비스 호출을 한 트랜잭션으로 묶기 위해서다").allowEmptyShould(true);
 
     // ------------------------------------------------------------------
     // 커스텀 조건
     // ------------------------------------------------------------------
 
-    /** com.example.demo.todo.application.TodoService → "todo". 기반 패키지면 null. */
+    /** com.example.demo.user.application.UserService → "user". 기반 패키지면 null. */
     private static String domainOf(JavaClass clazz) {
         String pkg = clazz.getPackageName();
         if (!pkg.startsWith(ROOT + ".")) {

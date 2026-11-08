@@ -9,7 +9,7 @@ public class NotFoundException extends BusinessException {
         super(ErrorCode.NOT_FOUND, message);
     }
 
-    /** "Todo를 찾을 수 없습니다. id=3" 형태의 메시지를 만들어 준다. */
+    /** "리소스를 찾을 수 없습니다. id=3" 형태의 메시지를 만들어 준다. */
     public static NotFoundException of(String resourceName, Object id) {
         return new NotFoundException(resourceName + "를 찾을 수 없습니다. id=" + id);
     }
