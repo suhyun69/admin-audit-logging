@@ -6,7 +6,7 @@ test.afterEach(async ({ page }, info) => maskedFailure(page, info));
 
 test("member search trims, resubmits, paginates and resets filters through actual requests", async ({ page }) => {
   await loginAs(page, "ADMIN");
-  await page.getByRole("link", { name: "회원 관리", exact: true }).click();
+  await page.getByRole("navigation").getByRole("link", { name: "회원 관리", exact: true }).click();
   await expect(page.locator("tbody tr")).toHaveCount(20);
   await page.getByRole("button", { name: "다음", exact: true }).click();
   await expect(page.locator("tbody tr").first()).toContainText("#21");

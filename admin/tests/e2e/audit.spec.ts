@@ -31,7 +31,7 @@ async function tableIds(page: Page) {
 
 test("MVP search confirmation and Explorer preview use the exact committed interaction", async ({ page }) => {
   await loginAs(page, "ADMIN");
-  await page.getByRole("link", { name: "회원 관리", exact: true }).click();
+  await page.getByRole("navigation").getByRole("link", { name: "회원 관리", exact: true }).click();
   await page.getByLabel("이름 또는 이메일 검색").fill("  member123@example.test  ");
   await page.getByRole("button", { name: "검색", exact: true }).click();
   await page.getByRole("link", { name: "Member 123 상세 보기", exact: true }).click();
@@ -61,7 +61,7 @@ test("MVP search confirmation and Explorer preview use the exact committed inter
   await page.getByRole("button", { name: "DATA_UPDATE 로그 상세 보기", exact: true }).click();
   const preview = page.getByRole("dialog", { name: "로그 상세 미리보기" });
   await expect(preview).toBeVisible();
-  await expect(preview.getByRole("heading", { name: "요청 정보", exact: true })).toBeVisible();
+  await expect(preview.getByRole("heading", { name: "변경 전후", exact: true })).toBeVisible();
   await expect(preview.getByRole("cell", { name: "ACTIVE", exact: true })).toBeVisible();
   await expect(preview.getByRole("cell", { name: "SUSPENDED", exact: true })).toBeVisible();
   await expect(preview.getByText(request, { exact: true })).toBeVisible();
@@ -86,6 +86,10 @@ test("MVP search confirmation and Explorer preview use the exact committed inter
   const confirmed = page.locator(`ol li[data-log-id="${business}"]`);
   await expect(confirmed).toContainText("ACTIVE");
   await expect(confirmed).toContainText("SUSPENDED");
+  const httpRecord = page.locator('ol li[data-source="HTTP"]').filter({ hasText: "PATCH" });
+  await httpRecord.locator("summary").click();
+  await expect(httpRecord.getByRole("heading", { name: "요청 정보", exact: true })).toBeVisible();
+  await expect(httpRecord).toContainText(request);
   const dbIds: string[] = JSON.parse(database(`SELECT json_agg(id ORDER BY occurred_at,id)::text FROM audit_logs WHERE interaction_id='${interaction}'`));
   await expect.poll(() => page.locator("ol li[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")))).toEqual(dbIds);
   expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='HTTP' AND request_path LIKE '%/audit-logs%'`)).toBe(0);
