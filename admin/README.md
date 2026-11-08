@@ -35,3 +35,6 @@ ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13001 npm run test:smoke:origin
 
 서버 hostname을 `localhost`로 지정한 경우에는 테스트 URL도 `http://localhost:13001`을 사용합니다. 잘못된 비밀번호로 upstream 도달 여부만 확인하므로 개발용 시드가 있는 격리 API·DB를 대상으로 실행합니다. 누락·외부 Origin과 위조 Host·X-Forwarded-Host가 거부되는지 확인합니다.
 
+
+
+공통 CLIENT 수집은 `src/lib/audit/track-event.ts`의 `trackEvent`, `trackUserSearch`, `trackFilterChange`를 사용합니다. 주요 회원 상태 버튼은 `AuditButton`의 `onClick(interactionId)`에서 업무 PATCH에 같은 ID를 전달합니다. RouteTracker는 인증된 화면 진입을 기록하며 검색어·query/hash·actor·result는 전송하지 않습니다. 전송은 업무 callback을 기다리게 하지 않고 같은 payload로 최대 세 번만 재시도합니다. 로그인·로그아웃·401 경계에서는 이전 세션의 미완료 수집을 취소합니다.
