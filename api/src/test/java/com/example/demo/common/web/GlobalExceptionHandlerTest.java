@@ -66,6 +66,19 @@ class GlobalExceptionHandlerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("secret"))));
     }
+    @Test
+    void unsupportedMethodAndMediaTypeKeepTheirHttpMeaning() throws Exception {
+        mockMvc.perform(delete("/test/errors"))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(header().string("Allow", org.hamcrest.Matchers.containsString("POST")))
+                .andExpect(jsonPath("$.code").value("METHOD_NOT_ALLOWED"))
+                .andExpect(jsonPath("$.requestId").exists());
+        mockMvc.perform(post("/test/errors").contentType(MediaType.TEXT_PLAIN).content("secret"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.code").value("UNSUPPORTED_MEDIA_TYPE"))
+                .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("secret"))));
+    }
+
     @RestController
     static class ErrorProbeController {
         @GetMapping("/test/errors/{id}")

@@ -8,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -33,6 +35,20 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> unauthenticated(AuthenticationException exception) { return response(ErrorCode.UNAUTHENTICATED); }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> method(HttpRequestMethodNotSupportedException exception) {
+        var body = ErrorResponse.of(ErrorCode.METHOD_NOT_ALLOWED);
+        var builder = ResponseEntity.status(405).header("X-Request-ID", body.requestId().toString());
+        var methods = exception.getSupportedHttpMethods();
+        if (methods != null) builder.allow(methods.toArray(org.springframework.http.HttpMethod[]::new));
+        return builder.body(body);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> mediaType(HttpMediaTypeNotSupportedException exception) {
+        return response(ErrorCode.UNSUPPORTED_MEDIA_TYPE);
+    }
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> missing(NoResourceFoundException exception) { return response(ErrorCode.RESOURCE_NOT_FOUND); }

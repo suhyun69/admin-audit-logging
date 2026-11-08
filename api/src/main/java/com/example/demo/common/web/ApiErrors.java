@@ -14,6 +14,8 @@ public final class ApiErrors {
             case ACCESS_DENIED, CSRF_INVALID -> 403;
             case USER_NOT_FOUND, AUDIT_NOT_FOUND, RESOURCE_NOT_FOUND -> 404;
             case VERSION_CONFLICT, EVENT_CONFLICT -> 409;
+            case METHOD_NOT_ALLOWED -> 405;
+            case UNSUPPORTED_MEDIA_TYPE -> 415;
             case PAYLOAD_TOO_LARGE -> 413;
             case RATE_LIMITED -> 429;
             case INTERNAL_ERROR -> 500;
