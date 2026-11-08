@@ -28,11 +28,11 @@ eventId 매핑·동일 payload 판단·다른 actor 충돌, action allowlist, pa
 ## 작업 및 승인 기록
 
 - 구현 요약: 이벤트 카탈로그와 수집 정책 확정
-- 변경 파일 / 커밋 SHA: fd898b7
+- 변경 파일 / 커밋 SHA: fd898b765979f5d23a75d7f4f6e999a6836e2812
 - 원격 브랜치 / 푸시 결과: origin/codex/orc-004-event-contract, push 성공
 - 검증 명령 / 결과: 개인정보·멱등성·필드·상관 규칙 검토 PASS
 - 미해결 사항 / 전달 사항: 미작성
 - qa 검토 대상 SHA / 결과: fd898b7: api/qa 계약 독립 검토 PASS
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
-- 통합 커밋 / 원격 반영: c48e0c3; 보완 acd7420; origin/codex/integration 반영 확인
+- 통합 커밋 / 원격 반영: c48e0c3d022a687b51487c04ebbd3b8d6ef2df6f; 보완 acd74208c167530524580be89c371bb78d139247; origin/codex/integration 반영 확인
 - 통합 smoke 결과: 개인정보·멱등성·필드·상관 규칙 검토 PASS

@@ -28,11 +28,11 @@ AGENTS.md, docs/agent-workflow.md, docs/branch-strategy.md, docs/tickets/
 ## 작업 및 승인 기록
 
 - 구현 요약: 38개 티켓·역할·브랜치·검증 추적 정의
-- 변경 파일 / 커밋 SHA: 70a86fc
+- 변경 파일 / 커밋 SHA: 70a86fcb5aa4f2b9a62f4a8f5b2deb25698c89ff
 - 원격 브랜치 / 푸시 결과: origin의 티켓 브랜치 SHA 일치 확인
 - 검증 명령 / 결과: 문서 정적 검사 PASS
 - 미해결 사항 / 전달 사항: 미작성
 - qa 검토 대상 SHA / 결과: 70a86fc: qa 독립 검토 PASS, 권장 문구 반영
 - orchestra 결정 / 근거: 승인: 요구사항·변경·검증 증거 확인
-- 통합 커밋 / 원격 반영: 3393666, origin/codex/integration push 성공
+- 통합 커밋 / 원격 반영: 33936665b255c7ebac4a3641dc57903f658a014c, origin/codex/integration push 성공
 - 통합 smoke 결과: 통합 파일 존재·git history 확인 PASS

@@ -41,17 +41,17 @@
 
 ```text
 admin-audit/
-├── compose.yaml
+├── docker-compose.yml
 ├── .env.example
 ├── README.md
-├── frontend/
+├── admin/
 │   ├── src/app/{login,dashboard,users,audit-logs}/
 │   ├── src/app/api/                  # Spring Boot BFF/프록시 경로
 │   ├── src/components/{layout,users,audit}/
 │   ├── src/lib/{api,auth,audit}/
 │   └── tests/
-├── backend/
-│   ├── src/main/java/com/example/adminaudit/
+├── api/
+│   ├── src/main/java/com/example/demo/
 │   │   ├── {auth,security,user,audit,common,config}/
 │   ├── src/main/resources/db/migration/
 │   └── src/test/
@@ -60,17 +60,17 @@ admin-audit/
 
 ## 4. 로컬 환경
 
-사전 설치: Java 21, Node.js LTS, Docker Compose, Git.
+사전 설치: Java 21, Node.js 24 이상(권장 24 LTS), Docker Compose, Git. 아래 생성·설정 블록은 최초 설계 예시다. 기존 저장소를 실행할 때는 [README](../README.md)의 lockfile·환경변수·실제 Compose 설정을 사용하고 프로젝트를 다시 생성하지 않는다.
 
 ```bash
 mkdir admin-audit
 cd admin-audit
-npx create-next-app@latest frontend --typescript --tailwind --eslint --app --src-dir --import-alias '@/*'
+npx create-next-app@latest admin --typescript --tailwind --eslint --app --src-dir --import-alias '@/*'
 ```
 
-Spring Initializr에서 Gradle/Groovy, Java 21, Spring Boot 3.x, Spring Web, Security, Data JPA, Validation, PostgreSQL, Flyway, Actuator, Test를 선택해 `backend` 생성. Testcontainers PostgreSQL 의존성 추가.
+Spring Initializr에서 Gradle/Groovy, Java 21, Spring Boot 3.x, Spring Web, Security, Data JPA, Validation, PostgreSQL, Flyway, Actuator, Test를 선택해 `api` 생성. Testcontainers PostgreSQL 의존성 추가.
 
-`compose.yaml`:
+`docker-compose.yml`:
 
 ```yaml
 services:
@@ -94,7 +94,7 @@ volumes:
   postgres_data:
 ```
 
-`backend/src/main/resources/application-local.yml`:
+`api/src/main/resources/application-local.yml`:
 
 ```yaml
 spring:
@@ -114,9 +114,9 @@ spring:
 
 ```bash
 docker compose up -d
-cd backend && ./gradlew bootRun --args='--spring.profiles.active=local'
+cd api && ./gradlew bootRun --args='--spring.profiles.active=local'
 # 별도 터미널
-cd frontend && npm install && npm run dev
+cd admin && npm install && npm run dev
 ```
 
 예상 주소: Admin `http://localhost:3000`, API `http://localhost:8080`, DB `localhost:5432`. 위 실행 명령은 애플리케이션 코드 구현 후 유효하다. Next.js `/api/*` 요청은 Route Handler 또는 명시적 프록시로 Spring Boot에 전달한다. Cookie·CSRF 헤더의 전파를 테스트한다.
@@ -383,25 +383,30 @@ LIMIT 21;
 
 ## 12. API 수동 테스트
 
-로그인(쿠키 보관):
+로그인 전 익명 CSRF를 발급하고 응답의 token을 다음 요청에 사용한다. 로그인은 CSRF 세션을 회전하므로 성공 후 토큰을 다시 발급한다. 아래 토큰 placeholder는 해당 응답 값으로 바꾼다(쿠키 파일은 Git에 포함하지 않는다).
 
 ```bash
-curl -i -c cookies.txt -X POST http://localhost:8080/api/v1/auth/login \
+curl -b /tmp/admin-audit-cookies.txt -c /tmp/admin-audit-cookies.txt http://localhost:8080/api/v1/auth/csrf
+
+curl -i -b /tmp/admin-audit-cookies.txt -c /tmp/admin-audit-cookies.txt -X POST http://localhost:8080/api/v1/auth/login \
   -H 'Content-Type: application/json' \
+  -H 'X-CSRF-TOKEN: <pre-login-issued-token>' \
   -d '{"username":"admin","password":"local-test-password"}'
 ```
 
-조회:
+로그인 성공 후 CSRF 재발급 및 조회:
 
 ```bash
-curl -b cookies.txt http://localhost:8080/api/v1/auth/me
-curl -b cookies.txt 'http://localhost:8080/api/v1/users?size=20'
+curl -b /tmp/admin-audit-cookies.txt -c /tmp/admin-audit-cookies.txt http://localhost:8080/api/v1/auth/csrf
+curl -b /tmp/admin-audit-cookies.txt http://localhost:8080/api/v1/auth/me
+curl -b /tmp/admin-audit-cookies.txt http://localhost:8080/api/v1/users/123
+curl -b /tmp/admin-audit-cookies.txt 'http://localhost:8080/api/v1/users?size=20'
 ```
 
-변경(앞서 `/auth/csrf`에서 실제 발급된 값을 사용):
+변경(로그인 후 다시 발급된 token과 바로 앞 상세 응답의 현재 version을 사용; 예제 version 0은 신규 시드일 때만 유효):
 
 ```bash
-curl -i -b cookies.txt -X PATCH http://localhost:8080/api/v1/users/123/status \
+curl -i -b /tmp/admin-audit-cookies.txt -X PATCH http://localhost:8080/api/v1/users/123/status \
   -H 'Content-Type: application/json' \
   -H 'X-CSRF-TOKEN: <issued-token>' \
   -H 'X-Interaction-ID: 72f51a2b-340d-4cb1-a780-47e917d7ea95' \
@@ -438,7 +443,7 @@ ORDER BY a.occurred_at DESC;
 | WRITE-03 | 감사 INSERT 오류 | 업무 변경도 ROLLBACK |
 | WRITE-04 | 같은 회원 동시 변경 | 낙관적 잠금 충돌 409 |
 | CLIENT-01 | 동일 eventId 재전송 | 로그 1건만 생성 |
-| CLIENT-02 | actorId 위조 | 인증된 사용자로 기록 |
+| CLIENT-02 | actorId 위조 필드 제출 | 400·CLIENT 행 없음, 정상 payload는 인증 사용자로 기록 |
 | CLIENT-03 | UI 이벤트 전송 실패 | 업무 요청은 계속 가능 |
 | E2E-01 | 로그인→회원 조회→정지→로그 검색 | 이벤트 동일 interactionId 연계 |
 
@@ -466,18 +471,20 @@ Backend: JUnit 5 + Spring Security Test + Testcontainers(PostgreSQL). Frontend: 
 
 ### 완료 체크리스트
 
-- [ ] `docker compose up -d`로 PostgreSQL 기동
-- [ ] Flyway 3개 버전 정상 적용
-- [ ] Spring Security 로그인/로그아웃/인가
-- [ ] 회원 목록·상세·상태 변경 API
-- [ ] SECURITY / HTTP / BUSINESS / CLIENT 로그 수집
-- [ ] 성공 로그와 업무 트랜잭션 원자성
-- [ ] 클라이언트 이벤트 멱등성
-- [ ] Next.js Admin 전체 화면
-- [ ] 감사 로그 필터·Keyset·상세
-- [ ] 같은 interactionId 기반 추적
-- [ ] JUnit, Testcontainers, Playwright 통과
-- [ ] README 실행·테스트 절차 작성
+- [x] `docker compose up -d`로 PostgreSQL 기동
+- [x] Flyway 3개 버전 정상 적용
+- [x] Spring Security 로그인/로그아웃/인가
+- [x] 회원 목록·상세·상태 변경 API
+- [x] SECURITY / HTTP / BUSINESS / CLIENT 로그 수집
+- [x] 성공 로그와 업무 트랜잭션 원자성
+- [x] 클라이언트 이벤트 멱등성
+- [x] Next.js Admin 전체 화면
+- [x] 감사 로그 필터·Keyset·상세
+- [x] 같은 interactionId 기반 추적
+- [x] JUnit, Testcontainers, Playwright 통과
+- [x] README 실행·테스트 절차 작성
+
+실제 구현 경로는 `api/`, `admin/`, `docker-compose.yml`이며 초기 생성 명령을 기존 저장소에서 다시 실행하지 않는다. 구현 계약의 구체적인 허용값·권한·CSRF·오류는 [API 계약](api-spec.md)과 [이벤트 계약](event-catalog.md), 최종 결과는 [인수 보고](mvp-acceptance.md)를 따른다.
 
 ## 16. 참고 공식 문서
 
@@ -488,4 +495,4 @@ Backend: JUnit 5 + Spring Security Test + Testcontainers(PostgreSQL). Frontend: 
 - [Spring Security Authentication Events](https://docs.spring.io/spring-security/reference/servlet/authentication/events.html)
 - [Spring Transaction-bound Events](https://docs.spring.io/spring-framework/reference/data-access/transaction/event.html)
 
-> **주의:** 이 파일은 상세 구현 명세이지 완성된 실행 소스가 아니다. 특히 실제 CSRF 토큰 발급/전파, 인증 쿠키 프록시, 테스트 데이터 생성 및 Spring Security 필터 순서는 구현하면서 통합 테스트로 검증해야 한다.
+> **검증 완료:** 위 MVP 체크리스트는 실제 PostgreSQL·production 브라우저·Java21/Node24 원격 CI로 확인했다. CSRF 발급/전파·쿠키 프록시·필터·테스트 데이터의 증거와 후속 범위는 [최종 인수 보고](mvp-acceptance.md), 실행은 [README](../README.md)를 따른다.

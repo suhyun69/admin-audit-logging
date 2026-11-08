@@ -19,7 +19,7 @@
 | 공용 파일·상태 기록 수정 주체 충돌 | orchestra 상태 관리, infra 후속 gitignore, qa Playwright 설정 담당 명시 |
 | 실제 원격 CI 확인 없이 최종 승인 가능 | INF-003에 실제 CI 결과 확인, 불가능 시 BLOCKED 명시 |
 
-기존 35개에서 38개로 세분화했다. 담당 수: orchestra 5, api 16, admin 9, infra 3, qa 5.
+최초 계획 검토에서 기존 35개를 38개로 세분화했다. 당시 담당 수: orchestra 5, api 16, admin 9, infra 3, qa 5. 이후 실제 통합 검증에서 API-016(Bean 이름), ADM-010(Next Origin 정규화), API-017(CSRF 암묵 세션 전략), API-018(오류 requestId 중복)을 별도 티켓·브랜치로 추적해 총 42개가 됐다. 현재 상태는 [티켓 목록](tickets/README.md)과 [최종 인수 보고](mvp-acceptance.md)가 기준이다.
 
 ## 명세 테스트 추적
 

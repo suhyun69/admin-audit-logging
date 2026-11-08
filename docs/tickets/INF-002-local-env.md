@@ -28,11 +28,11 @@ DB·API origin 변수와 api/admin별 env 로딩 방법, 실행·종료·재시�
 ## 작업 및 승인 기록
 
 - 구현 요약: 환경변수 예제·실행·종료·DB 보존 절차
-- 변경 파일 / 커밋 SHA: c8c30b0
+- 변경 파일 / 커밋 SHA: c8c30b01c3f06820890568eded0ec4d54b4d2630
 - 원격 브랜치 / 푸시 결과: origin/codex/inf-002-local-env, push 성공
 - 검증 명령 / 결과: Compose config·env bridge·실제 DB 접속·ignore PASS
 - 미해결 사항 / 전달 사항: 미작성
 - qa 검토 대상 SHA / 결과: c8c30b0: qa 정적 리뷰 PASS
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
-- 통합 커밋 / 원격 반영: b5b6cc3; origin/codex/integration 반영 확인
+- 통합 커밋 / 원격 반영: b5b6cc35451a0a407eb7b39443e3b43caf354252; origin/codex/integration 반영 확인
 - 통합 smoke 결과: Compose config·env bridge·실제 DB 접속·ignore PASS
