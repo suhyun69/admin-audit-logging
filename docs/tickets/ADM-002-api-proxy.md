@@ -1,7 +1,7 @@
 # ADM-002 — 허용 목록 BFF와 API 클라이언트
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-002-api-proxy`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ADM-001, ORC-004
@@ -27,12 +27,12 @@ admin/src/app/api, admin/src/lib/api
 
 ## 작업 및 승인 기록
 
-- 구현 요약: BFF·API 클라이언트와 mock upstream 검증 구현 중
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 진행 중
+- 구현 요약: 허용 목록 BFF와 세션 경계 경쟁을 차단한 CSRF 클라이언트
+- 변경 파일 / 커밋 SHA: b0265899bce21f32cf7fea6a3de52af0b8192430
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-002-api-proxy, push 성공
+- 검증 명령 / 결과: mock upstream 포함11tests·lint·typecheck·build PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 검토 예정
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: b0265899bce21f32cf7fea6a3de52af0b8192430: qa 독립 정적·CSRF 재현/회귀4tests PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: f136ccc1ab2a71d90c9c2b6dcb258779250ec555; integration push 성공
+- 통합 smoke 결과: mock upstream 포함11tests·lint·typecheck·build PASS
