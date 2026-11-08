@@ -1,7 +1,7 @@
 # ADM-007 — Explorer·본인 활동
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-007-audit-explorer`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ADM-004, API-013, API-014
@@ -27,12 +27,12 @@ ADMIN 전체·다른 역할 본인 scope, 기간/actor/type/result 등 계약 �
 
 ## 작업 및 승인 기록
 
-- 구현 요약: Explorer필터·본인활동·ADMIN 상세패널 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: 감사 Explorer·본인 활동·관리자 상세 preview
+- 변경 파일 / 커밋 SHA: 60404d6327341b3b25211eefa82f8fc9d4e43641
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-007-audit-explorer, push 성공
+- 검증 명령 / 결과: unit28 lint typecheck build; 실HTTP22 UUID커서·필터·own scope, browser PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 실BFF/브라우저·독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 60404d6327341b3b25211eefa82f8fc9d4e43641: qa 60404d6 독립 diff·scope·cursor·실HTTP·browser PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 721c25537b21cec9b5bb627b4edb39e0578a4cad; integration push 성공
+- 통합 smoke 결과: unit28 lint typecheck build; 실HTTP22 UUID커서·필터·own scope, browser PASS
