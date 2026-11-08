@@ -1,6 +1,6 @@
 # 관리자 감사 MVP 최종 인수 보고
 
-작성일: 2026-11-09 (Asia/Seoul). 담당: orchestra. MVP 구현과 실제 원격 CI가 모두 통과했다. 최종 인수 문서의 독립 검토 후 master 반영을 수행한다. 아래 로컬 실행 결과와 실제 원격 결과를 구분한다.
+작성일: 2026-11-09 (Asia/Seoul). 담당: orchestra. MVP 구현과 실제 원격 CI가 모두 통과했다. 최종 인수 문서의 독립 검토를 받고 master 머지·원격 푸시를 완료했다. 아래 로컬 실행 결과와 실제 원격 결과를 구분한다.
 
 ## 구현 범위
 
@@ -42,7 +42,7 @@
 
 [루트 README](../README.md)의 Java21/Node24·Compose·API·Admin 명령과 local 계정을 따른다. 개발 DB와 E2E DB는 분리한다. E2E는 고유 Compose 프로젝트·임의 포트·전용 DB·프로세스를 만들고 종료 시 소유한 것만 정리한다. 실제 최종 실행은 label 기준 남은 컨테이너·볼륨0과 private 진단 삭제까지 확인했다.
 
-본 티켓 외41개 티켓은 모두 승인·원격 integration에 통합됐다. 모든 티켓의 dependency ID·비순환성과 소스/merge 커밋의 integration 포함을 검사했고, 통합 소스의 원격 게시도 확인했다. ORC-005도 독립 검토 후 integration에 반영하고 master로 머지·푸시한다. 최종 master 반영 SHA는 해당 티켓과 Git 이력에 기록한다.
+본 티켓 외41개 티켓은 모두 승인·원격 integration에 통합됐다. 모든 티켓의 dependency ID·비순환성과 소스/merge 커밋의 integration 포함을 검사했고, 통합 소스의 원격 게시도 확인했다. ORC-005도 독립 검토 후 integration에 반영했고, master 머지 커밋 `e55db999118c626e3f3681824b13d723ebc606c5`를 원격에 푸시했다. 모든42티켓의 소스/머지 SHA가 master의 ancestor임을 확인한다. 이후 결과 관리 문서 커밋은 integration과 master에 동기화하며 최종 브랜치의 CI 결과도 확인한다.
 
 ## 범위와 제한
 
