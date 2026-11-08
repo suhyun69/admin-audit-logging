@@ -1,462 +1,136 @@
-# Architecture
+# Admin Audit API 아키텍처
 
-이 프로젝트의 기본 구조를 설명한다. 새 기능이나 새 도메인을 추가할 때는 이 문서의 규칙을 따른다.
+실제 구현은 기존 헥사고날 템플릿의 의존 방향을 유지하며 인증·회원·감사를 유스케이스에서 조율합니다. 패키지는 `com.example.demo`, Java는 21, Spring Boot는 3.5.16입니다. 원래 Todo 예제와 H2는 제거했습니다.
 
-- **기술 스택** — Spring Boot 3.5.16 / Java 21 (toolchain) / Gradle 9.2.1 (래퍼 포함)
-- **저장소** — H2. 개발용은 파일 기반(`./data/demo`)이라 재시작해도 데이터가 남고, 테스트는 인메모리를 쓴다.
-- **API 문서** — springdoc-openapi. 실행 후 `http://localhost:8080/swagger-ui.html` (스펙 원본은 `/v3/api-docs`)
-- **빌드** — `./gradlew build`, **실행** — `./gradlew bootRun`
+## 계층과 디렉터리
 
----
-
-## 1. 한눈에 보기
-
-요청은 네 겹의 경계를 지난다. **경계마다 전용 타입이 있고, 한 계층의 타입이 다음 경계를 그대로 넘지 않는다.**
-
-```
-HTTP 요청
-   │
-   ▼
-┌─────────────────────────────────────────────────────────┐
-│ controller/            TodoWebRequest  ──┐              │  웹 계층
-│                        TodoWebResponse ◄─┼──┐           │  HTTP만 안다
-└──────────────────────────────────────────┼──┼───────────┘
-                                           ▼  │
-┌─────────────────────────────────────────────┼───────────┐
-│ usecase/               AddTodoAppRequest ──┐│           │  유스케이스 계층
-│   ├── (interface)      TodoAppResponse ────┼┘           │  흐름을 조율한다
-│   └── impl/                                │            │
-└─────────────────────────────────────────────┼───────────┘
-                                             ▼
-┌─────────────────────────────────────────────────────────┐
-│ todo/application/      TodoService                      │  도메인 서비스
-│ todo/domain/           Todo (순수 자바)                  │  규칙을 지킨다
-└──────────────────────┬──────────────────────────────────┘
-                       │ TodoRepositoryPort (인터페이스)
-                       ▼
-┌─────────────────────────────────────────────────────────┐
-│ todo/adapter/out/persistence/   JPA, H2                 │  영속성 어댑터
-└─────────────────────────────────────────────────────────┘
+```text
+controller/                    HTTP 경계와 WebRequest/WebResponse
+usecase/                       유스케이스 인터페이스
+  dto/                         AppRequest/AppResponse
+  impl/                        권한·트랜잭션·도메인 간 조율
+  support/                     커서/필터 정규화, 응답 매핑, 커밋 후 관찰
+user/
+  domain/                      순수 Java 회원·상태·변경 결과
+  application/                 MANDATORY 도메인 서비스
+    port/out/                  영속성 인터페이스
+  adapter/out/persistence/     JDBC 구현
+auth/                         계정·세션 도메인과 같은 계층 구조
+audit/                        이벤트·변경·조회 도메인과 같은 계층 구조
+security/                      인증 provider/filter, CSRF, 수집 filter와 observer adapter
+common/                        오류, 요청 컨텍스트, 개인정보 정제, 프레임워크 중립 커서 좌표
+config/                        Clock 등 공통 Spring 설정
 ```
 
-데이터 변환 순서:
-
-```
-TodoWebRequest → AddTodoAppRequest → Todo → TodoAppResponse → TodoWebResponse
-   (웹 입력)        (유스케이스 입력)   (도메인)   (유스케이스 출력)   (웹 출력)
-```
-
----
-
-## 2. 패키지 구조
-
-```
-com.example.demo
-├── DemoApplication.java
-│
-├── controller/                          ← 웹 계층 (인바운드 어댑터)
-│   ├── TodoController.java              유스케이스 인터페이스에만 의존
-│   ├── HelloController.java             헬스체크용 (규칙 예외, 4장 참고)
-│   └── dto/
-│       ├── TodoWebRequest.java          @RequestBody + Bean Validation
-│       ├── TodoWebResponse.java         HTTP 응답 본문
-│       └── PageWebResponse.java         페이지 응답 (제네릭)
-│
-├── usecase/                             ← 유스케이스 계층
-│   ├── AddTodoUseCase.java              TodoAppResponse add(AddTodoAppRequest)
-│   ├── ReadTodoUseCase.java             readAll(Boolean) / readById(Long)
-│   ├── UpdateTodoUseCase.java           TodoAppResponse update(UpdateTodoAppRequest)
-│   ├── DeleteTodoUseCase.java           void delete(Long)
-│   ├── dto/
-│   │   ├── AddTodoAppRequest.java
-│   │   ├── UpdateTodoAppRequest.java
-│   │   └── TodoAppResponse.java         from(Todo) — 도메인이 여기서 멈춘다
-│   └── impl/
-│       ├── AddTodoUseCaseImpl.java      도메인 서비스 호출 + AppResponse 변환
-│       ├── ReadTodoUseCaseImpl.java     ★ 트랜잭션 경계가 이 계층에 있다
-│       ├── UpdateTodoUseCaseImpl.java
-│       └── DeleteTodoUseCaseImpl.java
-│
-├── todo/                                ← Todo 도메인 (헥사고날)
-│   ├── domain/
-│   │   ├── Todo.java                    프레임워크 import 0건, 불변식 자체 검증
-│   │   └── TodoNotFoundException.java   common의 NotFoundException 상속
-│   ├── application/
-│   │   ├── TodoService.java             도메인 서비스 (MANDATORY — 경계를 열지 않는다)
-│   │   └── port/out/
-│   │       └── TodoRepositoryPort.java  아웃바운드 포트 (애플리케이션이 정의)
-│   └── adapter/out/persistence/         아웃바운드 어댑터 (JPA 구현)
-│       ├── TodoPersistenceAdapter.java  포트 구현
-│       ├── TodoJpaEntity.java           영속성 전용 모델
-│       ├── TodoJpaRepository.java       Spring Data (package-private)
-│       └── TodoMapper.java              도메인 ↔ 엔티티 변환
-│
-├── common/                              ← 도메인에 종속되지 않는 공통 기반
-│   ├── exception/
-│   │   ├── BusinessException.java       모든 업무 예외의 최상위 (abstract)
-│   │   ├── ErrorCode.java               NOT_FOUND / INVALID_INPUT / CONFLICT / INTERNAL_ERROR
-│   │   ├── NotFoundException.java
-│   │   └── InvalidInputException.java
-│   ├── page/
-│   │   ├── PageQuery.java               페이지 요청 (프레임워크 중립)
-│   │   └── PageResult.java              페이지 결과 (프레임워크 중립)
-│   └── web/
-│       ├── GlobalExceptionHandler.java  예외 → HTTP 번역이 일어나는 유일한 지점
-│       └── ErrorResponse.java
-│
-└── config/
-    ├── AppConfig.java                   Clock 빈 (테스트에서 시각 고정용)
-    └── OpenApiConfig.java               OpenAPI 문서 메타데이터
+```text
+HTTP controller ──→ usecase ──→ domain application ──→ pure domain
+                                  ↑ port 구현
+                         persistence adapter
+security adapter ──→ usecase 인터페이스
 ```
 
----
+웹 DTO를 App DTO로 변환하며 도메인 모델을 controller에 노출하지 않습니다. user/auth/audit의 application 서비스는 다른 도메인을 직접 호출하지 않습니다. 회원 변경과 감사 저장의 조합은 usecase가 수행합니다.
 
-## 3. 각 계층의 책임
+영속성 어댑터는 JdbcTemplate/NamedParameterJdbcTemplate로 PostgreSQL 네이티브 UUID·JSONB·INET와 조건부 UPDATE를 사용합니다. Spring Data JPA 기반 트랜잭션 설정은 유지하지만 도메인에 JPA 엔티티를 넣지 않습니다. 같은 DataSource와 트랜잭션 매니저 아래 JDBC 변경과 감사 INSERT가 함께 커밋·롤백되는 것을 PostgreSQL 테스트로 확인합니다.
 
-### controller/ — 웹 계층
+## 구조 규칙
 
-HTTP를 유스케이스 호출로 번역하는 일만 한다.
+`ArchitectureTest`가 다음 규칙을 검사합니다.
 
-- **한다** — 요청 본문 바인딩, Bean Validation(`@Valid`), 상태 코드와 `Location` 헤더 결정, WebRequest ↔ AppRequest/AppResponse 변환
-- **하지 않는다** — 업무 규칙 판단, 트랜잭션 관리, 도메인 모델 직접 사용
+- domain은 Spring/JPA/Hibernate에 의존하지 않습니다.
+- application은 JPA·Spring Data 영속성 API를 참조하지 않으며 다른 도메인과 직접 결합하지 않습니다.
+- controller는 domain·usecase 구현체에 의존하지 않습니다.
+- common은 개별 domain을 참조하지 않습니다.
+- security는 유스케이스 인터페이스·App DTO를 사용하고 domain/application/persistence/impl을 직접 참조하지 않습니다.
+- application Service는 `MANDATORY`, usecase 구현은 명시적인 트랜잭션 경계를 가집니다.
+- Web/App DTO, UseCase 인터페이스·구현, outbound Port 이름 규칙을 유지합니다.
 
-`TodoController`는 유스케이스 인터페이스 네 개만 주입받는다. 구현체(`*UseCaseImpl`)도 `TodoService`도 알지 못한다.
+템플릿 제거 때 빈 계층/매칭만 허용했으며 존재하는 클래스의 의존·트랜잭션 검사는 비활성화하지 않았습니다.
 
-### usecase/ — 유스케이스 계층
+## DB와 프로필
 
-"무엇을 할 수 있는가"를 인터페이스로 드러내고, 구현체가 그 흐름을 조율한다.
+공통 Flyway 위치의 V1/V2가 업무·감사 테이블과 인덱스를 만듭니다. `ddl-auto=validate`, OSIV=false이며 H2 의존성이 없습니다.
 
-- **인터페이스** — 유스케이스 단위로 하나씩. 호출자(컨트롤러, 배치, 메시지 컨슈머)는 이것만 본다.
-- **구현체** — 도메인 서비스를 호출하고, 돌아온 도메인 모델을 `~AppResponse`로 변환해 내보낸다. **트랜잭션 경계와 도메인 간 조율이 여기 있다.**
+`local` 프로필만 `classpath:db/local`을 추가합니다. `db.local.V3__seed_local_data`가 BCrypt 개발 계정 3명과 회원 200명을 생성합니다. Java 마이그레이션도 Flyway 버전 이력으로 관리하므로 재시작 시 중복 실행하지 않습니다. 일반 프로필에서는 V3를 발견하지 않습니다.
 
-지금은 Todo 하나뿐이라 구현체가 얇지만, 이 계층을 둔 이유는 **여러 도메인에 걸친 흐름을 조율할 자리**를 확보하기 위해서다. 예를 들어 "할 일을 완료하면 포인트를 적립한다"면 `CompleteTodoUseCaseImpl`이 `TodoService`와 `PointService`를 함께 부른다. 자세한 규칙은 6장을 참고한다.
+## 인증·CSRF
 
-### todo/ — 도메인
+- 로그인은 BCrypt 검증 후 SecureRandom 32바이트 토큰을 Base64URL로 발급합니다. SHA-256 hex만 `admin_sessions.token_hash`에 저장하고 8시간 절대 만료·폐기·계정 enabled를 매 요청 검사합니다.
+- `OpaqueSessionAuthenticationProvider`는 `AuthUseCase`로 DB 세션을 검사합니다. 필터가 ROLE 권한과 서버 ActorSnapshot을 구성합니다.
+- 인증은 `NullSecurityContextRepository`를 사용해 HttpSession에 저장하지 않습니다. RequestCache도 사용하지 않습니다.
+- CSRF는 별도 HttpSession의 synchronizer token입니다. 로그인 전에는 anonymous, 로그인 후에는 opaque 인증 세션 UUID에 연결합니다. 다른 인증 쿠키와 CSRF 세션/토큰을 섞으면 403입니다.
+- 로그인 controller가 명시적으로 세션 ID를 회전하고 토큰을 비웁니다. 클라이언트는 재발급받습니다. 로그아웃은 DB 세션·CSRF 세션과 두 쿠키를 폐기합니다.
+- `requireExplicitAuthenticationStrategy(true)`로 일반 요청의 암묵적 인증 세션 전략을 제거합니다. 매번 재구성하는 인증을 새 로그인으로 오인해 CSRF를 폐기하지 않습니다. sessionCreationPolicy enum 설정 호출은 이 명시 전략과 조합하지 않습니다.
+- 쿠키는 HttpOnly·SameSite=Lax·Path=/이며 일반 프로필 Secure=true, local HTTP 개발 프로필은 false입니다.
 
-헥사고날(포트/어댑터) 구조를 따른다.
+Spring 6.5의 명시 전략과 sessionCreationPolicy 조합 제약은 [공식 구현](https://github.com/spring-projects/spring-security/blob/6.5.x/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java)을 확인했고 반복·동시 요청 및 실제 Servlet HTTP 테스트로 검증했습니다.
 
-- `domain/Todo` — 프레임워크 의존이 전혀 없다. `title` 필수, 길이 제한 같은 불변식을 생성자와 `update()`에서 스스로 검증하고, 위반 시 `InvalidInputException`을 던진다.
-- `application/TodoService` — 유스케이스가 요청한 동작을 수행한다. 아웃바운드 포트에만 의존하므로 JPA를 모른다. **트랜잭션을 스스로 열지 않고**(`Propagation.MANDATORY`) 호출자의 것에 참여만 한다. 다른 도메인의 서비스도 호출하지 않는다.
-- `application/port/out/TodoRepositoryPort` — **애플리케이션이 정의하고 어댑터가 구현한다**(의존성 역전). 시그니처에 JPA 타입이 없어서 구현을 JDBC나 외부 API, 인메모리 가짜 객체로 바꿔도 위 계층은 그대로다.
-- `adapter/out/persistence` — 포트의 JPA 구현. 도메인 `Todo`와 `TodoJpaEntity`를 분리하고 `TodoMapper`로 변환한다.
+경로 matcher와 `AuthorizationUseCase`의 `@PreAuthorize`/서버 actor 검사를 함께 사용합니다. 상태 변경은 ADMIN/OPERATOR, 전체 감사·상세·타임라인은 ADMIN, 본인 조회·요약은 인증 사용자입니다. 본인 범위는 서버 actor ID로 강제하며 client actorId를 받지 않습니다.
 
-### common/ — 공통 기반
+## 요청 필터와 감사 주체
 
-**개별 도메인을 참조하지 않는다.** `common`에서 `com.example.demo.todo`를 import하면 규칙 위반이다.
-
----
-
-## 4. 네이밍 규칙
-
-| 경계 | 접미사 | 위치 | 예시 |
-|---|---|---|---|
-| 웹 입력 | `~WebRequest` | `controller/dto` | `TodoWebRequest` |
-| 웹 출력 | `~WebResponse` | `controller/dto` | `TodoWebResponse` |
-| 유스케이스 입력 | `~AppRequest` | `usecase/dto` | `AddTodoAppRequest`, `UpdateTodoAppRequest` |
-| 유스케이스 출력 | `~AppResponse` | `usecase/dto` | `TodoAppResponse` |
-| 유스케이스 | `~UseCase` / `~UseCaseImpl` | `usecase`, `usecase/impl` | `AddTodoUseCase` |
-| 아웃바운드 포트 | `~Port` | `*/application/port/out` | `TodoRepositoryPort` |
-| 아웃바운드 어댑터 | `~Adapter` | `*/adapter/out/*` | `TodoPersistenceAdapter` |
-
-DTO는 모두 `record`로 만든다.
-
-**예외 두 가지.**
-
-1. `HelloController` 같은 헬스체크/데모용 엔드포인트는 `Map<String, String>` 반환을 그대로 둔다. 도메인이 없는 엔드포인트까지 전용 타입을 만들 필요는 없다고 판단했다.
-2. 식별자 하나만 받는 `readById(Long)` / `delete(Long)`는 `~AppRequest`로 감싸지 않는다. 본문이 없는 요청까지 래퍼를 만들면 이름만 늘어난다.
-
----
-
-## 5. 의존 규칙
-
-화살표 방향으로만 의존한다. 반대 방향 import가 생기면 설계가 깨진 것이다.
-
-```
-controller ──► usecase ──► todo/application ──► todo/domain
-                                 ▲
-                                 │ (포트 구현, 의존성 역전)
-                     todo/adapter/out/persistence
-
-common ◄── 누구나 참조 가능 / common은 아무 도메인도 참조하지 않음
+```text
+HttpAuditFilter (가장 바깥)
+  RequestContextFilter (서버 requestId, interaction UUID, 요청 속성·MDC)
+    Spring Security
+      OpaqueSessionFilter (인증·actor snapshot)
+      ClientPayloadLimitFilter (CLIENT 원시 본문 최대 8192바이트)
+      CsrfFilter → 권한 검사 → MVC controller/usecase
 ```
 
-### 규칙은 테스트가 강제한다
+HTTP 수집은 `/api/v1/**`를 관찰하고 health/static은 제외합니다. 안쪽 컨텍스트 필터가 ThreadLocal/MDC를 정리한 뒤에도 요청 속성의 snapshot으로 최종 status·시간·actor를 기록합니다. 잘못된 interaction UUID의 400도 HTTP 1건을 남깁니다. IP는 `remoteAddr`이며 사용자 입력 X-Forwarded-For를 신뢰하지 않습니다.
 
-이 장의 규칙은 문서상의 합의가 아니라 **실행되는 테스트**다. `ArchitectureTest`가 컴파일된 클래스의 의존 그래프를 읽어 검사하고, 어기면 빌드가 실패한다.
+보안 실패는 filter handler 또는 MVC advice의 공통 `SecurityFailureObserver` 포트에서 security adapter로 전달합니다. common이 usecase를 직접 참조하지 않습니다. 요청 단위 claim으로 보안 이벤트 중복을 막고, 비밀번호 오류는 AUTH_LOGIN_FAILURE만 남깁니다. 입력 username을 실패 actorName에 복사하지 않습니다.
 
-```bash
-./gradlew test --tests 'com.example.demo.ArchitectureTest'
-```
+## 트랜잭션 경계
 
-| # | 규칙 | 뜻 |
-|---|---|---|
-| 1 | `계층_의존_방향` | 컨트롤러→유스케이스→도메인서비스 방향으로만 접근 |
-| 2 | `도메인은_프레임워크를_모른다` | `..domain..`에 jakarta/spring/hibernate 의존 없음 |
-| 3 | `도메인서비스는_JPA를_모른다` | `..application..`에 영속성 기술 의존 없음 |
-| 4 | `컨트롤러는_도메인모델을_모른다` | 웹 계층은 `~AppResponse`까지만 본다 |
-| 5 | `common은_도메인을_모른다` | 공통 기반이 개별 도메인에 종속되지 않음 |
-| 6 | `컨트롤러는_유스케이스_구현체를_모른다` | 인터페이스에만 의존 |
-| 7 | `도메인서비스는_다른_도메인을_모른다` | 6장 규칙 1 |
-| 8–12 | `*_네이밍` | 4장 네이밍 규칙 (웹/앱 DTO, 유스케이스, 포트) |
-| 13 | `도메인서비스는_트랜잭션을_열지_않는다` | `MANDATORY` 확인 |
-| 14 | `유스케이스_구현체는_트랜잭션_경계다` | `@Transactional` 확인 |
-
-위반하면 파일과 줄 번호까지 나온다.
-
-```
-Rule 'no classes that reside in a package 'com.example.demo.controller..'
-should depend on classes that reside in a package '..domain..'' was violated (2 times):
-Method <...TempBadController.titleOf(...Todo)> has parameter of type <...todo.domain.Todo>
-```
-
-**7번 규칙은 도메인이 늘어도 고치지 않는다.** 클래스의 패키지에서 도메인 이름을 뽑아 비교하는 방식이라, `order`를 추가하면 자동으로 검사 대상에 들어온다. 다만 도메인이 아닌 기반 패키지를 새로 만들면 `ArchitectureTest.NON_DOMAIN_PACKAGES`에 등록해야 한다.
-
-`todo/application`에 남아 있는 스프링 import는 `@Service`, `@Transactional`, `Propagation` 셋뿐이다.
-
----
-
-## 6. 도메인 간 협력과 트랜잭션
-
-도메인이 여러 개로 늘어날 때를 위한 규칙이다. **지금 지키지 않으면 나중에 되돌리기 어렵다.**
-
-### 규칙 1 — 도메인 서비스끼리 직접 호출하지 않는다
-
-```java
-// ❌ OrderService 가 TodoService 를 주입받는다
-public class OrderService {
-    private final TodoService todoService;   // 도메인 간 의존이 그래프로 엉킨다
-}
-
-// ✅ 유스케이스 구현체가 둘 다 호출한다
-@Service
-public class CompleteOrderUseCaseImpl implements CompleteOrderUseCase {
-    private final OrderService orderService;
-    private final TodoService todoService;
-
-    @Override
-    @Transactional
-    public OrderAppResponse complete(CompleteOrderAppRequest request) {
-        Order order = orderService.complete(request.orderId());
-        todoService.create("배송 확인: " + order.getId(), null, false);
-        return OrderAppResponse.from(order);
-    }
-}
-```
-
-도메인 서비스는 끝까지 자기 도메인만 안다. 도메인 간 흐름은 전부 `usecase/impl/` 한 곳에 모이므로, "무엇이 무엇을 부르는지"를 그 디렉터리만 읽으면 파악할 수 있다.
-
-### 규칙 2 — 트랜잭션 경계는 유스케이스 구현체에 있다
-
-| 계층 | 선언 | 역할 |
-|---|---|---|
-| `*UseCaseImpl` | `@Transactional` (조회는 `readOnly = true`) | **경계를 연다** |
-| `*Service` (도메인) | `@Transactional(propagation = MANDATORY)` | 호출자의 트랜잭션에 **참여만 한다** |
-
-도메인 서비스에 `MANDATORY`를 건 이유는 경계를 빠뜨린 호출을 조용히 넘기지 않기 위해서다. 기본값(`REQUIRED`)이면 유스케이스를 거치지 않은 호출도 각자 트랜잭션을 열어 **개별 커밋**되고, 두 번째 도메인 작업이 실패해도 첫 번째는 그대로 남는다. 이 증상은 도메인이 하나일 때는 드러나지 않다가 둘째가 붙는 날 데이터 정합성 문제로 터진다.
-
-`MANDATORY`면 트랜잭션 없이 도메인 서비스를 부르는 순간 `IllegalTransactionStateException`이 난다. 실수가 런타임에 바로 드러난다.
-
-이 두 성질은 `usecase/TransactionBoundaryTest`가 검증한다.
-
-- 트랜잭션 없이 `todoService.create(...)` → 예외
-- 유스케이스를 통한 호출 → 정상
-- 한 경계 안의 두 쓰기 중간에 실패 → **둘 다 롤백**
-
----
-
-## 7. 예외 처리
-
-도메인은 HTTP를 모르고, HTTP 번역은 한 곳에서만 일어난다.
-
-```
-TodoNotFoundException  extends  NotFoundException  extends  BusinessException
-                                                               │ ErrorCode
-                                                               ▼
-                                              GlobalExceptionHandler
-                                                   ErrorCode → HttpStatus
-```
-
-`GlobalExceptionHandler`는 개별 도메인 예외를 알지 못하고 `BusinessException` 하나만 처리한다. **새 도메인이 늘어도 이 파일은 고치지 않는다.**
-
-| 상황 | 응답 |
+| 흐름 | 경계와 결과 |
 |---|---|
-| `BusinessException` (ErrorCode에 따라) | 404 / 400 / 409 / 500 |
-| `@Valid` 실패 | 400 + `fieldErrors` |
-| 깨진 JSON 본문 | 400 |
-| 경로 변수 타입 불일치 | 400 |
-| 그 외 모든 예외 | 500 (내부 메시지 숨기고 서버에만 로깅) |
+| 회원 변경 | 바깥 NOT_SUPPORTED facade에서 guard/입력 검사 → 별도 REQUIRED worker |
+| 성공 BUSINESS | MANDATORY writer가 회원 변경과 같은 트랜잭션으로 audit_logs/changes INSERT |
+| 업무 예외·감사 INSERT 실패 | worker 롤백 완료 후 facade가 별도 REQUIRES_NEW 실패 이력을 요청 |
+| HTTP·SECURITY 관찰 | NOT_SUPPORTED 관찰 facade → 별도 REQUIRES_NEW writer, 저장 오류를 정제해 격리 |
+| 로그인·로그아웃 성공 | 트랜잭션 AFTER_COMMIT 이후 관찰 writer 호출 |
+| 목록·검색 조회 | 결과를 먼저 읽고 같은 쓰기 가능한 트랜잭션에서 조회 감사 INSERT |
+| 상세·타임라인 | REPEATABLE_READ에서 이벤트와 batch changes를 같은 snapshot으로 읽은 뒤 조회 감사 INSERT |
+| 요약 | REPEATABLE_READ에서 집계와 최근 10건을 같은 snapshot으로 읽은 뒤 조회 감사 INSERT |
 
-응답 본문 형식:
+서로 다른 Spring Bean 경계로 호출해 self-invocation으로 전파 설정이 무시되지 않게 합니다. 관찰 로그 오류가 원래 200/401/403을 바꾸거나 업무 트랜잭션을 오염시키지 않습니다. 성공 업무 감사 오류는 반드시 업무를 롤백합니다.
 
-```json
-{
-  "timestamp": "2026-11-05T05:51:09.986249Z",
-  "status": 404,
-  "error": "Not Found",
-  "message": "Todo를 찾을 수 없습니다. id=99999",
-  "fieldErrors": { "title": "title은 필수입니다." }
-}
-```
+회원 상태 변경은 `UPDATE ... WHERE id=:id AND version=:version`으로 CAS를 수행하고 실제 변경 시 version을 1 증가시킵니다. 조회한 version이 다르면 409이며, 같은 상태도 버전을 먼저 검사합니다. no-op은 updatedAt·version·성공 변경 이력을 바꾸지 않습니다.
 
-`fieldErrors`는 값이 있을 때만 직렬화된다.
+## CLIENT의 신뢰 경계와 멱등성
 
-**검증은 두 겹이다.** `~WebRequest`의 Bean Validation이 HTTP 입구에서 형식을 거르고, 도메인 모델이 불변식을 다시 검사한다. 지금은 두 제약이 같아서(`@Size(max=200)` ↔ `MAX_TITLE_LENGTH`) 도메인 검증이 HTTP 경로로는 도달하지 않지만, 배치나 메시지 컨슈머처럼 웹을 거치지 않는 호출자를 위한 2차 방어선이다.
+CLIENT는 성공 확정이 아닌 `ATTEMPTED` 신고입니다. 정확히 허용한 필드·타입·action·resource/page 조합을 검증하며 알 수 없는 actor/result 필드나 중복 JSON 키를 거부합니다.
 
----
+opaque 인증 후, CSRF 검사 전 바이트 제한 필터가 최대 8193바이트만 읽어 초과를 413으로 거부합니다. Content-Length가 없는 chunked와 디코딩된 Servlet 경로도 검사합니다. 작은 정상 본문은 wrapper로 전달합니다.
 
-## 8. 페이지네이션과 API 문서
+고정 필드 순서의 canonical encoding에 서버 actor ID와 정규화한 payload를 넣어 SHA-256 digest를 만듭니다. session/request/receivedAt은 제외합니다. eventId는 감사 PK이며 `ON CONFLICT DO NOTHING` 뒤 source·actor·digest를 검사해 동시 재송도 1행으로 처리합니다.
 
-### 페이지네이션
+첫 새 이벤트는 과거 24시간~미래 5분을 검증합니다. 이미 받은 같은 이벤트의 재송은 시간이 지나거나 다시 로그인해도 200이며 원래 행을 바꾸지 않습니다. 새 이벤트만 actor당 분당 60건을 사용합니다. 제한 저장소는 단일 인스턴스의 유한 minute window이며 오래되거나 역순 도착한 시각이 현재 카운터를 지우지 못하게 합니다. 429는 새 INSERT를 롤백합니다.
 
-목록 조회는 페이지 단위다. `GET /api/todos?page=0&size=20`
+## 검색·스냅샷·집계
 
-```json
-{
-  "content": [ { "id": 1, "title": "할 일 1", ... } ],
-  "page": 0, "size": 2, "totalElements": 5, "totalPages": 3,
-  "first": true, "last": false
-}
-```
+회원은 ID ASC, 감사 Explorer는 `(occurred_at DESC,id DESC)`, interaction은 ASC tuple keyset입니다. 감사 cursor는 엄격한 Base64URL JSON `{occurredAt,id}`이고 PostgreSQL 마이크로초를 보존합니다. UUID 정렬은 Java의 signed compare가 아닌 PostgreSQL에서 수행합니다.
 
-기본값은 `page=0`, `size=20`이고 `size`는 1~100이다. 범위를 벗어나면 `400`이 난다. 정렬은 `id` 오름차순 고정이다.
+목록·요약은 from 포함/to 미포함, 기본 24시간, 최대 31일입니다. 나노초 범위 입력은 DB의 이산 마이크로초 값에 대한 비교 의미가 유지되도록 SQL 바인딩 경계를 올림합니다. interaction은 size/cursor만 허용하고 24시간 기본 필터를 적용하지 않습니다.
 
-**Spring Data 의 `Pageable`/`Page` 를 쓰지 않는다.** 그 타입들은 `org.springframework.data` 패키지라서 도메인 서비스가 참조하는 순간 `ArchitectureTest.도메인서비스는_JPA를_모른다` 에 걸린다. 대신 프레임워크 중립 타입을 `common/page/` 에 두고, Spring Data 타입으로의 변환은 영속성 어댑터에서만 한다.
+본인 조회는 server actor ID를 SQL에 강제합니다. 요약은 ADMIN 전체·다른 역할 본인 범위이며 total/denied/error를 DB에서 집계합니다. 오류는 `result='FAILURE' OR status_code>=500`인 행을 한 번만 셉니다. 최근 목록만으로 전체 수치를 계산하지 않습니다.
 
-```
-PageQuery            (common/page)   page, size — 생성자에서 범위 검증
-    ↓ 포트 → 도메인 서비스 → 유스케이스까지 그대로 전달
-PageRequest/Pageable (adapter)       ← 어댑터에서만 변환
-    ↓
-Page<TodoJpaEntity>  (adapter)
-    ↓ toPageResult()
-PageResult<Todo>     (common/page)   map(TodoAppResponse::from) 으로 내용물만 교체
-PageResult<TodoAppResponse>
-    ↓ PageWebResponse.from(result, TodoWebResponse::from)
-PageWebResponse<TodoWebResponse>     (controller/dto)
-```
+조회 결과를 구성한 다음 감사 INSERT를 하므로 현재 조회가 만든 이벤트는 해당 응답에 포함되지 않습니다. REPEATABLE_READ는 집계와 최근 목록 또는 이벤트와 changes 사이에 다른 트랜잭션이 커밋해도 하나의 view를 유지합니다.
 
-`PageResult.map()` 덕분에 계층을 지날 때 페이지 정보는 그대로 두고 내용물 타입만 바꾼다.
+## 개인정보 경계
 
-포트에는 페이징 없는 `findAll()` 도 남아 있다. API로 노출하지 않고 정리·배치 같은 내부 작업에만 쓴다.
+- 비밀번호, 원시 토큰/쿠키, Authorization, 전체 body, 검색 원문은 감사 저장·오류 응답·운영 로그에서 제외합니다.
+- metadata는 searched/status/size/returnedCount/payloadDigest/pagePath 등 타입이 맞는 허용 키만 유지합니다.
+- path에서 query/hash를 제거하고 모르는 요청 경로는 정해진 대체 값으로 기록합니다. User-Agent는 제어문자를 제거하고 512자로 제한합니다.
+- 성공 회원 changes는 status의 ACTIVE/SUSPENDED 전후 값만 허용합니다.
+- 상세 응답도 metadata/path/UA·알려진 오류 코드와 status changes를 정제합니다. 과거 비허용 metadata를 버려도 레코드 자체는 조회 가능합니다.
 
-### API 문서
+## 테스트와 운영 범위
 
-springdoc-openapi 가 컨트롤러와 DTO를 읽어 OpenAPI 스펙을 생성한다. 별도 문서를 손으로 유지하지 않는다.
+JUnit·ArchUnit·Spring Security Test·MockMvc·실제 Servlet HTTP·Testcontainers PostgreSQL 17을 사용합니다. 실제 DB 제약과 테스트 전용 trigger/lock으로 업무 실패, 감사 실패, CAS 경합, 중복 이벤트, 교차 세션 CSRF와 일관된 조회 snapshot을 확인합니다. 장애 유도 hook을 운영 코드에 두지 않습니다.
 
-| 경로 | 내용 |
-|---|---|
-| `/swagger-ui.html` | 브라우저에서 보고 직접 호출 |
-| `/v3/api-docs` | OpenAPI 3 스펙 (JSON) |
+[API-013 실행계획 보고서](../docs/qa/API-013-query-plan.md)는 10만 건의 실제 인덱스 선택을 기록합니다. 이는 warm synthetic SQL 확인이며 API p95·대규모 부하 시험은 아닙니다.
 
-**애너테이션은 웹 계층에만 붙인다.** `@Tag`, `@Operation`, `@ApiResponse` 는 컨트롤러에, `@Schema` 는 `controller/dto` 에만 둔다. 유스케이스 DTO와 도메인은 문서화 도구도 모른다 — 문서화는 HTTP 표현의 관심사이기 때문이다.
-
----
-
-## 9. 영속성
-
-- 도메인 `Todo`와 `TodoJpaEntity`는 **별도 클래스**다. 테이블 구조가 바뀌어도 매퍼만 고치면 된다.
-- 그 대가로 **변경 감지(dirty checking)를 쓰지 않는다.** 도메인 모델은 영속 컨텍스트가 관리하는 객체가 아니므로, 수정 후 `repository.save()`를 명시적으로 호출한다.
-- 어댑터의 `save()`는 기존 행을 읽어 변경분만 반영한다. `createdAt` 같은 불변 컬럼이 덮이지 않는다.
-- 스키마는 `ddl-auto: update`로 생성된다. 운영에 쓸 거라면 Flyway/Liquibase로 옮겨야 한다.
-
-```sql
-create table todo (
-    id bigint generated by default as identity,
-    completed boolean not null,
-    created_at timestamp(6) with time zone not null,
-    description varchar(2000),
-    title varchar(200) not null,
-    updated_at timestamp(6) with time zone not null,
-    primary key (id)
-)
-```
-
-`http://localhost:8080/h2-console`에서 `jdbc:h2:file:./data/demo`로 접속해 데이터를 직접 볼 수 있다.
-
----
-
-## 10. 테스트 전략
-
-계층이 분리된 만큼 테스트도 필요한 만큼만 띄운다. **총 46건.**
-
-| 테스트 | 건수 | 띄우는 것 | 보는 것 |
-|---|---|---|---|
-| `ArchitectureTest` | 14 | 없음 (클래스 파일 분석) | 이 문서의 구조 규칙 |
-| `todo/domain/TodoTest` | 4 | 없음 (순수 자바) | 도메인 불변식 |
-| `usecase/TodoUseCaseTest` | 4 | 없음 (Mockito) | 구현체 → 서비스 위임, AppResponse 변환 |
-| `todo/application/TodoServiceTest` | 6 | 없음 (포트 가짜 구현) | 도메인 서비스 흐름, 페이징 |
-| `usecase/TransactionBoundaryTest` | 3 | 스프링 + H2 | 트랜잭션 경계와 롤백 |
-| `controller/TodoControllerTest` | 8 | 스프링 + H2 | 전 구간 통합, 페이징 |
-| `common/web/GlobalExceptionHandlerTest` | 5 | 스프링 + H2 | 에러 응답 |
-| `DemoApplicationTests` | 2 | 스프링 | 컨텍스트 로딩, `/hello` |
-
-`TodoServiceTest`가 DB 없이 도는 것은 아웃바운드 포트를 인메모리 가짜 구현으로 갈아끼울 수 있기 때문이고, 이것이 포트/어댑터 구조에서 얻는 가장 직접적인 이득이다.
-
-테스트는 `src/test/resources/application.yml`의 인메모리 H2를 쓰므로 개발용 `./data`를 건드리지 않는다.
-
----
-
-## 11. 새 도메인을 추가하는 순서
-
-`order` 도메인을 예로 들면:
-
-1. **도메인** — `order/domain/Order.java` (프레임워크 import 없이, 불변식은 스스로 검증). 필요하면 `OrderNotFoundException extends NotFoundException`.
-2. **아웃바운드 포트** — `order/application/port/out/OrderRepositoryPort.java`
-3. **도메인 서비스** — `order/application/OrderService.java` (`@Service`, `@Transactional(propagation = MANDATORY)`, 포트에만 의존). **다른 도메인 서비스를 주입받지 않는다.**
-4. **영속성 어댑터** — `order/adapter/out/persistence/`에 `OrderJpaEntity`, `OrderJpaRepository`, `OrderMapper`, `OrderPersistenceAdapter`
-5. **유스케이스 DTO** — `usecase/dto/`에 `AddOrderAppRequest`, `OrderAppResponse` (+ `from(Order)`)
-6. **유스케이스** — `usecase/AddOrderUseCase.java`와 `usecase/impl/AddOrderUseCaseImpl.java`. 구현체에 `@Transactional`(조회는 `readOnly = true`)을 붙인다 — **경계는 여기다.**
-7. **웹 DTO** — `controller/dto/`에 `OrderWebRequest`(+`toAddAppRequest()`), `OrderWebResponse`(+`from(OrderAppResponse)`)
-8. **컨트롤러** — `controller/OrderController.java` (유스케이스 인터페이스만 주입)
-9. **테스트** — 도메인 / 유스케이스 / 서비스 / 통합 네 갈래
-10. **점검** — `./gradlew test`. `ArchitectureTest`가 구조 규칙을 자동으로 검사한다
-
-`GlobalExceptionHandler`는 건드리지 않는다. `BusinessException`을 상속했다면 이미 처리된다.
-
-두 도메인에 걸친 흐름이 생기면 **도메인 서비스끼리 연결하지 말고** 새 유스케이스 구현체를 만들어 거기서 둘을 호출한다(6장).
-
----
-
-## 12. 설계 결정과 트레이드오프
-
-이 구조는 공짜가 아니다. 무엇을 내주고 무엇을 얻었는지 적어 둔다.
-
-**도메인 모델과 JPA 엔티티를 분리했다.**
-→ 얻은 것: 도메인이 ORM에서 자유롭다. 테이블 구조가 바뀌어도 매퍼만 고친다.
-→ 내준 것: 변경 감지를 못 쓰고, 수정 시 기존 행을 읽는 쿼리가 한 번 더 나간다. 매핑 코드도 늘어난다.
-
-**유스케이스 계층을 따로 두었다.**
-→ 얻은 것: 여러 도메인에 걸친 흐름을 조율할 자리가 생겼다. 컨트롤러가 도메인 서비스에 직접 묶이지 않는다.
-→ 내준 것: 도메인이 하나뿐인 지금은 구현체가 위임만 하는 얇은 층이다.
-
-**경계마다 DTO를 따로 두었다.**
-→ 얻은 것: 도메인 필드가 바뀌어도 API 응답이 함께 흔들리지 않는다. 타입 이름만 봐도 어느 경계의 것인지 안다.
-→ 내준 것: 필드 하나를 추가하려면 `~WebRequest`, `~AppRequest`, 도메인, `~AppResponse`, `~WebResponse`를 모두 고쳐야 한다.
-
-**페이징 타입을 Spring Data 대신 직접 만들었다.**
-→ 얻은 것: 도메인/유스케이스 계층이 영속성 기술에서 자유롭다. `PageResult.map()` 으로 계층 간 변환이 간단하다.
-→ 내준 것: `PageQuery`/`PageResult` 를 유지해야 하고, 어댑터에 변환 코드가 는다. Spring Data 의 정렬·슬라이스 기능을 그대로 쓰지 못한다.
-
-**유스케이스 인터페이스를 동작 단위로 쪼갰다.**
-→ 현재는 Add/Read/Update/Delete 넷이다. 더 엄격한 변형은 메서드 하나당 인터페이스 하나를 두는 것이고, 유스케이스가 늘어 컨트롤러 생성자가 비대해지면 그때 쪼갠다.
-
-**트랜잭션 경계를 유스케이스로 올리고, 도메인 서비스는 `MANDATORY`로 묶었다.**
-→ 얻은 것: 여러 도메인 서비스를 호출해도 한 트랜잭션으로 묶인다. 경계를 빠뜨린 호출이 조용히 개별 커밋되지 않고 예외로 드러난다.
-→ 내준 것: 도메인 서비스를 트랜잭션 없이 단독 호출할 수 없다. 스프링 컨텍스트에서 `TodoService`를 직접 쓰려면 호출자가 경계를 열어야 한다(단위 테스트는 프록시를 거치지 않아 영향 없음).
-
-**도메인 서비스끼리 직접 호출을 금지했다.**
-→ 얻은 것: 도메인 간 의존이 그래프로 엉키지 않는다. "무엇이 무엇을 부르는지"가 `usecase/impl/` 한 디렉터리에 모인다.
-→ 내준 것: 두 도메인을 엮는 사소한 작업에도 유스케이스를 하나 만들어야 한다.
-
----
-
-## 13. 아직 하지 않은 것
-
-연습 프로젝트라 의도적으로 비워 둔 부분이다.
-
-- 인증/인가
-- DB 마이그레이션 도구 (`ddl-auto: update`에 의존 중)
-- 낙관적 락 (`@Version`) — 동시 수정 시 나중 쓰기가 이긴다
-- 정렬 옵션 — 목록 조회는 `id` 오름차순 고정이다
-- 커서 기반 페이징 — 지금은 오프셋 방식이라 뒤쪽 페이지에서 느려진다
-- 도메인별 패키지 분리 — `usecase/`와 `controller/dto/`는 아직 평평하다. 도메인이 둘이 되는 시점에 `usecase/todo/`, `usecase/order/`로 나눈다(보류 중인 결정).
+SSE, Kafka/Outbox, 다중 Pod 전달·rate 공유, 관리자 설정 CRUD, 감사 보존·파티셔닝과 외부 변조 방지 저장은 후속 범위입니다. 실행은 [README](README.md), 요구사항·이벤트 계약·독립 QA는 루트 docs를 따릅니다.

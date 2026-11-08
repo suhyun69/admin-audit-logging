@@ -1,6 +1,8 @@
 package com.example.demo.controller;
 
 import com.example.demo.controller.dto.AuditPageWebResponse;
+import com.example.demo.controller.dto.AuditSummaryWebResponse;
+import com.example.demo.usecase.AuditSummaryUseCase;
 import com.example.demo.controller.dto.AuditDetailWebResponse;
 import com.example.demo.controller.dto.AuditDetailsPageWebResponse;
 import com.example.demo.usecase.AuditDetailUseCase;
@@ -17,11 +19,17 @@ import java.util.Map;
 public class AuditLogController {
     private final AuditSearchUseCase searches;
     private final AuditDetailUseCase details;
-    public AuditLogController(AuditSearchUseCase searches,AuditDetailUseCase details) { this.searches=searches;this.details=details; }
+    private final AuditSummaryUseCase summaries;
+    public AuditLogController(AuditSearchUseCase searches,AuditDetailUseCase details,AuditSummaryUseCase summaries) { this.searches=searches;this.details=details;this.summaries=summaries; }
     @GetMapping
     public AuditPageWebResponse search(@RequestParam Map<String,String> params) { return AuditPageWebResponse.from(searches.search(request(params))); }
     @GetMapping("/me")
     public AuditPageWebResponse mine(@RequestParam Map<String,String> params) { return AuditPageWebResponse.from(searches.mine(request(params))); }
+    @GetMapping("/summary")
+    public AuditSummaryWebResponse summary(@RequestParam Map<String,String> params) {
+        if(!java.util.Set.of("from","to").containsAll(params.keySet()))throw new ApiException(ErrorCode.VALIDATION_ERROR);
+        return AuditSummaryWebResponse.from(summaries.summary(params.get("from"),params.get("to")));
+    }
     @GetMapping("/{id}")
     public AuditDetailWebResponse detail(@PathVariable String id) { return AuditDetailWebResponse.from(details.detail(id)); }
     @GetMapping("/interactions/{id}")

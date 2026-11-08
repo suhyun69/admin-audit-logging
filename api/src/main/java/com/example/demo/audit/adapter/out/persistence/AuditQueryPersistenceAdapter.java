@@ -54,6 +54,16 @@ public class AuditQueryPersistenceAdapter implements AuditQueryPort {
                 });
         result.replaceAll((id,changes)->List.copyOf(changes));return Map.copyOf(result);
     }
+    @Override public AuditSummary summary(Long actorId,Instant from,Instant to) {
+        var sql=new StringBuilder("""
+                SELECT count(*) total,count(*) FILTER (WHERE result='DENIED') denied,
+                count(*) FILTER (WHERE result='FAILURE' OR status_code>=500) errors
+                FROM audit_logs WHERE occurred_at>=:from AND occurred_at<:to
+                """);
+        var params=new MapSqlParameterSource().addValue("from",boundary(from)).addValue("to",boundary(to));
+        if(actorId!=null) { sql.append(" AND actor_id=:actor");params.addValue("actor",actorId); }
+        return jdbc.queryForObject(sql.toString(),params,(rs,n)->new AuditSummary(rs.getLong("total"),rs.getLong("denied"),rs.getLong("errors")));
+    }
     // PostgreSQL timestamps are discrete microseconds. Ceil both boundaries to preserve >= and < for nanosecond inputs.
     private Timestamp boundary(Instant value) {
         int remainder=value.getNano()%1000;
