@@ -22,8 +22,8 @@
 | [API-004](API-004-local-seed.md) | api | 개발 전용 시드 V3 | API-003 | MERGED |
 | [API-005](API-005-request-context.md) | api | 요청 식별자와 공통 오류 | API-004, ORC-004 | MERGED |
 | [API-006](API-006-audit-writer.md) | api | 원자적·독립 감사 저장 | API-005, API-016 | MERGED |
-| [API-007](API-007-session-auth.md) | api | DB 세션 로그인·로그아웃 | API-006 | IN_PROGRESS |
-| [API-008](API-008-csrf-authorization.md) | api | CSRF·역할과 서비스 권한 | API-007 | TODO |
+| [API-007](API-007-session-auth.md) | api | DB 세션 로그인·로그아웃 | API-006 | MERGED |
+| [API-008](API-008-csrf-authorization.md) | api | CSRF·역할과 서비스 권한 | API-007 | IN_PROGRESS |
 | [API-009](API-009-security-http-audit.md) | api | SECURITY·HTTP 수집 | API-008 | TODO |
 | [API-010](API-010-users-read.md) | api | 회원 목록·상세 조회 | API-009 | TODO |
 | [API-011](API-011-users-status.md) | api | 회원 상태 변경과 낙관적 잠금 | API-010 | TODO |
