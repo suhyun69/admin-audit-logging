@@ -42,3 +42,10 @@ export function usersQueryKey(actor: Actor, epoch: number, request: UsersRequest
 export function fetchUsers(request: UsersRequest, signal?: AbortSignal) {
   return apiRequest<CursorPage<User>>(`/users?${usersQueryString(request.filters, request.cursor)}`, { signal, interactionId: request.interactionId });
 }
+
+export type StatusChange = { id: number; previousStatus: UserStatus; currentStatus: UserStatus; version: number };
+export function userDetailQueryKey(actor: Actor, epoch: number, id: string) { return [...usersQueryPrefix(actor, epoch), "detail", id] as const; }
+export function fetchUserDetail(id: string, signal?: AbortSignal) { return apiRequest<User>(`/users/${id}`, { signal }); }
+export function changeUserStatus(input: { id: string; status: UserStatus; version: number; interactionId: string; signal?: AbortSignal }) {
+  return apiRequest<StatusChange>(`/users/${input.id}/status`, { method: "PATCH", body: { status: input.status, version: input.version }, interactionId: input.interactionId, signal: input.signal });
+}

@@ -56,3 +56,12 @@ ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit
 ```
 
 이 smoke는 격리 DB에서 회원 조회·키셋 페이지·검색·빈 결과·필터 초기화와 CLIENT/HTTP/BUSINESS 상관관계를 확인합니다. 검색어 원문은 CLIENT payload나 감사 metadata에 넣지 않습니다.
+
+
+회원 상세는 ADMIN·OPERATOR의 상태 변경과 VIEWER의 조회 전용 화면을 구분합니다. 확인 모달은 버튼 클릭에서 만든 interactionId와 당시 version을 유지하며 중복 확인·변경 중 닫기를 막습니다. 409가 발생하면 최신 정보를 조회하고 다시 확인하도록 안내합니다. 성공 시 현재 사용자·역할·세션 범위의 상세와 목록 캐시를 무효화합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node tests/smoke/user-detail-browser.mjs
+```
+
+이 브라우저 smoke는 Playwright 설치가 필요합니다. 별도 worktree에 설치한 실행기를 읽기 전용으로 재사용하려면 `PLAYWRIGHT_MODULE`에 해당 `playwright/index.mjs` 절대 경로를 지정할 수 있습니다. 포커스·Escape·중복 제출·409·수집 실패 독립성·세 역할·404를 실제 API와 DB로 검증하며, trace·쿠키·토큰·비밀번호는 기록하지 않습니다. 선택적으로 `ADMIN_SMOKE_SCREENSHOT_DIR`을 지정하면 가짜 개발 시드 화면만 캡처합니다.
