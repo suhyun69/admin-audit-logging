@@ -33,4 +33,5 @@ SecurityConfig의 명시적 SessionAuthenticationStrategy 설정과 CSRF 반복�
 - qa 검토 대상 SHA / 결과: e2740db9e04682ba5210c6ccbad551ec59b3c149: qa 지원설정·실Servlet·반복/동시회귀 PASS
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
 - 통합 커밋 / 원격 반영: 05682aed63fa0c1f4a80fa8c826d9fa2cc3fc696; integration push 성공
+- 실제 BFF 추가 검증: 전용 API/Next production 업그레이드 후 동일 토큰 두 POST가 모두 미구현 업무404까지 도달, logout204. auth8·Origin7 PASS.
 - 통합 smoke 결과: 기존Auth5/CSRF4+신규3+Arch15 총27PASS; 로그인회전/연속/동시/logout

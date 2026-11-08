@@ -56,6 +56,9 @@ public final class AuditPrivacy {
             if (value instanceof Integer number && number >= 0 && number <= 100) clean.put(key, number);
         }
         if (input.get("payloadDigest") instanceof String value && value.matches("[0-9a-f]{64}")) clean.put("payloadDigest", value);
+        if(input.get("pagePath") instanceof String value) {
+            try { clean.put("pagePath",pagePath(value)); }catch(ApiException ignored) { /* Discard non-allowlisted paths. */ }
+        }
         return Map.copyOf(clean);
     }
 }

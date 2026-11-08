@@ -45,6 +45,7 @@ git worktree add .worktrees/qa -b codex/qa-001-verification-matrix codex/integra
 - orchestra는 검토·qa 근거를 확인한 뒤 승인 기록을 남기고 `--no-ff` merge로 integration에 통합한다. 통합 뒤 필요한 smoke 검증을 수행하고 `git push origin codex/integration`으로 실제 원격에 반영한다. 결과와 merge commit을 티켓에 기록한다. 통합 실패 시 후속 작업을 배정하지 않는다.
 - 개별 티켓의 qa 리뷰는 IN_REVIEW인 티켓 브랜치에서 실행한다. 선행 기능만으로 검증 가능한 범위를 확인한 뒤 orchestra가 승인·통합한다. QA-002~005는 이미 통합된 기능의 독립 회귀 검증 산출물이며, 이를 이전 구현 티켓의 필수 선행 조건으로 역추가하지 않는다. 후속 기능이 필요한 검증은 해당 후속 티켓의 인수 조건으로 명시해 승인 대기 교착을 피한다.
 - 티켓과 목록 상태는 변경 주체가 중복 수정하지 않도록 orchestra가 최종 갱신한다. 승인 후 기록 갱신은 해당 티켓의 후속 문서 커밋으로 남길 수 있다.
+- 정확한 머지 SHA·원격 반영 결과는 머지 후에 확정되므로 orchestra는 integration에 티켓 상태·검증 증거만 갱신하는 관리 커밋을 남긴다. 애플리케이션 구현·수정은 계속 각 티켓의 전용 브랜치에서 수행한다.
 - 작업 브랜치는 통합·검증·원격 integration 반영 확인 뒤 로컬과 원격에서 안전 삭제한다. 브랜치 삭제 전 커밋 SHA와 머지 이력을 남긴다.
 
 ## 최종 반영

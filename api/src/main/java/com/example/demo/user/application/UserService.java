@@ -15,5 +15,12 @@ public class UserService {
     private final UserRepositoryPort users;
     public UserService(UserRepositoryPort users) { this.users=users; }
     public List<User> find(String search,UserStatus status,int limit,Long afterId) { return users.find(search,status,limit,afterId); }
+    public UserStatusChange changeStatus(long id,long expectedVersion,UserStatus target) {
+        var before=detail(id);
+        if(before.version()!=expectedVersion)throw new ApiException(ErrorCode.VERSION_CONFLICT);
+        if(before.status()==target)return new UserStatusChange(id,before.status(),target,before.version(),false);
+        if(!users.changeStatus(id,expectedVersion,target))throw new ApiException(ErrorCode.VERSION_CONFLICT);
+        return new UserStatusChange(id,before.status(),target,expectedVersion+1,true);
+    }
     public User detail(long id) { return users.findById(id).orElseThrow(()->new ApiException(ErrorCode.USER_NOT_FOUND)); }
 }

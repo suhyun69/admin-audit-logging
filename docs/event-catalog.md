@@ -20,7 +20,7 @@ CLIENT는 브라우저 신고(ATTEMPTED), SECURITY/HTTP는 서버 관찰, BUSINE
 
 ## CLIENT payload
 
-`{eventId,interactionId,eventType,action,resourceType?,resourceId?,pagePath,occurredAt}`. 알 수 없는 필드는 400으로 거부하며 actorId/result 등 위조 필드를 신뢰하지 않는다. 저장 identity는 항상 인증값이다. eventId·interactionId는 UUID, resourceType은 USER/AUDIT_LOG 또는 생략, resourceId 최대100자. pagePath는 허용 화면 path만 받고 query/hash를 제거한다. resourceId는 양수 회원 ID 또는 감사 UUID만 허용한다. 시각은 수신 기준 과거24시간~미래5분, payload 최대8KiB, 1 actor당60건/분의 단일 인스턴스 고정 window(초과429). 제한은 MVP 단일 API 전제, 다중 Pod 분산 제한은 후속 범위다.
+`{eventId,interactionId,eventType,action,resourceType?,resourceId?,pagePath,occurredAt}`. 알 수 없는 필드는 400으로 거부하며 actorId/result 등 위조 필드를 신뢰하지 않는다. 저장 identity는 항상 인증값이다. eventId·interactionId는 UUID, resourceType은 USER/AUDIT_LOG 또는 생략, resourceId 최대100자. pagePath는 허용 화면 path만 받고 query/hash를 제거한다. resourceId는 양수 회원 ID 또는 감사 UUID만 허용한다. 시각은 최초 새 eventId 수신 기준 과거24시간~미래5분, payload 최대8KiB, 1 actor당 신규 이벤트60건/분의 단일 인스턴스 고정 window(초과429). 기존 동일 actor·정규화 payload 재전송은 시간 window가 지난 뒤에도 200이며 rate 슬롯을 재소모하지 않는다. 제한은 MVP 단일 API 전제, 다중 Pod 분산 제한은 후속 범위다.
 
 허용 페이지: /login,/dashboard,/users,/users/{positiveId},/audit-logs,/audit-logs/me,/audit-logs/{uuid},/audit-logs/interactions/{uuid}. 전송 실패는 화면 업무를 막지 않는다. 재전송은 eventId/occurredAt 등 원래 payload를 유지한다.
 
