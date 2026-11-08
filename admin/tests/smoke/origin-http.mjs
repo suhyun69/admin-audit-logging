@@ -4,7 +4,7 @@ import { request as httpsRequest } from "node:https";
 
 const base = new URL(process.env.ADMIN_SMOKE_BASE_URL ?? "http://127.0.0.1:13001");
 const origin = base.origin;
-const bootstrap = await fetch(`${origin}/api/v1/auth/csrf`);
+const bootstrap = await fetch(`${origin}/api/v1/auth/csrf`, { signal: AbortSignal.timeout(10_000) });
 assert.equal(bootstrap.status, 200);
 const csrf = await bootstrap.json();
 const cookie = bootstrap.headers.getSetCookie().map((value) => value.split(";")[0]).join("; ");
@@ -21,6 +21,7 @@ function loginWithHeaders(overrides) {
       response.setEncoding("utf8");response.on("data", (chunk) => { text += chunk; });
       response.on("end", () => resolve({ status: response.statusCode, payload: JSON.parse(text) }));
     });
+    request.setTimeout(10_000, () => request.destroy(new Error("Origin smoke request timed out")));
     request.on("error", reject);request.end(body);
   });
 }

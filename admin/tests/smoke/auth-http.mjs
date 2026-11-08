@@ -13,7 +13,7 @@ class BrowserSession {
     if (method !== "GET") outgoing.set("Origin", origin);
     if (body !== undefined) outgoing.set("Content-Type", "application/json");
     if (token) outgoing.set("X-CSRF-TOKEN", token);
-    const response = await fetch(`${origin}/api/v1${path}`, { method, headers: outgoing, body: body === undefined ? undefined : JSON.stringify(body), redirect: "manual" });
+    const response = await fetch(`${origin}/api/v1${path}`, { method, headers: outgoing, body: body === undefined ? undefined : JSON.stringify(body), redirect: "manual", signal: AbortSignal.timeout(10_000) });
     assert.equal(response.headers.get("cache-control"), "no-store");
     for (const cookie of response.headers.getSetCookie()) {
       const [pair] = cookie.split(";");const at = pair.indexOf("=");
@@ -81,6 +81,6 @@ const viewerMe = await admin.request("/auth/me");assert.equal((await viewerMe.js
 await admin.logout();
 console.log("PASS a subsequent account login resolves only the new actor");
 
-const crossOrigin = await fetch(`${origin}/api/v1/auth/logout`, { method: "POST", headers: { Origin: "http://untrusted.invalid", "X-Forwarded-Host": "untrusted.invalid" } });assert.equal(crossOrigin.status, 403);
+const crossOrigin = await fetch(`${origin}/api/v1/auth/logout`, { method: "POST", headers: { Origin: "http://untrusted.invalid", "X-Forwarded-Host": "untrusted.invalid" }, signal: AbortSignal.timeout(10_000) });assert.equal(crossOrigin.status, 403);
 console.log("PASS untrusted mutation origin is rejected before upstream");
 console.log("Auth HTTP smoke PASS; cookie values and CSRF tokens were kept in memory only.");
