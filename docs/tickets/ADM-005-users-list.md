@@ -1,7 +1,7 @@
 # ADM-005 — 회원 검색·목록
 
 - 담당: admin
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/adm-005-users-list`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ADM-004, API-010
@@ -27,12 +27,12 @@ admin/ users 목록·query
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 회원 검색·상태필터·keyset 목록 UI 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: 한국어 회원검색·상태필터·keyset·사용자별캐시·상관추적
+- 변경 파일 / 커밋 SHA: b58f528126748f8b2400e1942c24aa8587f33918
+- 원격 브랜치 / 푸시 결과: origin/codex/adm-005-users-list, push 성공
+- 검증 명령 / 결과: unit23/lint/typecheck/build·BFF/DB·browser 검색/next/back/reset PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 실BFF·독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: b58f528126748f8b2400e1942c24aa8587f33918: qa query/state·privacy·실BFF/브라우저 증거 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 15280cba2b0a4ace1416cb9fe20e73f7a4e94888; integration push 성공
+- 통합 smoke 결과: unit23/lint/typecheck/build·BFF/DB·browser 검색/next/back/reset PASS

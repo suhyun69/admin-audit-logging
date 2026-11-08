@@ -10,8 +10,8 @@
 | [ADM-002](ADM-002-api-proxy.md) | admin | 허용 목록 BFF와 API 클라이언트 | ADM-001, ORC-004 | MERGED |
 | [ADM-003](ADM-003-auth-layout.md) | admin | 로그인·인증 레이아웃 | ADM-002, API-009, ADM-010 | MERGED |
 | [ADM-004](ADM-004-client-tracking.md) | admin | 공통 CLIENT 수집 | ADM-003, API-012 | MERGED |
-| [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | IN_PROGRESS |
-| [ADM-006](ADM-006-users-detail.md) | admin | 회원 상세·상태 확인 모달 | ADM-005, API-011 | TODO |
+| [ADM-005](ADM-005-users-list.md) | admin | 회원 검색·목록 | ADM-004, API-010 | MERGED |
+| [ADM-006](ADM-006-users-detail.md) | admin | 회원 상세·상태 확인 모달 | ADM-005, API-011 | IN_PROGRESS |
 | [ADM-007](ADM-007-audit-explorer.md) | admin | Explorer·본인 활동 | ADM-004, API-013 | TODO |
 | [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | TODO |
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | TODO |

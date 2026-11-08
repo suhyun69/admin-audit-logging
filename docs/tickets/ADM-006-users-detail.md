@@ -1,7 +1,7 @@
 # ADM-006 — 회원 상세·상태 확인 모달
 
 - 담당: admin
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/adm-006-users-detail`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ADM-005, API-011
@@ -27,12 +27,12 @@ ADMIN/OPERATOR 변경·VIEWER 표시·409·CLIENT 실패에도 변경 성공 확
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: 회원 상세·확인 모달·버전 변경 UI 배정
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: 구현 예정
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: 제출 후 실BFF/브라우저·독립검토
+- orchestra 결정 / 근거: 검토 대기
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN
