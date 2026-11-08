@@ -2,13 +2,17 @@
   "name": "admin-audit-console",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": ">=20.9.0" },
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:unit",
+    "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts"
   },
   "dependencies": {
     "@radix-ui/react-slot": "1.5.0",
@@ -30,5 +34,6 @@
     "eslint-config-next": "16.4.5",
     "tailwindcss": "4.3.5",
     "typescript": "5.9.3"
-  }
+  },
+  "type": "module"
 }
