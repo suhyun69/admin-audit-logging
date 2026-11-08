@@ -255,4 +255,36 @@ class SessionSecurityContractTest extends PostgresTestSupport {
         assertThat(row.get("updated_at")).isEqualTo(updatedAt);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM audit_logs WHERE event_type='DATA_UPDATE'", Integer.class)).isZero();
     }
+
+    @Test
+    void actualAuditEndpointHasAdminPositiveControlAndOwnScopeCannotBeExpanded() throws Exception {
+        Browser admin = login("admin");
+        Browser operator = login("operator");
+        Browser viewer = login("viewer");
+        UUID interaction = UUID.randomUUID();
+        for (long actorId = 1; actorId <= 3; actorId++)
+            jdbc.update("INSERT INTO audit_logs(id,event_type,action,actor_id,source,result,resource_type,resource_id,interaction_id) VALUES (?,'DATA_READ','USER_DETAIL',?,'BUSINESS','SUCCESS','USER','123',?)",
+                    UUID.randomUUID(), actorId, interaction);
+        var global = mvc.perform(get("/api/v1/audit-logs").cookie(admin.auth()).param("interactionId", interaction.toString()).param("size", "100"))
+                .andExpect(status().isOk()).andReturn();
+        assertThat(json.readTree(global.getResponse().getContentAsString()).get("items").size()).isEqualTo(3);
+        var filtered = mvc.perform(get("/api/v1/audit-logs").cookie(admin.auth()).param("interactionId", interaction.toString()).param("actorId", "2"))
+                .andExpect(status().isOk()).andReturn();
+        var filteredItems = json.readTree(filtered.getResponse().getContentAsString()).get("items");
+        assertThat(filteredItems.size()).isEqualTo(1);
+        assertThat(filteredItems.get(0).get("actorId").asLong()).isEqualTo(2L);
+        for (var subject : Map.of(2L, operator, 3L, viewer).entrySet()) {
+            var denied = mvc.perform(get("/api/v1/audit-logs").cookie(subject.getValue().auth()))
+                    .andExpect(status().isForbidden()).andExpect(jsonPath("$.code").value("ACCESS_DENIED")).andReturn();
+            observations(denied, "AUTH_ACCESS_DENIED");
+            var mine = mvc.perform(get("/api/v1/audit-logs/me").cookie(subject.getValue().auth()).param("interactionId", interaction.toString()))
+                    .andExpect(status().isOk()).andReturn();
+            var items = json.readTree(mine.getResponse().getContentAsString()).get("items");
+            assertThat(items.size()).isEqualTo(1); // Positive control: scope assertions are never vacuously true.
+            assertThat(items.get(0).get("actorId").asLong()).isEqualTo(subject.getKey());
+            for (String suppliedActor : new String[]{"", "1", subject.getKey().toString()})
+                mvc.perform(get("/api/v1/audit-logs/me").cookie(subject.getValue().auth()).param("actorId", suppliedActor))
+                        .andExpect(status().isBadRequest()).andExpect(jsonPath("$.code").value("VALIDATION_ERROR"));
+        }
+    }
 }
