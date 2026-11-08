@@ -1,7 +1,7 @@
 # ORC-005 — 최종 검토와 MVP 승인
 
 - 담당: orchestra
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/orc-005-mvp-acceptance`
 - 개발 시작 기준: QA-004가 승인·원격 통합된 최신 `codex/integration`; 원격 CI 실행과 병렬로 인수 문서 초안을 작성한다.
 - 최종 승인·통합 선행: INF-003 및 본 티켓을 제외한 모든 티켓 MERGED, 실제 원격 CI 성공. 초안 작성은 인수 승인으로 간주하지 않는다.
@@ -28,12 +28,12 @@ qa 보고·실행 절차·Git 통합 상태 확인; 미검증은 통과로 기�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 구현 요약: MVP최종인수승인·명세체크리스트·실행계약·전체SHA기록
+- 변경 파일 / 커밋 SHA: 5b4990a40a943aea67ec912d184d1115331fafd8
+- 원격 브랜치 / 푸시 결과: origin/codex/orc-005-mvp-acceptance, push 성공
+- 검증 명령 / 결과: 41선행MERGED·42ticket graph/commitancestry PASS; Actions42497369200 all4success; local실E2E13·remoteAPI145/Admin30/BFF6/E2E13/artifact2 PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 5b4990a40a943aea67ec912d184d1115331fafd8: qa exact5b4990a 독립최종16문서·실행증거·12체크리스트 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 4d2daded42ec15d1d2a4f4db9ad80293d4231b8f; integration push 성공
+- 통합 smoke 결과: 41선행MERGED·42ticket graph/commitancestry PASS; Actions42497369200 all4success; local실E2E13·remoteAPI145/Admin30/BFF6/E2E13/artifact2 PASS
