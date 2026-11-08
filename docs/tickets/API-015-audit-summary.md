@@ -9,11 +9,13 @@
 
 ## 목표와 수정 범위
 
-api/audit summary controller/usecase/query adapter
+api/audit summary controller/usecase/query adapter, api/README.md와 api/architecture.md의 최종 구조·실행·트랜잭션 설명
 
 ## 완료 기준
 
 ADMIN 전체·OPERATOR/VIEWER 본인 범위의 서버 집계, 기간·필터 일치, 조회 자체의 감사 이벤트가 해당 집계를 왜곡하지 않는 기준 시각 정의
+
+백엔드 기능 완료 시 남아 있는 Todo/H2 템플릿 실행 문서를 실제 PostgreSQL·인증·감사 구조와 테스트 절차로 갱신한다.
 
 ## 검증
 

@@ -9,7 +9,7 @@
 
 ## 목표와 수정 범위
 
-admin/ dashboard·요약 query
+admin/ dashboard·요약 query, admin/README.md 최종 화면·인증·실행·검증 설명
 
 ## 완료 기준
 
