@@ -1,7 +1,7 @@
 # API-017 — 요청마다 CSRF 토큰을 폐기하는 암묵 인증 전략 수정
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-017-explicit-session-strategy`
 - 시작 기준: API-009가 통합된 최신 integration
 - 선행 티켓: API-009
@@ -25,12 +25,12 @@ SecurityConfig의 명시적 SessionAuthenticationStrategy 설정과 CSRF 반복�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: API-011 동시 테스트와 orchestra 실제 HTTP 독립 재현에서 확인된 선행 결함
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 수정 전 재현: 첫 POST404 후 동일 토큰 두 번째 POST403 CSRF_INVALID. 재발급 후 로그아웃으로 전용 세션 정리 완료.
+- 구현 요약: 암묵 세션 전략 제거·명시CSRF 저장/회전 유지
+- 변경 파일 / 커밋 SHA: e2740db9e04682ba5210c6ccbad551ec59b3c149
+- 원격 브랜치 / 푸시 결과: origin/codex/api-017-explicit-session-strategy, push 성공
+- 검증 명령 / 결과: 기존Auth5/CSRF4+신규3+Arch15 총27PASS; 로그인회전/연속/동시/logout
 - 미해결 사항 / 전달 사항: API-011 최종 검증 선행
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: e2740db9e04682ba5210c6ccbad551ec59b3c149: qa 지원설정·실Servlet·반복/동시회귀 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 05682aed63fa0c1f4a80fa8c826d9fa2cc3fc696; integration push 성공
+- 통합 smoke 결과: 기존Auth5/CSRF4+신규3+Arch15 총27PASS; 로그인회전/연속/동시/logout
