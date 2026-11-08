@@ -78,3 +78,9 @@ export function fetchInteractionTimeline(id:string,request:TimelineRequest,signa
   // Do not reuse the target interaction as this query's header: the query audit must not join its own timeline.
   return apiRequest<CursorPage<AuditDetail>>(`/audit-logs/interactions/${id}?${query}`,{signal});
 }
+
+export type AuditSummary={from:string;to:string;totalEvents:number;deniedEvents:number;errorEvents:number;recentEvents:AuditItem[]};
+export type SummaryRange={from:string;to:string;revision:string};
+export function initialSummaryRange():SummaryRange{const {from,to}=defaultAuditFilters();return {from,to,revision:createInteractionId()};}
+export function summaryQueryKey(actor:Actor,epoch:number,range:SummaryRange){return [...auditQueryPrefix(actor,epoch),"summary",range.from,range.to,range.revision] as const;}
+export function fetchAuditSummary(range:SummaryRange,signal?:AbortSignal){const query=new URLSearchParams({from:range.from,to:range.to});return apiRequest<AuditSummary>(`/audit-logs/summary?${query}`,{signal});}
