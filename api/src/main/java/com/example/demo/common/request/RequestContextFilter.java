@@ -19,7 +19,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.util.UUID;
 
-@Component
+@Component("auditRequestContextFilter")
 @Order(Ordered.HIGHEST_PRECEDENCE + 1)
 public class RequestContextFilter extends OncePerRequestFilter {
     private static final Logger log = LoggerFactory.getLogger(RequestContextFilter.class);
