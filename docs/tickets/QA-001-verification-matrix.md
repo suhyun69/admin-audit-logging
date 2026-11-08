@@ -28,11 +28,11 @@ AUTH/ACL/READ/WRITE/CLIENT/E2E 각 항목에 기대 DB·이벤트 결과 존재
 ## 작업 및 승인 기록
 
 - 구현 요약: 검증 매트릭스와 격리·파일 소유 전략
-- 변경 파일 / 커밋 SHA: 923bb5dd91d3e0e37bb21f4006af26a1a54ba746
+- 변경 파일 / 커밋 SHA: 923bb5d
 - 원격 브랜치 / 푸시 결과: origin/codex/qa-001-verification-matrix, push 성공
 - 검증 명령 / 결과: 15시나리오·링크·diff 검사 PASS, 제품 테스트 NOT RUN
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 923bb5dd91d3e0e37bb21f4006af26a1a54ba746: orchestra 매트릭스 검토 PASS
+- qa 검토 대상 SHA / 결과: 923bb5d: orchestra 매트릭스 검토 PASS
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
-- 통합 커밋 / 원격 반영: e193406064b415ba725c1b7ceb5d04727649bfcd; integration push 성공
+- 통합 커밋 / 원격 반영: e193406; origin/codex/integration 반영 확인
 - 통합 smoke 결과: 15시나리오·링크·diff 검사 PASS, 제품 테스트 NOT RUN

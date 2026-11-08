@@ -28,11 +28,11 @@ docs/api-spec.md
 ## 작업 및 승인 기록
 
 - 구현 요약: API 계약 확정
-- 변경 파일 / 커밋 SHA: adc286a9e4202bfa15ae85968d37d563cbc89527
+- 변경 파일 / 커밋 SHA: adc286a
 - 원격 브랜치 / 푸시 결과: origin/codex/orc-003-api-contract, push 성공
 - 검증 명령 / 결과: endpoint·DTO·CSRF·범위·커서 계약 검증 PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: adc286a9e4202bfa15ae85968d37d563cbc89527: api/qa 계약 독립 검토 PASS
+- qa 검토 대상 SHA / 결과: adc286a: api/qa 계약 독립 검토 PASS
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
-- 통합 커밋 / 원격 반영: ba105637fd47ab0f558084ce597a6e704272112f; integration push 성공
+- 통합 커밋 / 원격 반영: 1c622de; origin/codex/integration 반영 확인
 - 통합 smoke 결과: endpoint·DTO·CSRF·범위·커서 계약 검증 PASS

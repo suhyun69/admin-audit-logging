@@ -28,11 +28,11 @@ docker compose config --quiet; docker compose up -d postgres; pg_isready, 재기
 ## 작업 및 승인 기록
 
 - 구현 요약: 격리된 PostgreSQL17 Compose 구성
-- 변경 파일 / 커밋 SHA: acd74208c167530524580be89c371bb78d139247
+- 변경 파일 / 커밋 SHA: 2f761ea
 - 원격 브랜치 / 푸시 결과: origin/codex/inf-001-postgres-compose, push 성공
 - 검증 명령 / 결과: Compose config·healthy·pg_isready·데이터 보존 PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: acd74208c167530524580be89c371bb78d139247: qa config·inspect PASS
+- qa 검토 대상 SHA / 결과: 2f761ea: qa config·inspect PASS
 - orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
-- 통합 커밋 / 원격 반영: ba105637fd47ab0f558084ce597a6e704272112f; integration push 성공
+- 통합 커밋 / 원격 반영: 9dd9554; origin/codex/integration 반영 확인
 - 통합 smoke 결과: Compose config·healthy·pg_isready·데이터 보존 PASS
