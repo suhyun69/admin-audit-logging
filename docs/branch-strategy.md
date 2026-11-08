@@ -52,6 +52,6 @@ git worktree add .worktrees/qa -b codex/qa-001-verification-matrix codex/integra
 
 ORC-005에서 전체 인수 조건과 최신 통합 상태를 확인한다. orchestra가 최종 결과를 검토·승인한 뒤 integration을 master에 `--no-ff` 머지하고 `git push origin master`로 반영한다. 원격 보호 규칙이 있으면 PR 등 요구 절차를 따르고 우회하지 않는다. 모든 브랜치를 미리 생성하거나 작업 시작 전에 비어 있는 브랜치를 원격에 올리지 않는다.
 
-## 현재 준비 범위
+## 구현 및 최종 인수 기록
 
-티켓 MD와 브랜치 규칙만 준비한다. 초기 로컬 integration·ORC-001 브랜치 이외의 티켓 브랜치는 작업 착수 시 생성한다. 이 문서 생성 자체가 티켓 승인이나 애플리케이션 구현 완료를 의미하지 않는다.
+초기에는 티켓과 규칙만 준비했고, 이후 각 티켓의 실제 커밋·원격 푸시·독립 검토·integration 머지를 수행했다. 현재 상태와 정확한 소스/머지 SHA는 [티켓 목록](tickets/README.md), 전체 검증과 master 반영은 [최종 인수 보고](mvp-acceptance.md)를 따른다. ORC-005는 QA-004 통합 후 문서 초안을 병렬 작성할 수 있으나 INF-003 실제 원격 CI 성공 전에는 최종 승인하지 않는다.

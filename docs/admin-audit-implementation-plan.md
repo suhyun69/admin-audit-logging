@@ -46,7 +46,7 @@ API와 Next.js는 호스트에서 실행하고 PostgreSQL만 Docker Compose로 �
 | 4. 감사 기반 | 요청 컨텍스트, MDC 정리, 서버 requestId, HTTP 수집, 감사 writer·실패 독립 저장, metadata 정제 | JSONB/INET 저장, 성공 원자성·실패 독립성, 개인정보 배제, 요청 종료 후 컨텍스트 누출 없음 |
 | 5. 인증·인가 | BCrypt 로그인, 난수 세션·SHA-256 해시 저장, 쿠키·만료·로그아웃, CSRF, 경로와 서비스 권한, SECURITY 수집 | 로그인/실패/로그아웃 200·401, VIEWER 변경 403, CSRF 없는 변경 403, 세션 재사용 불가, 보안 이벤트 중복 없음 |
 | 6. 회원 API | 목록 검색·필터·커서, 상세, 버전 기반 상태 변경, 조회/변경/실패 BUSINESS 기록 | 404·409, 변경 전후 일치, 감사 INSERT 실패 시 회원 변경 롤백, 동시 변경 하나만 성공 |
-| 7. 감사 API | CLIENT 수집·멱등성·위조 방어, Explorer 검색·커서·상세·interaction timeline·summary·본인 로그 | 위조 actor 무시, 중복 1건, 권한 범위 강제, 같은 시각 데이터도 페이지 누락·중복 없음 |
+| 7. 감사 API | CLIENT 수집·멱등성·위조 방어, Explorer 검색·커서·상세·interaction timeline·summary·본인 로그 | 위조 필드 거부·인증 actor 강제, 중복 1건, 권한 범위 강제, 같은 시각 데이터도 페이지 누락·중복 없음 |
 | 8. Admin 기반 | Next.js 생성, 공통 레이아웃, BFF, API 클라이언트, Query Provider, 로그인·역할별 메뉴 | 실제 프록시를 통한 Cookie/CSRF·401·403 전달, 로그아웃/사용자 전환 시 이전 데이터 캐시 제거 |
 | 9. 회원 UI·수집 | 목록·검색·상세·확인 모달, Route Tracker, AuditButton, 비동기 이벤트 전송 | 클릭과 업무 요청이 같은 interactionId, 이벤트 전송 실패에도 업무 수행, 중복 제출 방지, 409 시 최신 정보 갱신 |
 | 10. Explorer·대시보드 | 필터·로그 테이블·상세·변경 전후·타임라인, 역할별 요약과 본인 활동 화면 | 필터 변경 시 커서 초기화, CLIENT의 ATTEMPTED 의미 표시, 동일 interactionId의 세 레이어 연계 |
@@ -63,6 +63,7 @@ docker-compose.yml
 README.md
 api/
   build.gradle
+  src/main/java/db/local/        # V3 Java 시드, local 프로필에서만 추가 로딩
   src/main/java/com/example/demo/
     controller/                 # auth, users, audit 웹 API와 전용 DTO
     usecase/                    # 인증·조회·변경·감사 트랜잭션 조율
@@ -76,7 +77,6 @@ api/
     application.yml
     application-local.yml
     db/migration/               # V1, V2: 공통 스키마
-    db/local/                   # V3: local 프로필에서만 추가 로딩
   src/test/                     # 단위, ArchUnit, PostgreSQL 통합 테스트
 admin/
   src/app/                     # login, dashboard, users, audit-logs
@@ -111,4 +111,4 @@ MVP는 명세 15장의 체크리스트와 6개 완료 시나리오를 모두 충
 
 SSE, Kafka/Outbox, 다중 Pod 알림, 관리자 설정 CRUD, 장기 보존/파티셔닝, 대규모 부하 실험은 MVP 이후로 분리한다. 실행 문서의 명령과 경로는 모두 `api/`, `admin/`, `docker-compose.yml` 기준으로 작성한다.
 
-상세 실행 단위는 [38개 티켓](tickets/README.md)을 기준으로 한다. 단계표는 기능 개요이며 실제 선행 조건·담당·브랜치는 개별 티켓과 [재검토 기록](ticket-review.md)이 우선한다.
+상세 실행 단위는 [42개 티켓](tickets/README.md)을 기준으로 한다. 단계표는 기능 개요이며 실제 선행 조건·담당·브랜치는 개별 티켓과 [재검토 기록](ticket-review.md)이 우선한다.

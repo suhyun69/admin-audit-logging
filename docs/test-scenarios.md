@@ -1,7 +1,7 @@
 # 검증 시나리오와 인수 매트릭스
 
 기준: [구현 명세](admin-audit-implementation-spec.md), [API 계약](api-spec.md), [이벤트 계약](event-catalog.md).
-이 문서는 QA-001의 검증 설계다. 아래 시나리오는 아직 실행하지 않았으며 제품 검증 결과는 모두 NOT RUN이다.
+이 문서는 QA-001에서 작성한 검증 설계와 추적 매트릭스다. 최초 작성 당시에는 NOT RUN이었으며, 현재 실제 실행 결과는 [QA-002](qa/QA-002.md)·[QA-003](qa/QA-003.md)·[QA-004](qa/QA-004.md)·[QA-005](qa/QA-005.md)와 [최종 인수 보고](mvp-acceptance.md)를 따른다. 설계 항목의 존재만으로 통과를 판정하지 않는다.
 
 ## 검증 단계
 
