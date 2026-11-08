@@ -12,6 +12,7 @@ public final class RequestContext {
     private final Instant startedAt;
     private final long startedNanos;
     private ActorSnapshot actor;
+    private final java.util.Set<String> observations = new java.util.HashSet<>();
 
     public RequestContext(UUID requestId, UUID interactionId, Instant startedAt) {
         this.requestId = requestId;
@@ -26,6 +27,7 @@ public final class RequestContext {
     public UUID interactionId() { return interactionId; }
     public Instant startedAt() { return startedAt; }
     public long durationMs() { return Math.max(0, (System.nanoTime() - startedNanos) / 1_000_000); }
+    public boolean claimObservation(String key) { return observations.add(key); }
     public ActorSnapshot actor() { return actor; }
     public void setActor(ActorSnapshot actor) { this.actor = actor; }
 }

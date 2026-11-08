@@ -1,7 +1,7 @@
 # API-009 — SECURITY·HTTP 수집
 
 - 담당: api
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/api-009-security-http-audit`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: API-008
@@ -27,12 +27,12 @@ api/ security handler·listener, HTTP 감사 필터
 
 ## 작업 및 승인 기록
 
-- 구현 요약: SECURITY/HTTP 수집과 실패격리·중복방지 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: SECURITY/HTTP 상관관계·중복방지·관찰실패격리
+- 변경 파일 / 커밋 SHA: ffb98bb69397674d5fc707a264bcde6881f9cb0a
+- 원격 브랜치 / 푸시 결과: origin/codex/api-009-security-http-audit, push 성공
+- 검증 명령 / 결과: Postgres7/Auth5/CSRF4/ArchUnit15 총31PASS; DBtrigger응답격리
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 제출 후 실제 context와 독립검토
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: ffb98bb69397674d5fc707a264bcde6881f9cb0a: qa 수집순서·단일기록·장애격리 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: d7f613e937bb42f8b46fdae170859e9bdf1d4be7; integration push 성공
+- 통합 smoke 결과: Postgres7/Auth5/CSRF4/ArchUnit15 총31PASS; DBtrigger응답격리
