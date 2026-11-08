@@ -1,7 +1,7 @@
 # QA-003 — 롤백·경합 독립 검증
 
 - 담당: qa
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/qa-003-transaction-races`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: QA-001, API-011
@@ -27,12 +27,12 @@ Testcontainers PostgreSQL에서 DB/감사 건수·전후값 검사; 재현 명�
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 회원 상태 변경의 독립 트랜잭션·경합 검증 배정
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 구현 예정
+- 구현 요약: 업무/감사원자성·롤백후실패·실DB경합·권한/no-op독립검증
+- 변경 파일 / 커밋 SHA: 62af4c965f3afb68fbad49e4b22944c2d2151692
+- 원격 브랜치 / 푸시 결과: origin/codex/qa-003-transaction-races, push 성공
+- 검증 명령 / 결과: 독립 PostgreSQL MemberTransactionContractTest 6 PASS, skip0; rowLock양성대조
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: orchestra 검토 예정
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 62af4c965f3afb68fbad49e4b22944c2d2151692: orchestra 독립 fixture·실행증거·락/장애검증 승인
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: 946dc062a375b9cf9d9ac004a1ac9591a3adbdea; integration push 성공
+- 통합 smoke 결과: 독립 PostgreSQL MemberTransactionContractTest 6 PASS, skip0; rowLock양성대조
