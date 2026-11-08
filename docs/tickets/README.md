@@ -37,7 +37,7 @@
 | [API-018](API-018-request-id-header.md) | api | 오류 requestId 단일 헤더 보장 | API-005, QA-002 | MERGED |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
 | [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | MERGED |
-| [INF-003](INF-003-ci-checks.md) | infra | CI 검증 파이프라인 | QA-004, INF-002 | TODO |
+| [INF-003](INF-003-ci-checks.md) | infra | CI 검증 파이프라인 | QA-004, INF-002 | IN_PROGRESS |
 | [ORC-001](ORC-001-ticket-workflow.md) | orchestra | 티켓·협업·브랜치 규칙 확정 | 없음 | MERGED |
 | [ORC-002](ORC-002-repository-baseline.md) | orchestra | 단일 저장소 소스 기준점 확보 | ORC-001 | MERGED |
 | [ORC-003](ORC-003-api-contract.md) | orchestra | API·권한·인증 계약 확정 | ORC-002 | MERGED |
@@ -46,7 +46,7 @@
 | [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | MERGED |
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | MERGED |
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | MERGED |
-| [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | IN_PROGRESS |
+| [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | MERGED |
 | [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | MERGED |
 
 ## 배정과 상태 규칙

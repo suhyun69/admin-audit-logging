@@ -1,7 +1,7 @@
 # QA-004 — MVP 브라우저 E2E
 
 - 담당: qa
-- 상태: IN_PROGRESS
+- 상태: MERGED
 - 브랜치: `codex/qa-004-playwright-e2e`
 - 시작 기준: QA-003·ADM-003·API-012 통합 후 격리 실행 도구와 인증 브라우저 검증을 선행 개발한다. 전체 선행 티켓 통합 후 최신 integration에서 전체 MVP를 검증해야 최종 승인한다.
 - 개발 시작 선행: QA-003, ADM-003, API-012
@@ -29,12 +29,12 @@ ADMIN 로그인→검색→123 정지→감사 검색·timeline, VIEWER 직접 �
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 격리 E2E 실행 도구·초기 인증 브라우저 검증 선행 개발
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: 전체 MVP 선행 전 미완료; 브라우저 초기 검증부터 진행
+- 구현 요약: 전체MVP DB연결·역할·타임라인·summary·권한·오류회귀
+- 변경 파일 / 커밋 SHA: 42b1433bd6adee2fc083056963571a15859fbcb6
+- 원격 브랜치 / 푸시 결과: origin/codex/qa-004-playwright-e2e, push 성공
+- 검증 명령 / 결과: production실브라우저13/13 artifact2/2 fail0 skip0; lint typecheck PASS
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: orchestra 최종 검토는 전체 선행 충족 후
-- orchestra 결정 / 근거: 검토 대기
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- qa 검토 대상 SHA / 결과: 42b1433bd6adee2fc083056963571a15859fbcb6: orchestra exact42b1433 diff·safe-summary13행·격리cleanup검토 PASS
+- orchestra 결정 / 근거: 승인: diff·계약·검증 증거 확인
+- 통합 커밋 / 원격 반영: ed2ebeb8d0edaeee659429baf11f1c1d67e8f25e; integration push 성공
+- 통합 smoke 결과: production실브라우저13/13 artifact2/2 fail0 skip0; lint typecheck PASS

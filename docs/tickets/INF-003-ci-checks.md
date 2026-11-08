@@ -1,7 +1,7 @@
 # INF-003 — CI 검증 파이프라인
 
 - 담당: infra
-- 상태: TODO
+- 상태: IN_PROGRESS
 - 브랜치: `codex/inf-003-ci-checks`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: QA-004, INF-002
@@ -29,12 +29,12 @@
 
 ## 작업 및 승인 기록
 
-- 구현 요약: 미작성
+- 구현 요약: 실제 원격 CI 및 최종 실행 문서 배정
 - 변경 파일 / 커밋 SHA: 미작성
 - 원격 브랜치 / 푸시 결과: 미푸시
-- 검증 명령 / 결과: NOT RUN
+- 검증 명령 / 결과: QA004 전체브라우저13/13 MERGED
 - 미해결 사항 / 전달 사항: 미작성
-- qa 검토 대상 SHA / 결과: 미수행
-- orchestra 결정 / 근거: 미검토
+- qa 검토 대상 SHA / 결과: orchestra 개발 배정
+- orchestra 결정 / 근거: 검토 대기
 - 통합 커밋 / 원격 반영: 미통합
 - 통합 smoke 결과: NOT RUN
