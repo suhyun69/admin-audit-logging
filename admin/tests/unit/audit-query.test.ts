@@ -31,3 +31,10 @@ test("the actual query helper uses /me without actorId and passes cancellation/i
   t.mock.method(globalThis,"fetch",async(path:string,init:RequestInit)=>{const url=new URL(path,"http://test");assert.equal(url.pathname,"/api/v1/audit-logs/me");assert.equal(url.searchParams.has("actorId"),false);assert.equal(new Headers(init.headers).get("X-Interaction-ID"),request.interactionId);assert.equal(init.signal,controller.signal);return Response.json({items:[],nextCursor:null,hasNext:false});});
   assert.equal((await fetchAuditPage(request,true,controller.signal)).hasNext,false);
 });
+
+test("timeline sends only size/cursor over the whole period and never labels the query as its target interaction",async t=>{
+  const {fetchInteractionTimeline,initialTimelineRequest,timelineRequestReducer}=await import("../../src/lib/audit/queries.ts");const id=crypto.randomUUID();
+  let request=initialTimelineRequest();request=timelineRequestReducer(request,{type:"next",cursor:"opaque-exact-microsecond-cursor"});
+  t.mock.method(globalThis,"fetch",async(path:string,init:RequestInit)=>{const url=new URL(path,"http://test");assert.equal(url.pathname,`/api/v1/audit-logs/interactions/${id}`);assert.deepEqual([...url.searchParams.keys()].sort(),["cursor","size"]);assert.equal(url.searchParams.get("cursor"),request.cursor);assert.equal(new Headers(init.headers).get("X-Interaction-ID"),null);return Response.json({items:[],nextCursor:null,hasNext:false});});
+  assert.equal((await fetchInteractionTimeline(id,request)).hasNext,false);assert.equal(timelineRequestReducer(request,{type:"back"}).cursor,undefined);
+});

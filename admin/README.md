@@ -75,3 +75,13 @@ ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 node tests/smoke/audit-explorer-brow
 ```
 
 HTTP smoke는 격리 DB에 같은 마이크로초의 전용 fixture 22건을 삽입하고 검증 후 해당 fixture만 제거합니다. 브라우저 smoke는 기본 Playwright 또는 `PLAYWRIGHT_MODULE` 경로를 사용해 기간 검증·필터·페이지·상세 패널·오류 복구와 VIEWER/OPERATOR 권한을 확인합니다. 쿠키·토큰·검색 원문이나 trace는 출력·저장하지 않습니다.
+
+
+ADMIN은 미리보기의 '전체 상세 보기'와 '타임라인 보기'로 연결 기록을 탐색할 수 있습니다. 타임라인은 전체 기간을 대상으로 서버의 발생 시각·UUID 오름차순을 그대로 표시하며 size/cursor만 보냅니다. 조회 자체가 대상 타임라인에 들어가지 않도록 target interactionId를 조회 헤더로 재사용하지 않습니다. BUSINESS 상세는 비어 있는 HTTP 전용 항목을 생략하고 변경 전후·메타데이터를 먼저 확인할 수 있게 표시합니다.
+
+```bash
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node --experimental-strip-types tests/smoke/audit-timeline.mjs
+ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node tests/smoke/audit-timeline-browser.mjs
+```
+
+두 smoke는 실제 회원 변경의 CLIENT/HTTP/BUSINESS 연결, 90일 전 동일 마이크로초 fixture 24건의 ASC 페이지, 조회의 비재귀성, 404/빈 기록/오류 재시도와 비관리자 접근 차단을 확인합니다. 오류의 X-Request-ID는 body requestId와 정확히 일치하는 한 개 UUID인지 검사합니다. 회원 상태·fixture·세션은 검증 후 정리하며 version과 실제 감사 이력은 증가합니다.

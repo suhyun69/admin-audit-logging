@@ -65,3 +65,16 @@ export function auditPageQueryKey(actor:Actor,epoch:number,own:boolean,request:A
 export function auditDetailQueryKey(actor:Actor,epoch:number,id:string){return [...auditQueryPrefix(actor,epoch),"detail",id] as const;}
 export function fetchAuditPage(request:AuditRequest,own:boolean,signal?:AbortSignal){return apiRequest<CursorPage<AuditItem>>(`/audit-logs${own?"/me":""}?${auditQueryString(request.filters,own,request.cursor)}`,{signal,interactionId:request.interactionId});}
 export function fetchAuditDetail(id:string,signal?:AbortSignal){return apiRequest<AuditDetail>(`/audit-logs/${id}`,{signal});}
+
+export type TimelineRequest={size:number;cursor?:string;history:(string|undefined)[];revision:string};
+export const initialTimelineRequest=():TimelineRequest=>({size:20,history:[],revision:createInteractionId()});
+export function timelineRequestReducer(state:TimelineRequest,action:{type:"next";cursor:string}|{type:"back"}):TimelineRequest {
+  if(action.type==="next")return {...state,cursor:action.cursor,history:[...state.history,state.cursor],revision:createInteractionId()};
+  return state.history.length?{...state,cursor:state.history.at(-1),history:state.history.slice(0,-1),revision:createInteractionId()}:state;
+}
+export function timelineQueryKey(actor:Actor,epoch:number,id:string,request:TimelineRequest){return [...auditQueryPrefix(actor,epoch),"timeline",id,request.size,request.cursor??null,request.revision] as const;}
+export function fetchInteractionTimeline(id:string,request:TimelineRequest,signal?:AbortSignal){
+  const query=new URLSearchParams({size:String(request.size)});if(request.cursor)query.set("cursor",request.cursor);
+  // Do not reuse the target interaction as this query's header: the query audit must not join its own timeline.
+  return apiRequest<CursorPage<AuditDetail>>(`/audit-logs/interactions/${id}?${query}`,{signal});
+}
