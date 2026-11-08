@@ -1,7 +1,7 @@
 # ORC-002 — 단일 저장소 소스 기준점 확보
 
 - 담당: orchestra
-- 상태: APPROVED
+- 상태: MERGED
 - 브랜치: `codex/orc-002-repository-baseline`
 - 시작 기준: `codex/integration`에 선행 티켓이 승인·통합된 최신 커밋
 - 선행 티켓: ORC-001
@@ -29,11 +29,11 @@ git ls-files --stage로 gitlink 여부 확인, 깨끗한 worktree에서 소스·
 
 - 구현 요약: 루트 저장소에 api 일반 파일 54개와 제외 규칙 등록
 - 로컬 메타데이터 백업: /private/tmp/admin-audit-api-git-xb4m5sni/api.git (임시 경로, 영구 보관 아님)
-- 변경 파일 / 커밋 SHA: 미작성
-- 원격 브랜치 / 푸시 결과: 미푸시
+- 변경 파일 / 커밋 SHA: 87cac3c
+- 원격 브랜치 / 푸시 결과: origin의 티켓 브랜치 SHA 일치 확인
 - 검증 명령 / 결과: 격리 worktree·gitlink 부재·wrapper·ignore 검사 PASS
 - 미해결 사항 / 전달 사항: 미작성
 - qa 검토 대상 SHA / 결과: 87cac3c: qa 독립 검토 PASS
 - orchestra 결정 / 근거: 승인: 요구사항·변경·검증 증거 확인
-- 통합 커밋 / 원격 반영: 미통합
-- 통합 smoke 결과: NOT RUN
+- 통합 커밋 / 원격 반영: 5123366, origin/codex/integration push 성공
+- 통합 smoke 결과: 통합 파일 존재·git history 확인 PASS
