@@ -38,3 +38,10 @@ test("timeline sends only size/cursor over the whole period and never labels the
   t.mock.method(globalThis,"fetch",async(path:string,init:RequestInit)=>{const url=new URL(path,"http://test");assert.equal(url.pathname,`/api/v1/audit-logs/interactions/${id}`);assert.deepEqual([...url.searchParams.keys()].sort(),["cursor","size"]);assert.equal(url.searchParams.get("cursor"),request.cursor);assert.equal(new Headers(init.headers).get("X-Interaction-ID"),null);return Response.json({items:[],nextCursor:null,hasNext:false});});
   assert.equal((await fetchInteractionTimeline(id,request)).hasNext,false);assert.equal(timelineRequestReducer(request,{type:"back"}).cursor,undefined);
 });
+
+test("summary uses only from/to, scopes by actor/epoch and refresh creates a distinct query",async t=>{
+  const {fetchAuditSummary,initialSummaryRange,summaryQueryKey}=await import("../../src/lib/audit/queries.ts");const range=initialSummaryRange(),next=initialSummaryRange();const controller=new AbortController();
+  assert.equal(new Date(range.to).getTime()-new Date(range.from).getTime(),86400000);assert.notDeepEqual(summaryQueryKey(actor,1,range),summaryQueryKey(actor,1,next));assert.notDeepEqual(summaryQueryKey(actor,1,range),summaryQueryKey(actor,2,range));
+  t.mock.method(globalThis,"fetch",async(path:string,init:RequestInit)=>{const url=new URL(path,"http://test");assert.equal(url.pathname,"/api/v1/audit-logs/summary");assert.deepEqual([...url.searchParams.keys()].sort(),["from","to"]);assert.equal(init.signal,controller.signal);return Response.json({from:range.from,to:range.to,totalEvents:0,deniedEvents:0,errorEvents:0,recentEvents:[]});});
+  assert.equal((await fetchAuditSummary(range,controller.signal)).totalEvents,0);
+});
