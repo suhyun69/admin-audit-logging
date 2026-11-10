@@ -1,7 +1,7 @@
 # ORC-006 — SSE 실시간 감사 패널
 
 - 담당: orchestra (계약·문서), api (api/**), admin (admin/src/**·unit/contract tests), qa (admin/tests/e2e/**·docs/qa/SSE-live-audit.md)
-- 상태: APPROVED (커밋·푸시 승인됨)
+- 상태: MERGED
 - 시작 기준: master 129701c 및 사용자 기존 admin/next-env.d.ts 변경 보존
 - 선행: ORC-005, INF-004
 - 작업 위치: 사용자 현재 checkout, 파일별 단독 소유. 구현 시 커밋·푸시를 보류했고 후속 사용자 명령으로 게시 승인됨.
@@ -70,3 +70,11 @@ API: 실제 SpringBootTest context, 역할/세션, 커밋·롤백, replay/reset�
 ### 게시 승인
 
 사용자가 후속 명령으로 변경사항 커밋·푸시를 승인했다. 기존 사용자 변경 `admin/next-env.d.ts`는 커밋에서 제외한다. 기존 독립 QA·백엔드 156개·E2E 15개 검증 근거를 유지하며 코드 변경 없이 게시한다.
+
+
+### 커밋·원격 통합 기록
+
+- 구현 커밋: `39ac1ea`, `origin/codex/orc-006-live-audit-panel` 푸시 성공. 독립 QA 및 전체 검증한 제품/테스트 코드와 동일하며 게시 승인 문서만 추가했다.
+- integration 머지: `afa26f03c368973ad2546eb62b59065107f1d2b0`, 원격 푸시 성공.
+- 통합 smoke: `node --experimental-strip-types --test admin/tests/unit/live-feed.test.ts admin/tests/contracts/audit-stream.test.ts` 6 PASS / 0 FAIL / 0 SKIP. 제품 코드 추가 변경 없음, 전체 백엔드 156개 및 E2E 15개 검증 근거 유지.
+- 기존 사용자 변경 `admin/next-env.d.ts`는 커밋에서 제외하고 로컬에 보존했다.
