@@ -81,3 +81,8 @@ qa는 PASS/FAIL/NOT RUN을 구분해 SHA·환경·명령·실제 DB 결과를 �
 ## ADM-011 — 패널 표시 연속성
 
 같은 세션의 reset/ready/reconnect 후 기존 기록과 읽기 위치를 유지하고 새 로그만 추가한다. 중복 이벤트는 재삽입하지 않으며 기존 행 DOM node를 보존한다. 수신만으로 상세 Link prefetch가 발생하지 않고 명시 클릭 시 상세 화면으로 이동한다. 세션/사용자 변경과 로그아웃 시 기록 정리는 기존 보안 계약을 유지한다.
+
+
+## ADM-012 — CLIENT 전용 패널
+
+이전 패널의 BUSINESS 표시 기대는 CLIENT 전용 요구로 대체한다. 새 CLIENT PAGE_VIEW·BUTTON_CLICK 등만 맨 위에 추가하고 BUSINESS·SECURITY·HTTP·SYSTEM의 수신/기존 보관 항목은 표시하지 않는다. 서버 DB 업무 결과·감사 changes·상세/타임라인 회귀는 계속 검증한다. 화면의 CLIENT ATTEMPTED를 업무 성공으로 간주하지 않는다. 권한 범위·페이지 이름·ID 숨김·200건 제한·중복/DOM/스크롤/reset 유지도 검증한다.

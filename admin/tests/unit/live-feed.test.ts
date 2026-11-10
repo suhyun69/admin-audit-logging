@@ -25,16 +25,14 @@ test("a new arrival retains existing item identities for stable rows", () => {
   assert.equal(next[2], older);
 });
 
-test("HTTP source or event type is excluded while visible item identities are preserved", () => {
-  const business = item("business");
-  const sourceHttp = { ...item("source-http"), source: "HTTP" as const };
-  const eventHttp = { ...item("event-http"), eventType: "HTTP_REQUEST" };
-  const client = { ...item("client"), source: "CLIENT" as const, eventType: "BUTTON_CLICK" };
-  const visible = [sourceHttp, business, eventHttp, client].filter(isVisibleLiveLog);
-  assert.equal(visible.length, 2);
-  assert.equal(visible[0], business);
-  assert.equal(visible[1], client);
-  assert.deepEqual([sourceHttp, eventHttp].filter(isVisibleLiveLog), []);
+test("only CLIENT activities are visible and their item identities are preserved", () => {
+  const hidden = (["BUSINESS", "SECURITY", "SYSTEM", "HTTP"] as const).map(source => ({ ...item(source), source }));
+  const inconsistentHttp = { ...item("client-http"), source: "CLIENT" as const, eventType: "HTTP_REQUEST" };
+  const clients = ["PAGE_VIEW", "BUTTON_CLICK", "USER_SEARCH", "FILTER_CHANGE"].map(eventType => ({ ...item(eventType), source: "CLIENT" as const, eventType }));
+  const visible = [hidden[0], clients[0], ...hidden.slice(1), inconsistentHttp, ...clients.slice(1)].filter(isVisibleLiveLog);
+  assert.equal(visible.length, clients.length);
+  clients.forEach((client, index) => assert.equal(visible[index], client));
+  assert.deepEqual([...hidden, inconsistentHttp].filter(isVisibleLiveLog), []);
 });
 
 test("page views name their destination and identify member details by member number", () => {
