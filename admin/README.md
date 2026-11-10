@@ -4,6 +4,8 @@ Next.js App Router·TypeScript·Tailwind CSS·shadcn/ui 방식 UI·TanStack Quer
 
 ## 화면과 권한
 
+주 메뉴에는 회원 관리만 표시합니다. 로그인 후 대시보드 이동과 로고의 대시보드 링크는 유지합니다.
+
 | 화면 | 기능 | 범위 |
 |---|---|---|
 | `/login` | CSRF 발급, 로그인·오류 안내 | 공개 |

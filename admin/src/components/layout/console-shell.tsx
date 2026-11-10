@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { LayoutDashboard, LogOut, ShieldCheck, Users } from "lucide-react";
+import { LogOut, ShieldCheck, Users } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 import { LiveAuditPanel } from "@/components/audit/live-audit-panel";
 import { RouteTracker } from "@/components/audit/route-tracker";
@@ -17,7 +17,6 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [logoutError, setLogoutError] = useState("");
   const nav = [
-    { href: "/dashboard", label: "대시보드", icon: LayoutDashboard },
     { href: "/users", label: "회원 관리", icon: Users },
   ];
   return <ProtectedContent><RouteTracker /><div className="min-h-screen lg:grid lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)_33vw]">
