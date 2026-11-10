@@ -10,7 +10,7 @@ CLIENT는 브라우저 신고(ATTEMPTED), SECURITY/HTTP는 서버 관찰, BUSINE
 | AUTH_UNAUTHENTICATED | SECURITY | DENIED / AUTHENTICATE |
 | AUTH_ACCESS_DENIED | SECURITY | DENIED / AUTHORIZE |
 | PAGE_VIEW | CLIENT | ATTEMPTED / PAGE_ENTER |
-| BUTTON_CLICK | CLIENT | ATTEMPTED / USER_SUSPEND_CLICK, USER_ACTIVATE_CLICK |
+| BUTTON_CLICK | CLIENT | ATTEMPTED / USER_SUSPEND_CLICK, USER_ACTIVATE_CLICK, USER_SUSPEND_CONFIRM_CLICK, USER_ACTIVATE_CONFIRM_CLICK, USER_STATUS_CANCEL_CLICK, USER_STATUS_CLOSE_CLICK |
 | USER_SEARCH | CLIENT | ATTEMPTED / USER_SEARCH_SUBMIT |
 | FILTER_CHANGE | CLIENT | ATTEMPTED / USER_STATUS_FILTER, AUDIT_FILTER_CHANGE |
 | HTTP_REQUEST | HTTP | SUCCESS(status<400), DENIED(401/403), FAILURE(그 외) / HTTP_REQUEST |
@@ -58,3 +58,8 @@ CLIENT eventId = audit_logs.id。동일 ID·인증 actor·정규화 payload는 �
 성공적으로 INSERT된 신규 감사 이벤트만 AFTER_COMMIT listener에서 bounded journal에 반영한다. CLIENT의 동일 eventId 재전송은 추가 발행하지 않으며, 업무와 감사의 롤백은 발행되지 않는다. 독립 실패·HTTP·SECURITY 기록도 각 감사 트랜잭션 커밋 후 전달한다. SSE 전달 실패는 업무 트랜잭션 결과에 영향을 주지 않는다.
 
 패널 표시 순서는 커밋 후 journal 추가 순서이며 occurredAt 정렬이 아니다. 과거 시각을 신고한 CLIENT 이벤트도 새로 저장되면 맨 위에 표시된다. stream 접속/heartbeat/재연결에는 DATA_READ와 HTTP_REQUEST를 추가하지 않아 구독 자체가 새 로그를 만드는 순환을 방지한다. 세션 무효와 권한 거부의 기존 SECURITY 기록 정책은 유지한다.
+
+
+## 모달 버튼 (ADM-015)
+
+회원 상태 확인 모달의 정지 확인/해제 확인/취소/확인 창 닫기는 각각 USER_SUSPEND_CONFIRM_CLICK, USER_ACTIVATE_CONFIRM_CLICK, USER_STATUS_CANCEL_CLICK, USER_STATUS_CLOSE_CLICK이다. eventType=BUTTON_CLICK, source=CLIENT, result=ATTEMPTED이며 기존 모달 열기 클릭 및 업무 PATCH와 같은 interactionId를 사용한다. USER resource와 상세 화면의 회원 번호는 반드시 일치한다. 취소·닫기는 업무 변경 없이 기록하며 Escape·배경 닫기는 버튼 클릭으로 수집하지 않는다. pending의 비활성 버튼과 중복 확인은 기록하지 않는다. 수집 실패가 모달 처리를 차단하지 않는다.

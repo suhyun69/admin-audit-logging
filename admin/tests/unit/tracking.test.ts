@@ -70,3 +70,23 @@ test("real API client refreshes CSRF asynchronously without changing the queued 
   assert.deepEqual(tokens,["token-1","token-2"]);assert.equal(new Set(bodies).size,1);
   assert.deepEqual(JSON.parse(bodies[0]),event);
 });
+
+test("modal buttons preserve their opening interaction and require the same member page", () => {
+  const interactionId = "6a248095-72bf-489c-8ea1-c149b550cb34";
+  const actions = ["USER_SUSPEND_CONFIRM_CLICK", "USER_ACTIVATE_CONFIRM_CLICK", "USER_STATUS_CANCEL_CLICK", "USER_STATUS_CLOSE_CLICK"] as const;
+  const ids = new Set<string>();
+  for (const modalAction of actions) {
+    const event = createClientEvent({ ...action, action: modalAction, interactionId, pagePath: "/users/123?private=hidden#secret" });
+    assert(event);
+    assert.equal(event.action, modalAction);
+    assert.equal(event.eventType, "BUTTON_CLICK");
+    assert.equal(event.interactionId, interactionId);
+    assert.equal(event.resourceType, "USER");
+    assert.equal(event.resourceId, "123");
+    assert.equal(event.pagePath, "/users/123");
+    ids.add(event.eventId);
+    assert.equal(createClientEvent({ ...action, action: modalAction, interactionId, resourceId: "124" }), undefined);
+    assert.equal(createClientEvent({ ...action, action: modalAction, interactionId, eventType: "USER_SEARCH" }), undefined);
+  }
+  assert.equal(ids.size, actions.length);
+});
