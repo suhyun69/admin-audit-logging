@@ -151,6 +151,26 @@ class AuditStreamTest extends HttpApiTestSupport {
             assertThat(arrival).containsExactly(clientId.toString(),pastClientId.toString());
         }
     }
+    @Test void pageViewStreamIncludesSanitizedPagePathWithoutMetadata() throws Exception {
+        Session session=login("admin");
+        UUID eventId=UUID.randomUUID();
+        var payload=Map.of("eventId",eventId.toString(),"interactionId",UUID.randomUUID().toString(),
+                "eventType","PAGE_VIEW","action","PAGE_ENTER","pagePath","/users/123?q=secret#private",
+                "occurredAt",java.time.Instant.now().toString());
+        try(var stream=new Stream(session,null)) {
+            assertThat(stream.next().type()).isEqualTo("ready");
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/audit-events/client")
+                    .cookie(session.auth()).session(session.csrfSession()).header("X-CSRF-TOKEN",session.csrfToken())
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(payload)))
+                    .andExpect(status().isCreated());
+            Frame frame=stream.next();
+            var data=mapper.readTree(frame.data());
+            assertThat(data.get("id").asText()).isEqualTo(eventId.toString());
+            assertThat(data.get("pagePath").asText()).isEqualTo("/users/123");
+            assertThat(data.has("metadata")).isFalse();
+            assertThat(frame.data()).doesNotContain("secret","private","?q=","#");
+        }
+    }
     @Test void expiredAndDisabledSessionsAreTerminated() throws Exception {
         Session operator=login("operator");
         try(var stream=new Stream(operator,null)) {

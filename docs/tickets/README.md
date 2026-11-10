@@ -16,6 +16,7 @@
 | [ADM-008](ADM-008-audit-timeline.md) | admin | 감사 상세·상호작용 타임라인 | ADM-007, API-014 | MERGED |
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | MERGED |
 | [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | MERGED |
+| [ADM-011](ADM-011-live-panel-incremental.md) | admin | 실시간 패널 기존 목록 유지·신규 항목 추가 | ORC-006 | MERGED |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
 | [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | MERGED |
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |
@@ -45,6 +46,7 @@
 | [ORC-004](ORC-004-event-contract.md) | orchestra | 이벤트·개인정보·수집 정책 확정 | ORC-003 | MERGED |
 | [ORC-005](ORC-005-mvp-acceptance.md) | orchestra | 최종 검토와 MVP 승인 | INF-003 | MERGED |
 | [ORC-006](ORC-006-live-audit-panel.md) | orchestra/api/admin/qa | SSE 실시간 감사 패널 | ORC-005, INF-004 | MERGED |
+| [ORC-007](ORC-007-page-view-destination.md) | orchestra/api/admin/qa | 페이지 조회 화면·회원 번호 표시 | ORC-006, ADM-011 | MERGED |
 | [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | MERGED |
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | MERGED |
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | MERGED |
