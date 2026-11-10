@@ -78,7 +78,7 @@ HttpAuditFilter (가장 바깥)
       CsrfFilter → 권한 검사 → MVC controller/usecase
 ```
 
-HTTP 수집은 `/api/v1/**`를 관찰하고 health/static은 제외합니다. 안쪽 컨텍스트 필터가 ThreadLocal/MDC를 정리한 뒤에도 요청 속성의 snapshot으로 최종 status·시간·actor를 기록합니다. 잘못된 interaction UUID의 400도 HTTP 1건을 남깁니다. IP는 `remoteAddr`이며 사용자 입력 X-Forwarded-For를 신뢰하지 않습니다.
+HTTP 수집은 `/api/v1/**`를 관찰하고 health/static과 `/api/v1/audit-logs/stream`은 제외합니다. SSE 연결·재연결·heartbeat는 조회 감사 기록을 만들지 않아 자체 증식하지 않습니다. 안쪽 컨텍스트 필터가 ThreadLocal/MDC를 정리한 뒤에도 요청 속성의 snapshot으로 최종 status·시간·actor를 기록합니다. 잘못된 interaction UUID의 400도 HTTP 1건을 남깁니다. IP는 `remoteAddr`이며 사용자 입력 X-Forwarded-For를 신뢰하지 않습니다.
 
 보안 실패는 filter handler 또는 MVC advice의 공통 `SecurityFailureObserver` 포트에서 security adapter로 전달합니다. common이 usecase를 직접 참조하지 않습니다. 요청 단위 claim으로 보안 이벤트 중복을 막고, 비밀번호 오류는 AUTH_LOGIN_FAILURE만 남깁니다. 입력 username을 실패 actorName에 복사하지 않습니다.
 
@@ -133,4 +133,14 @@ JUnit·ArchUnit·Spring Security Test·MockMvc·실제 Servlet HTTP·Testcontain
 
 [API-013 실행계획 보고서](../docs/qa/API-013-query-plan.md)는 10만 건의 실제 인덱스 선택을 기록합니다. 이는 warm synthetic SQL 확인이며 API p95·대규모 부하 시험은 아닙니다.
 
-SSE, Kafka/Outbox, 다중 Pod 전달·rate 공유, 관리자 설정 CRUD, 감사 보존·파티셔닝과 외부 변조 방지 저장은 후속 범위입니다. 실행은 [README](README.md), 요구사항·이벤트 계약·독립 QA는 루트 docs를 따릅니다.
+## 실시간 감사 스트림
+
+`GET /api/v1/audit-logs/stream`은 인증 사용자에게 SSE를 제공합니다. ADMIN은 전체, 다른 역할은 서버 인증 actor ID에 해당하는 항목만 받습니다. controller는 `AuditStreamUseCase`를 호출하며 응답은 기존 감사 요약 항목과 같은 App DTO입니다. 일반 HTTP 경로와 분리해 ASYNC 완료 dispatch만 해당 스트림에 허용합니다.
+
+두 영속성 어댑터는 실제 INSERT 성공 후 도메인 이벤트를 발행하고, `AuditStreamHub`가 `@TransactionalEventListener(AFTER_COMMIT)`에서 메모리 journal에 넣습니다. 일반/독립 writer와 CLIENT insert-once를 모두 포괄하며 rollback과 중복 CLIENT 재송은 발행되지 않습니다. 커밋 스레드에서는 네트워크 전송을 하지 않습니다. 구독별 virtual thread가 journal을 읽고 전송하며 연결 수는 128개로 제한합니다.
+
+처음 연결은 현재 journal 위치를 기준으로 이후 이벤트만 받습니다. SSE `id`는 서버 epoch UUID와 커밋 후 수신 순번으로, 사용자 발생 시각이나 DB INSERT 시각 정렬과 무관합니다. `Last-Event-ID`로 재연결하면 보관 중인 이후 기록을 재전송합니다. journal은 최근 1000건으로 제한하고, 이전 서버 epoch/범위 밖 cursor 또는 느린 구독자의 overrun은 `reset` 후 `ready`로 명시합니다. 따라서 영구 전달 보장이나 다중 인스턴스 replay 저장소가 아닙니다. 브라우저는 감사 UUID 중복 제거와 reset 처리를 해야 합니다.
+
+2초마다 DB 세션 유효성·계정 활성·역할을 검사하고 heartbeat를 보냅니다. 각 감사 항목을 전송하기 전에도 검사해, 폐기·만료·권한 변경 시 `auth-expired` 후 연결을 종료합니다. 구독은 30분 제한, disconnect/timeout/error와 앱 종료에서 정리합니다. 스트림은 로그 검색·추가 조회를 호출하지 않습니다.
+
+Kafka/Outbox, 다중 Pod 전달·rate 공유, 관리자 설정 CRUD, 감사 보존·파티셔닝과 외부 변조 방지 저장은 후속 범위입니다. 실행은 [README](README.md), 요구사항·이벤트 계약·독립 QA는 루트 docs를 따릅니다.

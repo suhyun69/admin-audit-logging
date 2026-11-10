@@ -79,8 +79,23 @@ class GlobalExceptionHandlerTest {
                 .andExpect(content().string(org.hamcrest.Matchers.not(org.hamcrest.Matchers.containsString("secret"))));
     }
 
+    @Test
+    void disconnectedStreamKeepsCommittedSseBodyWithoutJsonError() throws Exception {
+        mockMvc.perform(get("/test/disconnected"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.TEXT_EVENT_STREAM))
+                .andExpect(content().string("event:ready\ndata:{}\n\n"));
+    }
+
     @RestController
     static class ErrorProbeController {
+        @GetMapping("/test/disconnected")
+        void disconnected(jakarta.servlet.http.HttpServletResponse response) throws java.io.IOException {
+            response.setContentType("text/event-stream");
+            response.getWriter().write("event:ready\ndata:{}\n\n");
+            response.flushBuffer();
+            throw new org.springframework.web.context.request.async.AsyncRequestNotUsableException("peer disconnected");
+        }
         @GetMapping("/test/errors/{id}")
         String get(@PathVariable long id) { throw new ApiException(ErrorCode.USER_NOT_FOUND); }
         @PostMapping("/test/errors")

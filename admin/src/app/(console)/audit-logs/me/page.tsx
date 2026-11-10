@@ -1,2 +1,2 @@
-import { AuditExplorer } from "@/components/audit/audit-explorer";
-export default function MyActivityPage(){return <AuditExplorer own/>;}
+import { redirect } from "next/navigation";
+export default function MyActivityPage() { redirect("/dashboard"); }

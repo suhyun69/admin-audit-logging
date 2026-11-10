@@ -15,7 +15,8 @@ import java.util.List;
 public class AuditPersistenceAdapter implements AuditWritePort {
     private final NamedParameterJdbcTemplate jdbc;
     private final ObjectMapper mapper;
-    public AuditPersistenceAdapter(NamedParameterJdbcTemplate jdbc, ObjectMapper mapper) { this.jdbc = jdbc; this.mapper = mapper; }
+    private final org.springframework.context.ApplicationEventPublisher events;
+    public AuditPersistenceAdapter(NamedParameterJdbcTemplate jdbc, ObjectMapper mapper, org.springframework.context.ApplicationEventPublisher events) { this.jdbc = jdbc; this.mapper = mapper; this.events=events; }
     @Override public void insert(AuditEvent event, List<AuditChange> changes) {
         var parameters = new MapSqlParameterSource()
                 .addValue("id",event.id()).addValue("occurred",Timestamp.from(event.occurredAt())).addValue("received",Timestamp.from(event.receivedAt()))
@@ -38,6 +39,7 @@ public class AuditPersistenceAdapter implements AuditWritePort {
                     new MapSqlParameterSource().addValue("id",event.id()).addValue("field",change.fieldName())
                             .addValue("before",json(change.beforeValue())).addValue("after",json(change.afterValue())));
         }
+        events.publishEvent(event);
     }
     private String json(Object value) {
         try { return mapper.writeValueAsString(value); }

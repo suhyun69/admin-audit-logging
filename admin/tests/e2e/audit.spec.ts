@@ -1,10 +1,13 @@
 import { test, expect, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { count, database, loginAs, maskedFailure, resetMember, uuid } from "./helpers";
+import { apiChange, count, database, loginAs, maskedFailure, resetMember, uuid } from "./helpers";
 
 test.beforeEach(() => resetMember());
 test.afterEach(async ({ page }, info) => maskedFailure(page, info));
-
+const panel = (page: Page) => page.getByRole("complementary", { name: "실시간 감사 로그", exact: true });
+async function connected(page: Page) {
+  await expect(page.getByTestId("audit-stream-status")).toHaveText("실시간 연결됨");
+}
 async function actorId(page: Page) {
   const response = await page.request.get("/api/v1/auth/me");
   expect(response.status()).toBe(200);
@@ -12,30 +15,25 @@ async function actorId(page: Page) {
   if (!Number.isSafeInteger(id) || id < 1) throw new Error("Expected authenticated actor ID");
   return id as number;
 }
-async function advanced(page: Page) {
-  const toggle = page.getByRole("button", { name: "상세 필터", exact: true });
-  if (await toggle.getAttribute("aria-expanded") !== "true") await toggle.click();
-}
-async function apply(page: Page, interaction: string, cursorExpected = false) {
-  const response = page.waitForResponse(item => {
-    const url = new URL(item.url());
-    return url.pathname === "/api/v1/audit-logs" && item.request().method() === "GET"
-      && url.searchParams.get("interactionId") === interaction && url.searchParams.has("cursor") === cursorExpected;
-  });
-  await page.getByRole("button", { name: "조회", exact: true }).click();
-  return response;
-}
-async function tableIds(page: Page) {
-  return page.locator("tbody tr[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")));
-}
 
-test("MVP search confirmation and Explorer preview use the exact committed interaction", async ({ page }) => {
+test("live panel follows committed member changes across navigation and preserves detailed audit evidence", async ({ page }) => {
+  let connections = 0;
+  page.on("request", request => { if (new URL(request.url()).pathname === "/api/v1/audit-logs/stream") connections++; });
   await loginAs(page, "ADMIN");
-  await page.getByRole("navigation").getByRole("link", { name: "회원 관리", exact: true }).click();
+  await connected(page);
+  const initialConnections = connections;
+  const navigation = page.getByRole("navigation", { name: "주 메뉴" });
+  await expect(navigation.getByRole("link", { name: /^(감사 로그|내 활동)$/ })).toHaveCount(0);
+  await expect(panel(page).getByRole("textbox")).toHaveCount(0);
+  await expect(panel(page).getByRole("combobox")).toHaveCount(0);
+  const width = await panel(page).boundingBox();
+  expect(width).not.toBeNull();
+  expect(width!.width / page.viewportSize()!.width).toBeGreaterThan(0.27);
+  expect(width!.width / page.viewportSize()!.width).toBeLessThan(0.4);
+  await navigation.getByRole("link", { name: "회원 관리", exact: true }).click();
   await page.getByLabel("이름 또는 이메일 검색").fill("  member123@example.test  ");
   await page.getByRole("button", { name: "검색", exact: true }).click();
   await page.getByRole("link", { name: "Member 123 상세 보기", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "회원 상세", exact: true })).toBeVisible();
   await page.getByRole("button", { name: "회원 정지", exact: true }).click();
   const changed = page.waitForResponse(result => new URL(result.url()).pathname === "/api/v1/users/123/status" && result.request().method() === "PATCH");
   await page.getByRole("dialog").getByRole("button", { name: "정지 확인", exact: true }).click();
@@ -44,138 +42,170 @@ test("MVP search confirmation and Explorer preview use the exact committed inter
   const request = uuid(patch.headers()["x-request-id"]);
   const interaction = uuid(patch.request().headers()["x-interaction-id"]);
   const business = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${request}' AND event_type='DATA_UPDATE' AND result='SUCCESS'`));
-  const owner = await actorId(page);
+  await expect(panel(page).locator(`[data-log-id="${business}"]`)).toBeVisible();
   await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CLICK'`)).toBe(1);
   expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND request_id='${request}' AND source='HTTP' AND status_code=200`)).toBe(1);
   expect(count(`SELECT count(*) FROM audit_log_changes WHERE audit_log_id='${business}' AND field_name='status' AND before_value='"ACTIVE"'::jsonb AND after_value='"SUSPENDED"'::jsonb`)).toBe(1);
-  await page.getByRole("link", { name: "감사 로그", exact: true }).click();
-  await page.getByLabel("관리자 ID", { exact: true }).fill(String(owner));
-  await page.getByLabel("이벤트 유형", { exact: true }).selectOption("DATA_UPDATE");
-  await page.getByLabel("결과", { exact: true }).selectOption("SUCCESS");
-  await advanced(page);
-  await page.getByLabel("상호작용 ID", { exact: true }).fill(interaction);
-  const filtered = await apply(page, interaction);
-  expect(filtered.status()).toBe(200);
-  await expect(page.locator(`tbody tr[data-log-id="${business}"]`)).toBeVisible();
-  await expect(page.locator("tbody tr[data-log-id]")).toHaveCount(1);
-  await page.getByRole("button", { name: "DATA_UPDATE 로그 상세 보기", exact: true }).click();
-  const preview = page.getByRole("dialog", { name: "로그 상세 미리보기" });
-  await expect(preview).toBeVisible();
-  await expect(preview.getByRole("heading", { name: "변경 전후", exact: true })).toBeVisible();
-  await expect(preview.getByRole("cell", { name: "ACTIVE", exact: true })).toBeVisible();
-  await expect(preview.getByRole("cell", { name: "SUSPENDED", exact: true })).toBeVisible();
-  await expect(preview.getByText(request, { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "상세 미리보기 닫기", exact: true }).click();
-  await page.getByLabel("이벤트 유형", { exact: true }).selectOption("BUTTON_CLICK");
-  await page.getByLabel("결과", { exact: true }).selectOption("ATTEMPTED");
-  await apply(page, interaction);
-  await expect(page.locator('tbody tr[data-source="CLIENT"][data-result="ATTEMPTED"]')).toHaveCount(1);
-  await expect(page.locator('tbody tr[data-source="CLIENT"]').getByText("시도", { exact: true })).toBeVisible();
-  await page.getByRole("button", { name: "BUTTON_CLICK 로그 상세 보기", exact: true }).click();
-  await page.getByRole("dialog").getByRole("link", { name: "전체 상세 보기", exact: true }).click();
+  const previous = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")));
+  const second = await apiChange(page, "ACTIVE", 1);
+  expect(second.status).toBe(200);
+  const secondBusiness = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${uuid(second.requestId)}' AND event_type='DATA_UPDATE' AND result='SUCCESS'`));
+  await expect(panel(page).locator(`[data-log-id="${secondBusiness}"]`)).toBeVisible();
+  const latest = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")));
+  expect(latest.indexOf(secondBusiness)).toBeLessThan(latest.indexOf(business));
+  expect(latest.filter(id => id === secondBusiness)).toHaveLength(1);
+  expect(previous).toContain(business);
+  expect(connections).toBe(initialConnections);
+
+  // The retired Explorer UI no longer owns these contracts; preserve API and detail coverage.
+  const detail = await page.request.get(`/api/v1/audit-logs/${business}`);
+  expect(detail.status()).toBe(200);
+  const body = await detail.json();
+  expect(body.requestId).toBe(request);
+  expect(body.changes).toContainEqual({ fieldName: "status", beforeValue: "ACTIVE", afterValue: "SUSPENDED" });
+  await page.goto(`/audit-logs/${business}`);
   await expect(page.getByRole("heading", { name: "감사 기록 상세", exact: true })).toBeVisible();
-  await expect(page.getByText("브라우저가 신고한 시도입니다.", { exact: false })).toBeVisible();
-  const timelineRequest = page.waitForRequest(item => new URL(item.url()).pathname === `/api/v1/audit-logs/interactions/${interaction}`);
   await page.getByRole("link", { name: "타임라인 보기", exact: true }).click();
   await expect(page.getByRole("heading", { name: "상호작용 타임라인", exact: true })).toBeVisible();
-  const fetched = await timelineRequest;
-  expect(new URL(fetched.url()).searchParams.has("from")).toBe(false);
-  expect(fetched.headers()["x-interaction-id"]).not.toBe(interaction);
-  await expect(page.locator('ol li[data-source="CLIENT"][data-result="ATTEMPTED"]')).toHaveCount(1);
-  await expect(page.locator(`ol li[data-log-id="${business}"]`)).toBeVisible();
-  const confirmed = page.locator(`ol li[data-log-id="${business}"]`);
-  await expect(confirmed).toContainText("ACTIVE");
-  await expect(confirmed).toContainText("SUSPENDED");
-  const httpRecord = page.locator('ol li[data-source="HTTP"]').filter({ hasText: "PATCH" });
-  await httpRecord.locator("summary").click();
-  await expect(httpRecord.getByRole("heading", { name: "요청 정보", exact: true })).toBeVisible();
-  await expect(httpRecord).toContainText(request);
+  await expect(page.getByRole("main").locator(`ol li[data-log-id="${business}"]`)).toContainText("ACTIVE");
+  await expect(page.getByRole("main").locator(`ol li[data-log-id="${business}"]`)).toContainText("SUSPENDED");
   const dbIds: string[] = JSON.parse(database(`SELECT json_agg(id ORDER BY occurred_at,id)::text FROM audit_logs WHERE interaction_id='${interaction}'`));
-  await expect.poll(() => page.locator("ol li[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")))).toEqual(dbIds);
+  await expect.poll(() => page.getByRole("main").locator("ol li[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")))).toEqual(dbIds);
   expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='HTTP' AND request_path LIKE '%/audit-logs%'`)).toBe(0);
   const missing = randomUUID();
-  const failed = page.waitForResponse(item => new URL(item.url()).pathname === `/api/v1/audit-logs/${missing}`);
-  await page.goto(`/audit-logs/${missing}`);
-  const failure = await failed;
+  const failure = await page.request.get(`/api/v1/audit-logs/${missing}`);
   expect(failure.status()).toBe(404);
   expect(uuid(failure.headers()["x-request-id"])).toBe((await failure.json()).requestId);
-  await expect(page.getByRole("heading", { name: "감사 기록을 찾을 수 없습니다.", exact: true })).toBeVisible();
   await page.goto(`/audit-logs/interactions/${missing}`);
   await expect(page.getByRole("heading", { name: "연결된 기록이 없습니다.", exact: true })).toBeVisible();
 });
 
-test("Explorer preserves opaque cursor order and validates dates before requests", async ({ page }) => {
+test("retired audit menus redirect and cursor API retains ordered pages without backfilling live history", async ({ page }) => {
   await loginAs(page, "ADMIN");
+  await connected(page);
   const owner = await actorId(page);
   const interaction = randomUUID();
   const values = Array.from({ length: 25 }, () => `('${randomUUID()}',now()-interval '1 hour','DATA_READ','QA_FIXTURE_READ',${owner},'BUSINESS','SUCCESS','${interaction}')`).join(",");
   database(`INSERT INTO audit_logs(id,occurred_at,event_type,action,actor_id,source,result,interaction_id) VALUES ${values}`);
   const expected: string[] = JSON.parse(database(`SELECT json_agg(id ORDER BY occurred_at DESC,id DESC)::text FROM audit_logs WHERE interaction_id='${interaction}'`));
-  await page.goto("/audit-logs");
-  await advanced(page);
-  await page.getByLabel("상호작용 ID", { exact: true }).fill(interaction);
-  const initial = await apply(page, interaction);
-  expect(initial.status()).toBe(200);
-  await expect.poll(() => tableIds(page)).toEqual(expected.slice(0, 20));
-  const operation = uuid(initial.request().headers()["x-interaction-id"]);
-  await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${operation}' AND event_type='FILTER_CHANGE'`)).toBe(1);
-  expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${operation}' AND metadata::text LIKE '%${interaction}%'`)).toBe(0);
-  await page.getByRole("button", { name: "다음", exact: true }).click();
-  await expect.poll(() => tableIds(page)).toEqual(expected.slice(20));
-  await page.getByRole("button", { name: "이전", exact: true }).click();
-  await expect.poll(() => tableIds(page)).toEqual(expected.slice(0, 20));
-  const end = await page.getByLabel("조회 종료", { exact: true }).inputValue();
-  const invalidFrom = new Date(new Date(`${end}+09:00`).getTime() - 32 * 86_400_000 + 9 * 3_600_000).toISOString().slice(0, 23);
-  await page.getByLabel("조회 시작", { exact: true }).fill(invalidFrom);
-  let queries = 0;
-  page.on("request", request => { if (new URL(request.url()).pathname === "/api/v1/audit-logs") queries++; });
-  const before = queries;
-  await page.getByRole("button", { name: "조회", exact: true }).click();
-  await expect(page.getByRole("alert").filter({ hasText: "조회 기간은 최대 31일까지 선택할 수 있습니다." })).toBeVisible();
-  expect(queries).toBe(before);
-  await page.getByRole("button", { name: "초기화", exact: true }).click();
-  await expect(page.getByLabel("상호작용 ID", { exact: true })).toHaveValue("");
-  const empty = randomUUID();
-  await page.getByLabel("상호작용 ID", { exact: true }).fill(empty);
-  await apply(page, empty);
-  await expect(page.getByRole("heading", { name: "조회 조건에 맞는 기록이 없습니다.", exact: true })).toBeVisible();
-  let rejectNext = true;
-  await page.route("**/api/v1/audit-logs?*", async route => {
-    if (rejectNext) {
-      rejectNext = false;
-      await route.fulfill({ status: 503, contentType: "application/json", body: JSON.stringify({ code: "UPSTREAM_UNAVAILABLE", message: "Fixture network error", requestId: randomUUID() }) });
-    } else await route.continue();
-  });
-  await page.getByLabel("상호작용 ID", { exact: true }).fill(interaction);
-  await apply(page, interaction);
-  await expect(page.getByRole("alert").filter({ hasText: "감사 기록을 불러오지 못했습니다." })).toBeVisible();
-  await page.getByRole("button", { name: "다시 시도", exact: true }).click();
-  await expect.poll(() => tableIds(page)).toEqual(expected.slice(0, 20));
+  for (const path of ["/audit-logs", "/audit-logs/me"]) {
+    await page.goto(path);
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await connected(page);
+    for (const id of expected) await expect(panel(page).locator(`[data-log-id="${id}"]`)).toHaveCount(0);
+  }
+  const query = `/api/v1/audit-logs?interactionId=${interaction}&size=20`;
+  const first = await page.request.get(query);
+  expect(first.status()).toBe(200);
+  const firstBody = await first.json();
+  expect(firstBody.items.map((event: { id: string }) => event.id)).toEqual(expected.slice(0, 20));
+  const next = await page.request.get(`${query}&cursor=${encodeURIComponent(firstBody.nextCursor)}`);
+  expect(next.status()).toBe(200);
+  expect((await next.json()).items.map((event: { id: string }) => event.id)).toEqual(expected.slice(20));
+  const invalid = await page.request.get(`/api/v1/audit-logs?from=${encodeURIComponent(new Date(Date.now() - 32 * 86_400_000).toISOString())}&to=${encodeURIComponent(new Date().toISOString())}`);
+  expect(invalid.status()).toBe(400);
+  const empty = await page.request.get(`/api/v1/audit-logs?interactionId=${randomUUID()}`);
+  expect((await empty.json()).items).toEqual([]);
 });
 
-test("VIEWER and OPERATOR own activity rows never trigger global detail requests", async ({ page }) => {
-  const seen: string[] = [];
-  page.on("request", request => { if (new URL(request.url()).pathname.startsWith("/api/v1/audit-logs")) seen.push(request.url()); });
-  for (const role of ["VIEWER", "OPERATOR"] as const) {
-    await loginAs(page, role);
-    const owner = await actorId(page);
-    await page.getByRole("link", { name: "내 활동", exact: true }).click();
-    await expect(page.getByRole("heading", { name: "내 활동", exact: true })).toBeVisible();
-    await expect.poll(async () => (await tableIds(page)).length).toBeGreaterThan(0);
-    await expect(page.getByLabel("관리자 ID", { exact: true })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: /로그 상세 보기/ })).toHaveCount(0);
-    const ids = (await tableIds(page)).map(id => `'${uuid(id ?? undefined)}'`).join(",");
-    expect(count(`SELECT count(*) FROM audit_logs WHERE id IN (${ids}) AND actor_id<>${owner}`)).toBe(0);
-    await page.goto("/audit-logs");
-    await expect(page.getByRole("heading", { name: "접근 권한이 없습니다.", exact: true })).toBeVisible();
-    for (const path of [`/audit-logs/${randomUUID()}`, `/audit-logs/interactions/${randomUUID()}`]) {
-      await page.goto(path);
-      await expect(page.getByRole("heading", { name: "접근 권한이 없습니다.", exact: true })).toBeVisible();
+test("VIEWER and OPERATOR live panels receive only their own new events and retain server detail restrictions", async ({ page, browser }) => {
+  const foreignContext = await browser.newContext({ baseURL: process.env.QA_E2E_BASE_URL });
+  const foreign = await foreignContext.newPage();
+  try {
+    await loginAs(foreign, "ADMIN");
+    await connected(foreign);
+    for (const role of ["VIEWER", "OPERATOR"] as const) {
+      await loginAs(page, role);
+      await connected(page);
+      const owner = await actorId(page);
+      const foreignRead = await foreign.request.get("/api/v1/users/123");
+      expect(foreignRead.status()).toBe(200);
+      const foreignRequest = uuid(foreignRead.headers()["x-request-id"]);
+      const foreignId = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${foreignRequest}' AND event_type='DATA_READ' LIMIT 1`));
+      const ownRead = await page.request.get("/api/v1/users/123");
+      expect(ownRead.status()).toBe(200);
+      const ownRequest = uuid(ownRead.headers()["x-request-id"]);
+      const ownId = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${ownRequest}' AND event_type='DATA_READ' LIMIT 1`));
+      await expect(panel(page).locator(`[data-log-id="${ownId}"]`)).toBeVisible();
+      await expect(panel(page).locator(`[data-log-id="${foreignId}"]`)).toHaveCount(0);
+      await expect(foreign.getByRole("complementary", { name: "실시간 감사 로그", exact: true }).locator(`[data-log-id="${ownId}"]`)).toBeVisible();
+      const actors = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-actor-id")));
+      expect(actors.length).toBeGreaterThan(0);
+      expect(actors.every(id => id === String(owner))).toBe(true);
+      expect((await page.request.get("/api/v1/audit-logs")).status()).toBe(403);
+      expect((await page.request.get(`/api/v1/audit-logs/${ownId}`)).status()).toBe(403);
+      for (const path of [`/audit-logs/${randomUUID()}`, `/audit-logs/interactions/${randomUUID()}`]) {
+        await page.goto(path);
+        await expect(page.getByRole("heading", { name: "접근 권한이 없습니다.", exact: true })).toBeVisible();
+      }
+      await page.getByRole("button", { name: "로그아웃", exact: true }).click();
+      await expect(page).toHaveURL(/\/login$/);
+      await expect(panel(page)).toHaveCount(0);
     }
-    await page.getByRole("button", { name: "로그아웃", exact: true }).click();
-    await expect(page).toHaveURL(/\/login$/);
-  }
-  expect(seen.some(url => new URL(url).pathname === "/api/v1/audit-logs/me")).toBe(true);
-  expect(seen.filter(url => new URL(url).pathname === "/api/v1/audit-logs/me").every(url => !new URL(url).searchParams.has("actorId"))).toBe(true);
-  expect(seen.some(url => new URL(url).pathname === "/api/v1/audit-logs" || /^\/api\/v1\/audit-logs\/(?:interactions\/)?[0-9a-f-]{36}$/.test(new URL(url).pathname))).toBe(false);
+  } finally { await foreignContext.close(); }
+});
+
+test("live panel bounds rows preserves reading position resets and collapses on narrow screens", async ({ page }) => {
+  // Deterministic browser rendering contract; real SSE delivery and scope are exercised above.
+  await page.addInitScript(() => {
+    const streams: EventTarget[] = [];
+    Object.assign(window, { qaAuditStreams: streams });
+    class FixtureEventSource extends EventTarget {
+      onerror: ((event: Event) => void) | null = null;
+      closed = false;
+      constructor() { super(); streams.push(this); queueMicrotask(() => this.dispatchEvent(new MessageEvent("ready", { data: "{}" }))); }
+      close() { this.closed = true; }
+    }
+    window.EventSource = FixtureEventSource as unknown as typeof EventSource;
+  });
+  await loginAs(page, "ADMIN");
+  await connected(page);
+  const owner = await actorId(page);
+  const fixture = (id: string) => ({ id, occurredAt: new Date().toISOString(), receivedAt: new Date().toISOString(), eventType: "DATA_READ", action: "QA_RENDER_FIXTURE", actorId: owner, actorName: "Fixture", actorRole: "ADMIN", source: "BUSINESS", result: "SUCCESS", resourceType: "USER", resourceId: "123", interactionId: null, requestId: null });
+  const firstIds = Array.from({ length: 150 }, () => randomUUID());
+  const emit = (items: unknown[]) => page.evaluate(items => {
+    const streams = (window as unknown as { qaAuditStreams: EventTarget[] }).qaAuditStreams;
+    for (const item of items) streams.at(-1)!.dispatchEvent(new MessageEvent("audit", { data: JSON.stringify(item) }));
+  }, items);
+  await emit(firstIds.map(fixture));
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
+  await emit([fixture(firstIds[149])]);
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
+  const viewport = page.getByTestId("audit-stream-list");
+  await viewport.evaluate(element => { element.scrollTop = 600; });
+  const anchor = firstIds[145];
+  const before = await panel(page).locator(`[data-log-id="${anchor}"]`).boundingBox();
+  await emit([fixture(randomUUID())]);
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(151);
+  const after = await panel(page).locator(`[data-log-id="${anchor}"]`).boundingBox();
+  expect(before).not.toBeNull();
+  expect(after).not.toBeNull();
+  expect(Math.abs(after!.y - before!.y)).toBeLessThan(3);
+  await emit(Array.from({ length: 60 }, () => fixture(randomUUID())));
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(200);
+  const desktopImage = process.env.QA_E2E_VISUAL_DIR;
+  if (desktopImage) await page.screenshot({ path: `${desktopImage}/sse-desktop.png`, fullPage: false });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(viewport).toBeHidden();
+  await page.getByRole("button", { name: "감사 로그 펼치기", exact: true }).click();
+  await expect(viewport).toBeVisible();
+  if (desktopImage) await page.screenshot({ path: `${desktopImage}/sse-mobile.png`, fullPage: false });
+  await page.evaluate(() => {
+    const streams = (window as unknown as { qaAuditStreams: EventTarget[] }).qaAuditStreams;
+    streams.at(-1)!.dispatchEvent(new MessageEvent("reset", { data: JSON.stringify({ reason: "replay-unavailable" }) }));
+  });
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(0);
+  await expect(panel(page)).toContainText("연결이 초기화되었습니다.");
+  await page.getByRole("button", { name: "로그아웃", exact: true }).click();
+  await expect(page).toHaveURL(/\/login$/);
+  expect(await page.evaluate(() => (window as unknown as { qaAuditStreams: { closed: boolean }[] }).qaAuditStreams.every(stream => stream.closed))).toBe(true);
+});
+
+test("revoked active SSE session ends the authenticated browser without another user request", async ({ page }) => {
+  await loginAs(page, "OPERATOR");
+  await connected(page);
+  const owner = await actorId(page);
+  database(`UPDATE admin_sessions SET revoked_at=now() WHERE admin_user_id=${owner} AND revoked_at IS NULL`);
+  await expect(page).toHaveURL(/\/login$/);
+  await expect(panel(page)).toHaveCount(0);
 });
