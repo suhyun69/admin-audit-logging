@@ -77,6 +77,11 @@ test("CLIENT only live panel follows navigation while server business audit evid
   await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CLICK'`)).toBe(1);
   const clickClient = uuid(database(`SELECT id FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CLICK'`));
   await expect(panel(page).locator(`[data-log-id="${clickClient}"]`)).toBeVisible();
+  await expect(panel(page).locator(`[data-log-id="${clickClient}"]`).getByTestId("audit-button-label")).toHaveText("회원 정지");
+  await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CONFIRM_CLICK'`)).toBe(1);
+  const confirmClient = uuid(database(`SELECT id FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CONFIRM_CLICK'`));
+  await expect(panel(page).locator(`[data-log-id="${confirmClient}"]`).getByTestId("audit-button-label")).toHaveText("정지 확인");
+  await expect.poll(() => count(`SELECT count(*) FROM audit_logs c WHERE c.interaction_id='${interaction}' AND c.source='CLIENT' AND NOT EXISTS (SELECT 1 FROM audit_logs h WHERE h.request_id=c.request_id AND h.source='HTTP')`)).toBe(0);
   await expect(panel(page).locator('[data-log-id]:not([data-source="CLIENT"])')).toHaveCount(0);
   expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND request_id='${request}' AND source='HTTP' AND status_code=200`)).toBe(1);
   await expect(panel(page).locator('[data-source="HTTP"]')).toHaveCount(0);

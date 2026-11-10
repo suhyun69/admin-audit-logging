@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { isVisibleLiveLog, livePageLabel, parseLiveLog, prependLiveLog } from "../../src/lib/audit/live-feed.ts";
+import { isVisibleLiveLog, liveButtonLabel, livePageLabel, parseLiveLog, prependLiveLog } from "../../src/lib/audit/live-feed.ts";
 import type { AuditItem } from "../../src/lib/audit/queries.ts";
 const item = (id: string): AuditItem => ({ id, occurredAt: "2026-11-10T00:00:00Z", receivedAt: "2026-11-10T00:00:00Z", eventType: "DATA_UPDATE", action: "STATUS_CHANGE", actorId: 1, actorName: "Admin", actorRole: "ADMIN", source: "BUSINESS", result: "SUCCESS", resourceType: "USER", resourceId: "123", interactionId: null, requestId: null });
 test("arrivals prepend by arrival order, deduplicate and cap the feed", () => {
@@ -58,4 +58,16 @@ test("optional page paths retain old payloads and suppress unknown or sensitive 
     assert.equal(livePageLabel(parsed?.pagePath), "페이지 정보 없음");
   }
   for (const pagePath of [{ secret: "private" }, 123, ["/users"]]) assert.equal(parseLiveLog(JSON.stringify({ ...event, pagePath })), null);
+});
+
+test("button click labels identify the member status action", () => {
+  assert.equal(liveButtonLabel("USER_SUSPEND_CLICK"), "회원 정지");
+  assert.equal(liveButtonLabel("USER_ACTIVATE_CLICK"), "정지 해제");
+  assert.equal(liveButtonLabel("USER_SUSPEND_CONFIRM_CLICK"), "정지 확인");
+  assert.equal(liveButtonLabel("USER_ACTIVATE_CONFIRM_CLICK"), "해제 확인");
+  assert.equal(liveButtonLabel("USER_STATUS_CANCEL_CLICK"), "취소");
+  assert.equal(liveButtonLabel("USER_STATUS_CLOSE_CLICK"), "확인 창 닫기");
+});
+test("unknown button actions use the safe missing-information label", () => {
+  for (const action of ["", "UNKNOWN_CLICK", "PAGE_ENTER", "constructor", "<private>"]) assert.equal(liveButtonLabel(action), "버튼 정보 없음");
 });

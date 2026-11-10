@@ -67,6 +67,38 @@ class ClientEventsTest extends HttpApiTestSupport {
             assertThat(jdbc.queryForObject("SELECT metadata->>'pagePath' FROM audit_logs WHERE id=?",String.class,UUID.fromString(event.get("eventId").toString()))).isEqualTo(values[2]);
         }
     }
+    private static final List<String> MODAL_ACTIONS=List.of("USER_SUSPEND_CONFIRM_CLICK","USER_ACTIVATE_CONFIRM_CLICK",
+            "USER_STATUS_CANCEL_CLICK","USER_STATUS_CLOSE_CLICK");
+    @Test void acceptsModalButtonActionsWithServerIdentityAndIdempotentRetry() throws Exception {
+        for(String action:MODAL_ACTIONS) {
+            var event=payload();event.put("action",action);
+            assertThat(send(admin,event).getResponse().getStatus()).isEqualTo(201);
+            assertThat(send(admin,event).getResponse().getStatus()).isEqualTo(200);
+            assertThat(rows(event)).isEqualTo(1);
+            var row=jdbc.queryForMap("SELECT actor_id,action,result,resource_type,resource_id,metadata->>'pagePath' page FROM audit_logs WHERE id=?",
+                    UUID.fromString(event.get("eventId").toString()));
+            assertThat(row.get("actor_id")).isEqualTo(1L);
+            assertThat(row.get("action")).isEqualTo(action);
+            assertThat(row.get("result")).isEqualTo("ATTEMPTED");
+            assertThat(row.get("resource_type")).isEqualTo("USER");
+            assertThat(row.get("resource_id")).isEqualTo("123");
+            assertThat(row.get("page")).isEqualTo("/users/123");
+        }
+    }
+    @Test void modalButtonActionsStillRequireMatchingUserResourceAndDetailPage() throws Exception {
+        for(String action:MODAL_ACTIONS) {
+            for(Map<String,Object> override:List.<Map<String,Object>>of(Map.of("pagePath","/users"),Map.of("pagePath","/users/124"),
+                    Map.of("resourceId","124"),Map.of("resourceId","0"),
+                    Map.of("resourceType","AUDIT_LOG","resourceId",UUID.randomUUID().toString()))) {
+                var event=payload();event.put("action",action);event.putAll(override);
+                assertThat(send(admin,event).getResponse().getStatus()).isEqualTo(400);
+                assertThat(rows(event)).isZero();
+            }
+            var noResource=payload();noResource.put("action",action);noResource.remove("resourceType");noResource.remove("resourceId");
+            assertThat(send(admin,noResource).getResponse().getStatus()).isEqualTo(400);
+            assertThat(rows(noResource)).isZero();
+        }
+    }
     @Test void forgedIdentityUnknownFieldsDuplicateKeysAndTrailingJsonAreRejected() throws Exception {
         for(String field:new String[]{"actorId","sessionId","result","receivedAt"}) {
             var event=payload();event.put(field,"forged");assertThat(send(admin,event).getResponse().getStatus()).isEqualTo(400);assertThat(rows(event)).isZero();

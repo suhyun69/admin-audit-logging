@@ -73,3 +73,8 @@ SSE id는 `<서버 epoch UUID>:<sequence>` 커서다. `ready`(data `{}`)가 기�
 ### 페이지 조회 대상 (ORC-007)
 
 AuditItem REST/SSE에 nullable `pagePath`를 추가한다. PAGE_VIEW일 때만 기존 허용 metadata.pagePath를 정제하여 제공하고 다른 이벤트는 null이다. query/hash·검색어·전체 metadata는 반환하지 않는다. 기존 source/actor 권한 필터는 동일하다. UI는 페이지 조회에 회원 관리/회원 상세 · 회원 #123/대시보드 등 목적지를 표시한다. 필드가 없는 과거 payload나 잘못된 경로는 페이지 정보 없음으로 처리한다. 회원 이름을 위한 추가 조회는 수행하지 않는다.
+
+
+### 회원 상태 모달 CLIENT 액션 (ADM-015)
+
+기존 CLIENT 수집 API의 BUTTON_CLICK action에 USER_SUSPEND_CONFIRM_CLICK, USER_ACTIVATE_CONFIRM_CLICK, USER_STATUS_CANCEL_CLICK, USER_STATUS_CLOSE_CLICK을 추가한다. 기존 USER resource/회원 상세 pagePath 일치, 인증 actor, 멱등성·rate limit 규칙을 유지한다. 모달을 열 때의 interactionId를 사용하며 확인 PATCH도 동일 ID로 연결한다. 취소·닫기는 업무 변경을 의미하지 않고 모든 CLIENT 이벤트는 ATTEMPTED다.

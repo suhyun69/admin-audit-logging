@@ -47,7 +47,8 @@ public class ClientEventUseCaseImpl implements ClientEventUseCase {
         }
         boolean allowed=switch(request.eventType()) {
             case "PAGE_VIEW" -> "PAGE_ENTER".equals(request.action());
-            case "BUTTON_CLICK" -> Set.of("USER_SUSPEND_CLICK","USER_ACTIVATE_CLICK").contains(request.action())&&"USER".equals(type)&&page.equals("/users/"+resource);
+            case "BUTTON_CLICK" -> Set.of("USER_SUSPEND_CLICK","USER_ACTIVATE_CLICK",
+                    "USER_SUSPEND_CONFIRM_CLICK","USER_ACTIVATE_CONFIRM_CLICK","USER_STATUS_CANCEL_CLICK","USER_STATUS_CLOSE_CLICK").contains(request.action())&&"USER".equals(type)&&page.equals("/users/"+resource);
             case "USER_SEARCH" -> "USER_SEARCH_SUBMIT".equals(request.action())&&page.equals("/users");
             case "FILTER_CHANGE" -> "USER_STATUS_FILTER".equals(request.action())&&page.equals("/users")
                     ||"AUDIT_FILTER_CHANGE".equals(request.action())&&(page.equals("/audit-logs")||page.equals("/audit-logs/me"));
