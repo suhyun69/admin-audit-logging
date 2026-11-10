@@ -23,6 +23,10 @@ export function liveButtonLabel(action: string): string {
   switch (action) {
     case "USER_SUSPEND_CLICK": return "회원 정지";
     case "USER_ACTIVATE_CLICK": return "정지 해제";
+    case "USER_SUSPEND_CONFIRM_CLICK": return "정지 확인";
+    case "USER_ACTIVATE_CONFIRM_CLICK": return "해제 확인";
+    case "USER_STATUS_CANCEL_CLICK": return "취소";
+    case "USER_STATUS_CLOSE_CLICK": return "확인 창 닫기";
     default: return "버튼 정보 없음";
   }
 }

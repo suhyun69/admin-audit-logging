@@ -63,6 +63,10 @@ test("optional page paths retain old payloads and suppress unknown or sensitive 
 test("button click labels identify the member status action", () => {
   assert.equal(liveButtonLabel("USER_SUSPEND_CLICK"), "회원 정지");
   assert.equal(liveButtonLabel("USER_ACTIVATE_CLICK"), "정지 해제");
+  assert.equal(liveButtonLabel("USER_SUSPEND_CONFIRM_CLICK"), "정지 확인");
+  assert.equal(liveButtonLabel("USER_ACTIVATE_CONFIRM_CLICK"), "해제 확인");
+  assert.equal(liveButtonLabel("USER_STATUS_CANCEL_CLICK"), "취소");
+  assert.equal(liveButtonLabel("USER_STATUS_CLOSE_CLICK"), "확인 창 닫기");
 });
 test("unknown button actions use the safe missing-information label", () => {
   for (const action of ["", "UNKNOWN_CLICK", "PAGE_ENTER", "constructor", "<private>"]) assert.equal(liveButtonLabel(action), "버튼 정보 없음");
