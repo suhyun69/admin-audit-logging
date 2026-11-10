@@ -20,7 +20,7 @@ export function livePageLabel(pagePath: string | null | undefined): string {
 }
 
 export function isVisibleLiveLog(item: AuditItem): boolean {
-  return item.source !== "HTTP" && item.eventType !== "HTTP_REQUEST";
+  return item.source === "CLIENT" && item.eventType !== "HTTP_REQUEST";
 }
 export function prependLiveLog(items: AuditItem[], incoming: AuditItem): AuditItem[] {
   if (items.some(item => item.id === incoming.id)) return items;

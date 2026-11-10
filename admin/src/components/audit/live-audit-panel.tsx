@@ -21,7 +21,7 @@ export function LiveAuditPanel() {
 
 function LiveFeed({ actor }: { actor: Actor }) {
   const [items, setItems] = useState<AuditItem[]>([]);
-  // Also hide HTTP rows retained by development Fast Refresh without clearing other rows.
+  // Also hide non-CLIENT rows retained by development Fast Refresh without clearing CLIENT rows.
   const visibleItems = items.filter(isVisibleLiveLog);
   const [status, setStatus] = useState("연결 중");
   const [notice, setNotice] = useState("");
@@ -84,7 +84,7 @@ function LiveFeed({ actor }: { actor: Actor }) {
   }, [items]);
 
   return <aside aria-label="실시간 감사 로그" data-testid="live-audit-panel" className="min-w-0 border-t bg-card xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:border-t-0 xl:border-l">
-    <div className="flex items-center justify-between gap-3 border-b px-5 py-5"><div><h2 className="flex items-center gap-2 font-semibold"><Activity className="size-4 text-primary" aria-hidden />실시간 감사 로그</h2><p className="mt-2 text-xs text-muted-foreground">{actor.role === "ADMIN" ? "전체 관리자 활동" : "내 계정의 활동"} · 새 기록부터 표시</p></div><Button variant="ghost" size="icon" className="xl:hidden" aria-label={expanded ? "감사 로그 접기" : "감사 로그 펼치기"} aria-expanded={expanded} aria-controls="live-audit-feed" onClick={() => setExpanded(value => !value)}>{expanded ? <ChevronDown aria-hidden /> : <ChevronUp aria-hidden />}</Button></div>
+    <div className="flex items-center justify-between gap-3 border-b px-5 py-5"><div><h2 className="flex items-center gap-2 font-semibold"><Activity className="size-4 text-primary" aria-hidden />실시간 감사 로그</h2><p className="mt-2 text-xs text-muted-foreground">{actor.role === "ADMIN" ? "전체 관리자 CLIENT 활동" : "내 계정의 CLIENT 활동"} · 새 기록부터 표시</p></div><Button variant="ghost" size="icon" className="xl:hidden" aria-label={expanded ? "감사 로그 접기" : "감사 로그 펼치기"} aria-expanded={expanded} aria-controls="live-audit-feed" onClick={() => setExpanded(value => !value)}>{expanded ? <ChevronDown aria-hidden /> : <ChevronUp aria-hidden />}</Button></div>
     <div className="flex items-center gap-2 border-b px-5 py-3 text-xs text-muted-foreground" role="status"><Radio className={`size-3.5 ${status === "실시간 연결됨" ? "text-emerald-600" : "text-amber-600"}`} aria-hidden /><span data-testid="audit-stream-status">{status}</span><span className="ml-auto">최근 {visibleItems.length}/200건</span></div>
     {notice && <p className="border-b bg-amber-50 px-5 py-3 text-xs leading-5 text-amber-800" role="status">{notice}</p>}
     <div id="live-audit-feed" data-testid="audit-stream-list" ref={viewport} className={`${expanded ? "block" : "hidden"} max-h-[60dvh] overflow-y-auto [overflow-anchor:none] xl:block xl:max-h-none xl:min-h-0 xl:flex-1`}>
