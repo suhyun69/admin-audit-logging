@@ -57,3 +57,14 @@ TanStack Query key는 사용자/역할 범위를 포함하고 로그아웃·401�
 
 - https://docs.spring.io/spring-boot/3.5/system-requirements.html — 기존 Boot 3.5.16과 Java21 호환 확인.
 - https://nextjs.org/docs/app/getting-started/installation — App Router 설치·Node 요구사항과 별도 lint 확인.
+
+
+## SSE 실시간 감사 패널 (ORC-006)
+
+`GET /api/v1/audit-logs/stream`은 쿠키 인증된 SSE 전용 경로다. ADMIN은 전체, OPERATOR/VIEWER는 본인 actorId 기록만 서버에서 필터링한다. 최초 연결은 과거 목록을 전송하지 않는다. `audit` 이벤트의 data는 기존 AuditItem이며, DB 커밋 이후 journal에 추가된 순서로 전달된다. 브라우저가 신고한 과거 occurredAt도 도착 순서대로 표시한다.
+
+SSE id는 `<서버 epoch UUID>:<sequence>` 커서다. `ready`(data `{}`)가 기준점을 설정하고, `audit`가 해당 커서와 로그를 전송한다. `Last-Event-ID` 재연결은 단일 인스턴스 메모리 journal 최근 1000개 범위에서 보충한다. 재시작·범위 초과·잘못된 커서는 `reset`(data `{"reason":"replay-unavailable"}`)과 새 기준점 후 `ready`를 전송한다. UI는 이 경우 목록을 비우고 복구 범위 제한을 표시한다. 영구 replay/다중 인스턴스 전달은 보장하지 않는다. UI는 AuditItem.id 기준 중복 제거 및 최근 200개 제한을 적용한다.
+
+현재 단일 인스턴스당 동시 연결은 128개로 제한하며 초과 시 429를 반환한다. heartbeat 및 세션 재검증 간격은 2초이고 각 로그 전송 직전에도 인증을 확인한다. 연결은 최대 30분 후 종료되어 브라우저가 이어받기로 재연결한다. 세션이 무효화되면 `auth-expired`(data `{}`) 후 종료한다. heartbeat는 감사 로그가 아니며 스트림 자체의 조회를 반복 감사하지 않는다. BFF는 쿠키 및 Last-Event-ID를 고정 upstream으로 전달하며 응답을 버퍼링하지 않고 클라이언트 취소를 upstream에 전파한다. 검색·필터 파라미터는 스트림에 제공하지 않는다.
+
+감사 목록 REST API는 기존 인수·조회 계약을 유지한다. 콘솔 `/audit-logs`, `/audit-logs/me` 페이지는 대시보드로 이동하며 오른쪽 실시간 패널이 메뉴를 대체한다. 상세·타임라인 페이지와 권한은 유지한다.

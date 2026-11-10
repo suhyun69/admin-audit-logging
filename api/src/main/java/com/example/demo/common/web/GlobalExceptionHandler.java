@@ -66,6 +66,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> missing(NoResourceFoundException exception) { return response(ErrorCode.RESOURCE_NOT_FOUND); }
 
+    @ExceptionHandler(org.springframework.web.context.request.async.AsyncRequestNotUsableException.class)
+    public void disconnected(org.springframework.web.context.request.async.AsyncRequestNotUsableException exception,
+            jakarta.servlet.http.HttpServletResponse response) {
+        // The peer already disconnected or the async response is complete. Mark handled without
+        // rendering JSON or touching headers/status on this unusable (possibly committed) response.
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> unexpected(Exception exception) {
         // Never log exception messages, SQL, request parameters, or bodies.
@@ -76,6 +83,6 @@ public class GlobalExceptionHandler {
     // RequestContextFilter owns X-Request-ID; ResponseEntity headers append in a real Servlet response.
     private ResponseEntity<ErrorResponse> response(ErrorCode code) {
         var body = ErrorResponse.of(code);
-        return ResponseEntity.status(ApiErrors.status(code)).body(body);
+        return ResponseEntity.status(ApiErrors.status(code)).contentType(org.springframework.http.MediaType.APPLICATION_JSON).body(body);
     }
 }

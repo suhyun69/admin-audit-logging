@@ -10,8 +10,8 @@ Next.js App Router·TypeScript·Tailwind CSS·shadcn/ui 방식 UI·TanStack Quer
 | `/dashboard` | 최근 24시간 이벤트·거부·오류, 최근 10건, 새로고침 | ADMIN 전체, 나머지 본인 |
 | `/users` | 이름/이메일 검색, 상태 필터, 키셋 이전·다음 | 인증 사용자 |
 | `/users/[id]` | 상세·정지/해제 모달·409 갱신 | ADMIN/OPERATOR 변경, VIEWER 조회 |
-| `/audit-logs` | 기간·관리자·유형·결과·리소스·상관 ID 검색, 상세 패널 | ADMIN |
-| `/audit-logs/me` | 본인 활동 검색 | 인증 사용자 본인 |
+| 오른쪽 실시간 감사 패널 | SSE 신규 기록, 최신순, 최근 200건, 검색·필터 없음 | ADMIN 전체, 나머지 본인 |
+| `/audit-logs`, `/audit-logs/me` | `/dashboard`로 이동 | 인증 사용자 |
 | `/audit-logs/[id]` | 요청·메타데이터·변경 전후 | ADMIN |
 | `/audit-logs/interactions/[id]` | CLIENT·HTTP·BUSINESS 시간순 연결 | ADMIN |
 
@@ -41,7 +41,9 @@ npm run start
 - 브라우저는 `/api/v1/*`만 호출합니다. BFF는 고정 upstream의 허용 경로·메서드, Cookie·복수 Set-Cookie·CSRF·상관 ID·상태를 전달하고 no-store를 적용합니다.
 - 로그인 전 CSRF를 발급받고 로그인·로그아웃 후 재발급합니다. 비밀번호·쿠키·토큰·검색 원문을 CLIENT payload에 넣지 않습니다.
 - 사용자·역할·세션 epoch별 query key와 AbortSignal을 사용합니다. 로그인·로그아웃·401 경계에서 조회·수집을 취소하고 캐시를 지웁니다.
-- 감사 기간은 한국 시간에서 UTC로 변환하고 최대 31일을 검증합니다. 커서는 서버 문자열 그대로 전달해 마이크로초·UUID 정밀도를 유지합니다.
+- 공통 레이아웃의 SSE 연결은 화면 이동 중 유지하며 사용자·세션 변경 시 닫습니다. 새 기록만 맨 위에 추가하고 중복은 제거합니다. 읽는 중에는 스크롤 위치를 유지합니다.
+- SSE BFF는 응답을 버퍼링하지 않고 Cookie·Last-Event-ID를 고정 API로 전달합니다. 재연결 보관 범위를 벗어나면 기존 목록을 비우고 중단 안내를 표시합니다.
+- 데스크톱에서는 오른쪽 약 1/3 패널, 작은 화면에서는 본문 아래 접기·펼치기를 사용합니다. 기존 감사 목록과 내 활동 메뉴는 제거했습니다.
 - 타임라인은 전체 기간의 size/cursor만 보냅니다. target interactionId를 조회 헤더로 재사용하지 않아 조회 자체가 대상에 섞이지 않습니다.
 - 버튼 interactionId와 version을 확인 모달에서 PATCH까지 유지합니다. 409는 최신 조회 후 재확인을 유도하며 mutation은 자동 재시도하지 않습니다.
 - CLIENT는 업무를 기다리게 하지 않고 동일 eventId·시각·payload로 최대 세 번 재시도합니다. 대시보드 새로고침에 미지원 FILTER_CHANGE를 추가하지 않습니다.
@@ -55,6 +57,7 @@ npm run test:unit
 npm run lint
 npm run typecheck
 npm run build
+node --experimental-strip-types --test tests/contracts/*.test.ts
 ```
 
 전체 Playwright 인수 검증은 QA-004 격리 harness를 따르며 해당 티켓 통합 후 `npm run test:e2e`를 사용합니다. 아래 자체 smoke는 개발 시드가 있는 **전용 DB·API**에서만 실행합니다.
@@ -79,6 +82,8 @@ HTTP·DB smoke는 `node --experimental-strip-types tests/smoke/<파일명>`으�
 ```bash
 ADMIN_SMOKE_BASE_URL=http://127.0.0.1:13000 ADMIN_SMOKE_DB_CONTAINER=admin-audit-adm003-db node --experimental-strip-types tests/smoke/dashboard.mjs
 ```
+
+**기존 브라우저 smoke는 이전 Explorer 메뉴·목록 UI 기준의 보관용 검증입니다.** 현재 화면 회귀에는 SSE 시나리오가 반영된 `npm run test:e2e`를 사용하세요. 아래 스크립트 통과를 현재 UI의 검증 근거로 사용하지 않습니다.
 
 브라우저 smoke는 같은 환경변수와 Playwright 설치를 사용합니다. 별도 worktree 실행기를 읽기 전용으로 재사용하려면 `PLAYWRIGHT_MODULE`에 `playwright/index.mjs` 절대 경로를 지정합니다.
 

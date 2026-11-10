@@ -38,7 +38,8 @@ test("anonymous console redirects to login and invalid credentials show a privat
 
 test("admin login role shell and logout revoke the actual browser session", async ({ page, context }) => {
   await login(page, "admin");
-  await expect(page.getByRole("navigation", { name: "주 메뉴" }).getByRole("link", { name: "감사 로그", exact: true })).toBeVisible();
+  await expect(page.getByRole("navigation", { name: "주 메뉴" }).getByRole("link", { name: /^(감사 로그|내 활동)$/ })).toHaveCount(0);
+  await expect(page.getByRole("complementary", { name: "실시간 감사 로그", exact: true })).toBeVisible();
   const auth = (await context.cookies()).find(cookie => cookie.name === "AUDIT_SESSION");
   expect(Boolean(auth?.httpOnly && auth.sameSite === "Lax")).toBe(true);
   await page.getByRole("button", { name: "로그아웃" }).click();
@@ -54,8 +55,9 @@ test("account switch removes the previous admin scope and viewer cannot open glo
   await login(page, "viewer");
   await expect(page.getByRole("navigation", { name: "주 메뉴" }).getByRole("link", { name: "감사 로그", exact: true })).toHaveCount(0);
   await page.goto("/audit-logs");
-  await expect(page.getByRole("heading", { name: "접근 권한이 없습니다." })).toBeVisible();
-  await expect(page.getByRole("link", { name: "내 활동", exact: true })).toBeVisible();
+  await expect(page).toHaveURL(/\/dashboard$/);
+  await expect(page.getByRole("complementary", { name: "실시간 감사 로그", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "내 활동", exact: true })).toHaveCount(0);
 });
 
 test("an expired browser cookie leads through real unauthorized me to login", async ({ page, context, baseURL }) => {

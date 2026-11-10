@@ -59,3 +59,20 @@ qa는 PASS/FAIL/NOT RUN을 구분해 SHA·환경·명령·실제 DB 결과를 �
 - 데이터·프로세스 격리와 재현 전략은 [QA 격리 전략](qa/isolation-strategy.md)을 따른다.
 
 완료 판정은 상태코드만으로 하지 않는다. DB 변경·감사 존재·중복 여부·권한 범위와 브라우저 결과를 함께 확인하며, 실행할 수 없는 항목은 NOT RUN/BLOCKED로 보고한다.
+
+## ORC-006 — 실시간 감사 패널
+
+기존 Explorer UI 인수 항목은 ORC-006 변경 요청으로 대체한다. REST 목록·상세·타임라인의 기존 권한·정렬·정제 계약 검증은 유지한다.
+
+| 항목 | 기대 결과 | 검증 담당 |
+|---|---|---|
+| 신규 화면 | 감사 로그/내 활동 메뉴 없음, desktop 약 1/3 오른쪽 패널, 검색·필터 없음 | qa E2E |
+| 최초 구독 | 저장된 과거 로그를 복원하지 않고 ready 이후 신규만 표시 | api 통합/qa E2E |
+| 업무 변경 | 커밋 후 BUTTON_CLICK/HTTP_REQUEST/DATA_UPDATE를 수신하고 신규 항목이 위에 추가됨 | api 통합/qa E2E |
+| 롤백/멱등성 | 롤백 로그 미발행, 같은 CLIENT 재전송은 중복 발행 없음 | api 통합 |
+| 권한 | ADMIN 전체, OPERATOR/VIEWER 본인만; 상세·타임라인의 기존 ADMIN 제한 유지 | api 통합/qa E2E |
+| 재연결 | Last-Event-ID 최근 journal 이어받기, UI id dedup, 재시작/보관초과 reset 표시 | api 통합/admin unit |
+| 종료/세션 | logout/폐기/만료 연결종료 및 권한재검증, 취소 전파/자원 정리 | api 통합/BFF 계약/qa E2E |
+| 누적/가독성 | UI 최근 200개 제한, 읽던 항목 위치 유지, 작은 화면 접기/펼치기 | admin unit/qa E2E·visual |
+| 순환 방지 | stream 접속·heartbeat 자체가 새 HTTP/DATA_READ 로그를 반복 생성하지 않음 | api 통합 |
+| 프레임워크 설정 | 실제 SpringBootTest context 기동, 실제 스트리밍 HTTP 수신 | api 통합 |

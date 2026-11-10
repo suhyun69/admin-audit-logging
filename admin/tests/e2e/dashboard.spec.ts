@@ -1,15 +1,27 @@
 import { test, expect } from "@playwright/test";
 import { randomUUID } from "node:crypto";
-import { database, loginAs, maskedFailure, uuid } from "./helpers";
+import { count, database, loginAs, maskedFailure, uuid } from "./helpers";
 
 test.afterEach(async ({ page }, info) => maskedFailure(page, info));
 
 test("dashboard database counts stay role scoped across refresh and account changes", async ({ page }) => {
   let previousIds: string[] = [];
   for (const role of ["ADMIN", "VIEWER", "OPERATOR"] as const) {
+    // Settle the initial snapshot and page-view writes before comparing a later
+    // snapshot to SQL. occurredAt precedes commit, so a post-response SQL query
+    // can otherwise include an initially in-flight transaction absent in that snapshot.
+    const initialSummary = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/audit-logs/summary" && response.request().method() === "GET");
+    const initialVisit = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/audit-events/client" && response.request().method() === "POST" && response.request().postDataJSON()?.eventType === "PAGE_VIEW");
     await loginAs(page, role);
+    for (const response of await Promise.all([initialSummary, initialVisit])) {
+      expect(response.status()).toBeLessThan(300);
+      const requestId = uuid(response.headers()["x-request-id"]);
+      await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE request_id='${requestId}' AND source='HTTP'`)).toBe(1);
+    }
     const me = await page.request.get("/api/v1/auth/me");
     const actor = (await me.json()).id;
+    const meRequestId = uuid(me.headers()["x-request-id"]);
+    await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE request_id='${meRequestId}' AND source='HTTP'`)).toBe(1);
     expect(Number.isSafeInteger(actor)).toBe(true);
     const marker = randomUUID();
     database(`INSERT INTO audit_logs(id,occurred_at,event_type,action,actor_id,source,result,status_code,interaction_id) VALUES ('${randomUUID()}',now()-interval '1 minute','HTTP_REQUEST','QA_SUMMARY_DENIED',${actor},'HTTP','DENIED',403,'${marker}'),('${randomUUID()}',now()-interval '1 minute','HTTP_REQUEST','QA_SUMMARY_ERROR',${actor},'HTTP','FAILURE',500,'${marker}')`);
@@ -46,6 +58,8 @@ test("dashboard database counts stay role scoped across refresh and account chan
         await expect(page.locator('tbody a[href^="/audit-logs/"]')).toHaveCount(0);
       } else await expect(page.locator('tbody a[href^="/audit-logs/"]')).toHaveCount(ids.length);
       if (refresh === 1) previousIds = ids;
+      const requestId = uuid(response.headers()["x-request-id"]);
+      await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE request_id='${requestId}' AND source='HTTP'`)).toBe(1);
     }
     await page.getByRole("button", { name: "로그아웃", exact: true }).click();
     await expect(page).toHaveURL(/\/login$/);

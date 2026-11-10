@@ -124,7 +124,7 @@ production 실행은 `npm run build` 후 `npm run start`입니다. 화면·자�
 2. 로그인 POST에 `X-CSRF-TOKEN`을 보내고 인증 쿠키를 받습니다.
 3. 로그인·로그아웃 후 CSRF를 재발급받습니다. 상태 변경 요청도 현재 쿠키와 CSRF 토큰이 필요합니다.
 4. `admin`으로 로그인해 회원 목록에서 ID 123을 찾고 상세에서 상태를 변경합니다.
-5. 감사 Explorer에서 변경 전후 값과 같은 interactionId의 BUTTON_CLICK·HTTP_REQUEST·DATA_UPDATE 타임라인을 확인합니다.
+5. 화면 오른쪽 실시간 감사 패널에서 새 BUTTON_CLICK·HTTP_REQUEST·DATA_UPDATE가 위쪽에 추가되는지 확인합니다. ADMIN은 전체 기록, OPERATOR·VIEWER는 본인 기록만 표시합니다.
 6. `viewer`로는 조회만 가능하며 직접 변경 요청도 403이고 DB 상태가 바뀌지 않습니다.
 
 UI가 쿠키·CSRF 갱신·인증 캐시 초기화를 처리합니다. CLIENT의 ATTEMPTED는 브라우저가 신고한 시도이며 실제 업무 성공을 뜻하지 않습니다. CLIENT 전송 실패는 회원 변경을 막지 않고, 서버 BUSINESS 성공 감사 저장 실패는 업무 변경도 롤백합니다.
@@ -195,4 +195,6 @@ docker compose up -d --wait postgres
 - [에이전트 협업](docs/agent-workflow.md), [브랜치 전략](docs/branch-strategy.md)
 - [Admin 화면·smoke 문서](admin/README.md)
 
-SSE, Kafka/Outbox, 관리자 설정 CRUD, 대규모 부하·장기 보존 확장은 MVP 후속 범위입니다.
+실시간 감사 패널은 로그인 후 연결 시점부터 새 로그를 SSE로 수신합니다. 과거 목록·검색·필터는 표시하지 않으며 최근 200건을 유지합니다. 단일 API 인스턴스의 최근 1000개 journal 범위에서 재연결을 보충하고, 재시작·범위 초과 시 목록을 초기화하고 새 기준점부터 수신합니다.
+
+Kafka/Outbox, 다중 인스턴스 스트림 전달, 관리자 설정 CRUD, 대규모 부하·장기 보존 확장은 후속 범위입니다.
