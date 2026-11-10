@@ -1,7 +1,7 @@
 # ADM-012 — 실시간 패널 CLIENT 전용
 
 - 담당: admin (공통 표시 predicate·unit·Admin README), qa (E2E·독립 검증), orchestra (계약·문서·승인)
-- 상태: APPROVED (커밋·푸시 승인됨)
+- 상태: MERGED
 - 시작 기준: master 119ee18, 기존 사용자 admin/next-env.d.ts 변경 보존
 - 선행: ADM-011, ORC-007
 - 작업: 현재 checkout 파일별 단독 소유. 커밋·푸시·브랜치 전환 없음.
@@ -30,3 +30,11 @@ Admin lint/typecheck 및 표시 predicate unit. QA는 기존 BUSINESS DB·change
 ## 게시 승인
 
 사용자가 후속 명령으로 커밋·푸시를 승인했다. 브랜치 `codex/adm-012-client-only-panel`에서 검증된 변경을 게시한다. 기존 사용자 admin/next-env.d.ts는 제외한다.
+
+
+## 커밋·원격 통합 기록
+
+- 구현 커밋: `e0747f0`, `origin/codex/adm-012-client-only-panel` 푸시 성공.
+- integration 머지: `59b8e2f9f4029e2b6a89997570158e628c7e06c7`, 원격 푸시 성공.
+- 통합 smoke: `node --experimental-strip-types --test admin/tests/unit/live-feed.test.ts admin/tests/contracts/audit-stream.test.ts` 10 PASS / 0 FAIL / 0 SKIP. 코드 추가 변경 없이 기존 production E2E 15 PASS 근거 유지.
+- 사용자 기존 admin/next-env.d.ts 변경은 커밋에서 제외하고 보존했다.
