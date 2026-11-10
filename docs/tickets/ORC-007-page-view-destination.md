@@ -1,7 +1,7 @@
 # ORC-007 — 페이지 조회 대상 표시
 
 - 담당: orchestra (계약·문서), api (AuditItem DTO·mapper·테스트), admin (페이지 목적지 라벨·타입·단위 검증), qa (E2E·독립 검증)
-- 상태: APPROVED (커밋·푸시 승인됨)
+- 상태: MERGED
 - 선행: ORC-006, ADM-011 로컬 변경 유지
 - 작업: 현재 checkout 파일별 단독 소유. 사용자 기존 next-env 및 모든 미커밋 변경 보존. 커밋·푸시 없음.
 
@@ -32,3 +32,12 @@ API 정제 mapper 단위 및 실제 SpringBootTest SSE payload 검증, Admin lin
 ## 게시 승인
 
 사용자가 후속 명령으로 현재 변경의 커밋·푸시를 승인했다. ADM-011의 패널 증분 유지·HTTP/식별자 숨김과 ORC-007의 페이지 조회 대상 표시는 같은 패널에 연속 적용된 변경이므로 `codex/orc-007-page-view-destination`에서 함께 게시한다. 최신 독립 E2E 15개 및 API pagePath targeted 18개 검증 근거를 유지한다. 사용자 기존 admin/next-env.d.ts는 제외한다.
+
+
+## 커밋·원격 통합 기록
+
+- 구현 커밋: `40c5e9b`, 원격 `origin/codex/orc-007-page-view-destination` 푸시 성공.
+- integration 머지: `866e000f879c8878a0cb183c59b4743473e905c0`, 원격 푸시 성공.
+- 통합 smoke: `node --experimental-strip-types --test admin/tests/unit/live-feed.test.ts admin/tests/contracts/audit-stream.test.ts` 10 PASS / 0 FAIL / 0 SKIP. 제품 코드 추가 변경 없음.
+- 기존 최신 독립 E2E 15 PASS 및 API pagePath targeted 18 PASS 근거 유지.
+- 사용자 기존 admin/next-env.d.ts는 제외하여 로컬에 보존.
