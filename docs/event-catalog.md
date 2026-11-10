@@ -45,9 +45,16 @@ CLIENT eventId = audit_logs.id。동일 ID·인증 actor·정규화 payload는 �
 - 요청 컨텍스트 필터가 requestId, 시작 시각, interactionId를 초기화한다. HTTP 감사 필터는 Security보다 바깥에서 최종 status를 관찰하고 요청 종료 전에 보관한 인증 actor로 기록한다. MDC는 finally에서 정리한다.
 - SECURITY login/logout은 인증 usecase 또는 전용 handler 한 곳, 401/403은 entry point/denied handler 한 곳에서 기록한다. 같은 결과를 listener와 중복 기록하지 않는다. CSRF 거부는 AUTH_ACCESS_DENIED 한 건. 로그인 비밀번호 오류는 AUTH_LOGIN_FAILURE로 기록하고 AUTH_UNAUTHENTICATED를 중복 기록하지 않는다.
 - 성공 DATA_UPDATE와 changes는 업무와 동일 트랜잭션, 감사 실패 시 업무 롤백. 업무 실패는 롤백 완료 후 별도 Bean REQUIRES_NEW. 조회 감사는 조회 usecase에서 기록한다. HTTP/SECURITY 저장 실패는 응답 status·본문을 덮지 않고 운영 로그에 정제된 실패를 남긴다.
-- HTTP 대상: /api/v1/** (CLIENT 수집·감사 조회 포함). health/actuator/static/favicon 제외. 감사 조회도 DATA_READ 1건·HTTP 1건을 기록하되 그 응답 snapshot에는 자신이 방금 만든 이벤트를 포함하지 않는다. 수집은 요청에서 직접 DB에 기록하며 감사 INSERT 자체로 HTTP 이벤트를 재귀 생성하지 않는다.
+- HTTP 대상: /api/v1/** (CLIENT 수집·감사 조회 포함). health/actuator/static/favicon 및 `/api/v1/audit-logs/stream` 제외. 감사 조회도 DATA_READ 1건·HTTP 1건을 기록하되 그 응답 snapshot에는 자신이 방금 만든 이벤트를 포함하지 않는다. 수집은 요청에서 직접 DB에 기록하며 감사 INSERT 자체로 HTTP 이벤트를 재귀 생성하지 않는다.
 - USER_STATUS_CHANGE 실패(404/409/감사 INSERT 오류 포함)는 FAILURE 기록. 인증·인가 거부는 SECURITY만 업무 이력으로 중복 생성하지 않는다. 동기 성공 감사와 별도 실패 감사 저장의 장애 경로를 테스트로 검증한다.
 
 ## 개인정보 정제
 
 비밀번호, token/hash/cookie, Authorization, 전체 request/response body, 개인정보 원문과 검색어는 저장 금지. requestPath·pagePath는 query 없는 허용 경로. metadata는 검색 여부·status·size·returnedCount·정규화 payload digest 같은 허용 키·비민감 값만. USER의 changes는 status만 허용한다. userAgent는 최대512자, client-supplied X-Forwarded-For는 신뢰하지 않고 remoteAddr 사용. 로그인 실패 username은 원문 metadata에 남기지 않는다.
+
+
+## SSE 발행 (ORC-006)
+
+성공적으로 INSERT된 신규 감사 이벤트만 AFTER_COMMIT listener에서 bounded journal에 반영한다. CLIENT의 동일 eventId 재전송은 추가 발행하지 않으며, 업무와 감사의 롤백은 발행되지 않는다. 독립 실패·HTTP·SECURITY 기록도 각 감사 트랜잭션 커밋 후 전달한다. SSE 전달 실패는 업무 트랜잭션 결과에 영향을 주지 않는다.
+
+패널 표시 순서는 커밋 후 journal 추가 순서이며 occurredAt 정렬이 아니다. 과거 시각을 신고한 CLIENT 이벤트도 새로 저장되면 맨 위에 표시된다. stream 접속/heartbeat/재연결에는 DATA_READ와 HTTP_REQUEST를 추가하지 않아 구독 자체가 새 로그를 만드는 순환을 방지한다. 세션 무효와 권한 거부의 기존 SECURITY 기록 정책은 유지한다.

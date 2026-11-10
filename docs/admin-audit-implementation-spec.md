@@ -1,5 +1,8 @@
 # Admin Audit Logging — 구현 명세서
 
+
+> 2026-11-10 변경 요청: ORC-006에서 SSE 실시간 패널을 현재 구현 범위로 승격한다. 감사 로그/내 활동 메뉴와 검색 UI는 오른쪽 신규 로그 패널로 대체한다. 기존 REST 조회·상세·타임라인 API는 유지한다. 아래 초기 MVP의 SSE 후속 범위·Explorer UI 설명보다 [ORC-006](tickets/ORC-006-live-audit-panel.md) 및 최신 [API 계약](api-spec.md)의 변경 계약이 우선한다.
+
 > Next.js App Router + Spring Boot API + PostgreSQL 기반 관리자 행동 감사 시스템
 > 작성일: 2026-11-08 / 상태: 설계 문서 (아직 구현·실행하지 않음)
 

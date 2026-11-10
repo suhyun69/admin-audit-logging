@@ -1,3 +1,2 @@
-import { ProtectedContent } from "@/components/auth/protected-content";
-import { AuditExplorer } from "@/components/audit/audit-explorer";
-export default function AuditLogsPage(){return <ProtectedContent adminOnly><AuditExplorer/></ProtectedContent>;}
+import { redirect } from "next/navigation";
+export default function AuditLogsPage() { redirect("/dashboard"); }

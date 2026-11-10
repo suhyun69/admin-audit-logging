@@ -22,7 +22,7 @@ import java.util.UUID;
 public class HttpAuditFilter extends OncePerRequestFilter {
     private final ObserveAuditUseCase observer;
     public HttpAuditFilter(ObserveAuditUseCase observer) { this.observer=observer; }
-    @Override protected boolean shouldNotFilter(HttpServletRequest request) { return !request.getRequestURI().startsWith("/api/v1/"); }
+    @Override protected boolean shouldNotFilter(HttpServletRequest request) { return !request.getRequestURI().startsWith("/api/v1/") || request.getRequestURI().equals("/api/v1/audit-logs/stream"); }
     @Override protected void doFilterInternal(HttpServletRequest request,HttpServletResponse response,FilterChain chain) throws ServletException,IOException {
         try { chain.doFilter(request,response); }
         finally {

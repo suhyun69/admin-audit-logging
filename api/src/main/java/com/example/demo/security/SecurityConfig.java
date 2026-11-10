@@ -32,10 +32,11 @@ public class SecurityConfig {
                 .requestCache(config -> config.requestCache(new NullRequestCache()))
                 .csrf(config -> config.csrfTokenRepository(csrf).csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(config -> config
+                        .requestMatchers(request -> request.getDispatcherType()==jakarta.servlet.DispatcherType.ASYNC && request.getRequestURI().equals("/api/v1/audit-logs/stream")).permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/v1/auth/csrf","/actuator/health").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.PATCH,"/api/v1/users/*/status").hasAnyRole("ADMIN","OPERATOR")
-                        .requestMatchers(HttpMethod.GET,"/api/v1/audit-logs/me","/api/v1/audit-logs/summary").authenticated()
+                        .requestMatchers(HttpMethod.GET,"/api/v1/audit-logs/me","/api/v1/audit-logs/summary","/api/v1/audit-logs/stream").authenticated()
                         .requestMatchers("/api/v1/audit-logs","/api/v1/audit-logs/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/settings/admins","/api/v1/settings/admins/**").hasRole("ADMIN")
                         .requestMatchers("/api/v1/**").authenticated().anyRequest().denyAll())
