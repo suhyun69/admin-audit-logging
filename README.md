@@ -33,6 +33,24 @@ export PATH="$JAVA_HOME/bin:$PATH"
 java -version
 ```
 
+## 한 명령으로 실행
+
+요구 환경을 설치하고 Docker를 실행한 뒤 저장소 루트에서 실행합니다.
+
+```bash
+./dev
+```
+
+처음에는 `.env.example`을 `.env`로 복사하고 Admin 의존성을 설치합니다. 기존 `.env`는 보존하며, 의존성 정의가 바뀌면 다시 설치합니다. macOS에서는 설치된 Java 21을 자동 탐색합니다. 다른 환경에서는 `JAVA_HOME`을 JDK 21로 지정하세요.
+
+실행기가 PostgreSQL → API(local 프로필·마이그레이션·개발 시드) → Admin 순서로 준비 상태를 확인합니다. 준비 완료 후 **http://localhost:3000**에서 `admin` / `local-test-password`로 로그인합니다. 최초 실행에는 의존성 다운로드 시간이 필요합니다.
+
+`Ctrl+C`로 API와 Admin을 함께 종료합니다. PostgreSQL과 데이터는 보존하며 DB도 중지하려면 `docker compose stop postgres`를 실행합니다. 기동 실패 시 실행기가 시작한 앱 프로세스를 정리합니다.
+
+설정은 루트 `.env`에서 변경합니다. DB 포트는 `DB_HOST_PORT`, API 포트는 `API_ORIGIN=http://localhost:8081`, Admin 포트는 `ADMIN_PORT=3001`로 지정합니다. 실행기가 API의 `SERVER_PORT`와 BFF upstream을 `API_ORIGIN`에 맞춥니다. 기존 `admin/.env.local`의 API 설정 대신 실행기가 전달한 값을 사용합니다. 사용 중인 앱 포트가 있으면 먼저 오류로 알려줍니다.
+
+아래 절차는 각 서비스를 따로 실행하거나 점검할 때 사용합니다.
+
 ## 로컬 PostgreSQL
 
 저장소 루트에서 `.env`를 준비하고 PostgreSQL만 Compose로 실행합니다. API와 Admin은 호스트에서 실행합니다.

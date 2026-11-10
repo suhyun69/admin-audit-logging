@@ -1,0 +1,3 @@
+#!/bin/sh
+# Resolve paths in the Node launcher so this works from any directory.
+exec node "$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)/scripts/dev.mjs" "$@"
