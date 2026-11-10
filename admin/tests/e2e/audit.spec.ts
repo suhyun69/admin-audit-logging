@@ -16,6 +16,19 @@ async function actorId(page: Page) {
   return id as number;
 }
 
+function pageVisitResponse(page: Page, path: string) {
+  return page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/audit-events/client" && response.request().method() === "POST" && response.request().postDataJSON()?.eventType === "PAGE_VIEW" && response.request().postDataJSON()?.pagePath === path);
+}
+async function expectPageVisit(page: Page, pending: ReturnType<typeof pageVisitResponse>, path: string, label: string) {
+  const response = await pending;
+  expect([200, 201]).toContain(response.status());
+  const eventId = uuid(response.request().postDataJSON().eventId);
+  await expect(panel(page).locator(`[data-log-id="${eventId}"]`).getByTestId("audit-page-label")).toHaveText(label);
+  const query = await page.request.get(`/api/v1/audit-logs?requestId=${uuid(response.headers()["x-request-id"])}`);
+  expect(query.status()).toBe(200);
+  expect((await query.json()).items.find((event: { id: string; pagePath: string | null }) => event.id === eventId)?.pagePath).toBe(path);
+}
+
 test("live panel follows committed member changes across navigation and preserves detailed audit evidence", async ({ page }) => {
   let connections = 0;
   page.on("request", request => { if (new URL(request.url()).pathname === "/api/v1/audit-logs/stream") connections++; });
@@ -30,10 +43,14 @@ test("live panel follows committed member changes across navigation and preserve
   expect(width).not.toBeNull();
   expect(width!.width / page.viewportSize()!.width).toBeGreaterThan(0.27);
   expect(width!.width / page.viewportSize()!.width).toBeLessThan(0.4);
+  const listVisit = pageVisitResponse(page, "/users");
   await navigation.getByRole("link", { name: "회원 관리", exact: true }).click();
+  await expectPageVisit(page, listVisit, "/users", "회원 관리");
   await page.getByLabel("이름 또는 이메일 검색").fill("  member123@example.test  ");
   await page.getByRole("button", { name: "검색", exact: true }).click();
+  const detailVisit = pageVisitResponse(page, "/users/123");
   await page.getByRole("link", { name: "Member 123 상세 보기", exact: true }).click();
+  await expectPageVisit(page, detailVisit, "/users/123", "회원 상세 · 회원 #123");
   await page.getByRole("button", { name: "회원 정지", exact: true }).click();
   const changed = page.waitForResponse(result => new URL(result.url()).pathname === "/api/v1/users/123/status" && result.request().method() === "PATCH");
   await page.getByRole("dialog").getByRole("button", { name: "정지 확인", exact: true }).click();
@@ -43,8 +60,11 @@ test("live panel follows committed member changes across navigation and preserve
   const interaction = uuid(patch.request().headers()["x-interaction-id"]);
   const business = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${request}' AND event_type='DATA_UPDATE' AND result='SUCCESS'`));
   await expect(panel(page).locator(`[data-log-id="${business}"]`)).toBeVisible();
+  await expect(panel(page).getByTestId("audit-log-id")).toHaveCount(0);
+  await expect(panel(page).getByTestId("audit-interaction-id")).toHaveCount(0);
   await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CLICK'`)).toBe(1);
   expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND request_id='${request}' AND source='HTTP' AND status_code=200`)).toBe(1);
+  await expect(panel(page).locator('[data-source="HTTP"]')).toHaveCount(0);
   expect(count(`SELECT count(*) FROM audit_log_changes WHERE audit_log_id='${business}' AND field_name='status' AND before_value='"ACTIVE"'::jsonb AND after_value='"SUSPENDED"'::jsonb`)).toBe(1);
   const previous = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")));
   const second = await apiChange(page, "ACTIVE", 1);
@@ -63,7 +83,7 @@ test("live panel follows committed member changes across navigation and preserve
   const body = await detail.json();
   expect(body.requestId).toBe(request);
   expect(body.changes).toContainEqual({ fieldName: "status", beforeValue: "ACTIVE", afterValue: "SUSPENDED" });
-  await page.goto(`/audit-logs/${business}`);
+  await panel(page).locator(`[data-log-id="${business}"]`).getByRole("link").click();
   await expect(page.getByRole("heading", { name: "감사 기록 상세", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "타임라인 보기", exact: true }).click();
   await expect(page.getByRole("heading", { name: "상호작용 타임라인", exact: true })).toBeVisible();
@@ -145,7 +165,12 @@ test("VIEWER and OPERATOR live panels receive only their own new events and reta
   } finally { await foreignContext.close(); }
 });
 
-test("live panel bounds rows preserves reading position resets and collapses on narrow screens", async ({ page }) => {
+test("live panel appends without replacing rows and preserves data across reconnect reset and narrow screens", async ({ page }) => {
+  const prefetched: string[] = [];
+  page.on("request", request => {
+    const url = new URL(request.url());
+    if (/^\/audit-logs\/[0-9a-f-]{36}$/.test(url.pathname) && url.searchParams.has("_rsc")) prefetched.push(url.pathname);
+  });
   // Deterministic browser rendering contract; real SSE delivery and scope are exercised above.
   await page.addInitScript(() => {
     const streams: EventTarget[] = [];
@@ -161,14 +186,31 @@ test("live panel bounds rows preserves reading position resets and collapses on 
   await loginAs(page, "ADMIN");
   await connected(page);
   const owner = await actorId(page);
-  const fixture = (id: string) => ({ id, occurredAt: new Date().toISOString(), receivedAt: new Date().toISOString(), eventType: "DATA_READ", action: "QA_RENDER_FIXTURE", actorId: owner, actorName: "Fixture", actorRole: "ADMIN", source: "BUSINESS", result: "SUCCESS", resourceType: "USER", resourceId: "123", interactionId: null, requestId: null });
+  const fixture = (id: string) => ({ id, occurredAt: new Date().toISOString(), receivedAt: new Date().toISOString(), eventType: "DATA_READ", action: "QA_RENDER_FIXTURE", pagePath: null, actorId: owner, actorName: "Fixture", actorRole: "ADMIN", source: "BUSINESS", result: "SUCCESS", resourceType: "USER", resourceId: "123", interactionId: null, requestId: null });
   const firstIds = Array.from({ length: 150 }, () => randomUUID());
-  const emit = (items: unknown[]) => page.evaluate(items => {
-    const streams = (window as unknown as { qaAuditStreams: EventTarget[] }).qaAuditStreams;
-    for (const item of items) streams.at(-1)!.dispatchEvent(new MessageEvent("audit", { data: JSON.stringify(item) }));
-  }, items);
+  const fixtureIds = new Set<string>(firstIds);
+  const emit = (items: ReturnType<typeof fixture>[]) => {
+    for (const item of items) fixtureIds.add(item.id);
+    return page.evaluate(items => {
+      const streams = (window as unknown as { qaAuditStreams: EventTarget[] }).qaAuditStreams;
+      for (const item of items) streams.at(-1)!.dispatchEvent(new MessageEvent("audit", { data: JSON.stringify(item) }));
+    }, items);
+  };
   await emit(firstIds.map(fixture));
   await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
+  await page.evaluate(() => {
+    Object.assign(window, {
+      qaOriginalPanel: document.querySelector('[data-testid="live-audit-panel"]'),
+      qaOriginalRows: new Map([...document.querySelectorAll('[data-testid="live-audit-panel"] [data-log-id]')].map(row => [row.getAttribute("data-log-id"), row])),
+    });
+  });
+  const hiddenHttp = [
+    { ...fixture(randomUUID()), source: "HTTP", eventType: "DATA_READ" },
+    { ...fixture(randomUUID()), source: "BUSINESS", eventType: "HTTP_REQUEST" },
+  ];
+  await emit(hiddenHttp);
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
+  for (const item of hiddenHttp) await expect(panel(page).locator(`[data-log-id="${item.id}"]`)).toHaveCount(0);
   await emit([fixture(firstIds[149])]);
   await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
   const viewport = page.getByTestId("audit-stream-list");
@@ -181,8 +223,39 @@ test("live panel bounds rows preserves reading position resets and collapses on 
   expect(before).not.toBeNull();
   expect(after).not.toBeNull();
   expect(Math.abs(after!.y - before!.y)).toBeLessThan(3);
+  expect(await page.evaluate(() => {
+    const state = window as unknown as { qaOriginalPanel: Element; qaOriginalRows: Map<string, Element> };
+    return state.qaOriginalPanel === document.querySelector('[data-testid="live-audit-panel"]') &&
+      [...state.qaOriginalRows].every(([id, row]) => row === document.querySelector(`[data-log-id="${id}"]`));
+  })).toBe(true);
   await emit(Array.from({ length: 60 }, () => fixture(randomUUID())));
   await expect(panel(page).locator("[data-log-id]")).toHaveCount(200);
+  const retained = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")));
+  const scrollBeforeReset = await viewport.evaluate(element => element.scrollTop);
+  await page.evaluate(() => {
+    const state = window as unknown as { qaAuditStreams: (EventTarget & { onerror: ((event: Event) => void) | null })[] };
+    const stream = state.qaAuditStreams.at(-1)!;
+    stream.onerror?.(new Event("error"));
+    stream.dispatchEvent(new MessageEvent("reset", { data: JSON.stringify({ reason: "replay-unavailable" }) }));
+    stream.dispatchEvent(new MessageEvent("ready", { data: "{}" }));
+    Object.assign(window, { qaRetainedRows: new Map([...document.querySelectorAll('[data-testid="live-audit-panel"] [data-log-id]')].map(row => [row.getAttribute("data-log-id"), row])) });
+  });
+  await connected(page);
+  await expect(panel(page)).toContainText("기존 기록은 유지");
+  expect(await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")))).toEqual(retained);
+  expect(await viewport.evaluate(element => element.scrollTop)).toBe(scrollBeforeReset);
+  await emit([fixture(retained[0]!)]);
+  expect(await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")))).toEqual(retained);
+  const latestId = randomUUID();
+  await emit([fixture(latestId)]);
+  await expect(panel(page).locator("[data-log-id]").first()).toHaveAttribute("data-log-id", latestId);
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(200);
+  expect(await page.evaluate(() => {
+    const state = window as unknown as { qaOriginalPanel: Element; qaRetainedRows: Map<string, Element>; qaAuditStreams: EventTarget[] };
+    return state.qaOriginalPanel === document.querySelector('[data-testid="live-audit-panel"]') && state.qaAuditStreams.length === 1 &&
+      [...document.querySelectorAll('[data-testid="live-audit-panel"] [data-log-id]')].every(row => !state.qaRetainedRows.has(row.getAttribute("data-log-id")!) || state.qaRetainedRows.get(row.getAttribute("data-log-id")!) === row);
+  })).toBe(true);
+  expect(prefetched.filter(path => fixtureIds.has(path.split("/").at(-1)!))).toEqual([]);
   const desktopImage = process.env.QA_E2E_VISUAL_DIR;
   if (desktopImage) await page.screenshot({ path: `${desktopImage}/sse-desktop.png`, fullPage: false });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -194,8 +267,8 @@ test("live panel bounds rows preserves reading position resets and collapses on 
     const streams = (window as unknown as { qaAuditStreams: EventTarget[] }).qaAuditStreams;
     streams.at(-1)!.dispatchEvent(new MessageEvent("reset", { data: JSON.stringify({ reason: "replay-unavailable" }) }));
   });
-  await expect(panel(page).locator("[data-log-id]")).toHaveCount(0);
-  await expect(panel(page)).toContainText("연결이 초기화되었습니다.");
+  await expect(panel(page).locator("[data-log-id]")).toHaveCount(200);
+  await expect(panel(page)).toContainText("기존 기록은 유지");
   await page.getByRole("button", { name: "로그아웃", exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
   expect(await page.evaluate(() => (window as unknown as { qaAuditStreams: { closed: boolean }[] }).qaAuditStreams.every(stream => stream.closed))).toBe(true);
