@@ -38,7 +38,7 @@
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
 | [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | MERGED |
 | [INF-003](INF-003-ci-checks.md) | infra | CI 검증 파이프라인 | QA-004, INF-002 | MERGED |
-| [INF-004](INF-004-one-command-dev.md) | infra | 단일 명령 로컬 실행 | INF-002, INF-003 | IN_REVIEW |
+| [INF-004](INF-004-one-command-dev.md) | infra | 단일 명령 로컬 실행 | INF-002, INF-003 | MERGED |
 | [ORC-001](ORC-001-ticket-workflow.md) | orchestra | 티켓·협업·브랜치 규칙 확정 | 없음 | MERGED |
 | [ORC-002](ORC-002-repository-baseline.md) | orchestra | 단일 저장소 소스 기준점 확보 | ORC-001 | MERGED |
 | [ORC-003](ORC-003-api-contract.md) | orchestra | API·권한·인증 계약 확정 | ORC-002 | MERGED |

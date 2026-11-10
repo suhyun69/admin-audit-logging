@@ -1,7 +1,7 @@
 # INF-004 — 단일 명령 로컬 실행
 
 - 담당: infra
-- 상태: IN_REVIEW
+- 상태: MERGED
 - 브랜치: `codex/inf-004-one-command-dev`
 - 선행 티켓: INF-002, INF-003
 - 검토·승인: orchestra, 독립 검증 qa
@@ -28,3 +28,7 @@
 - 미검증: 전체 앱 회귀 테스트는 애플리케이션 변경이 없어 이번 티켓에서 재실행하지 않음. npm ci에서 기존 의존성 moderate 취약점 7건 보고(의존성 변경 없음).
 - qa 추가 회귀: API wrapper exit7 후 남은 HTTP 자식과 UI까지 종료, 실행기 exit1 및 양쪽 포트 해제 PASS. 미해결 없음.
 - orchestra 결정: 독립 qa 검토와 실제 실행 근거에 따라 APPROVED.
+
+- 구현 커밋: `499184f`, 원격 `origin/codex/inf-004-one-command-dev` push 성공.
+- integration merge: `bade5dfba87e7ae890084b8785f9b205d4683fe0`, 원격 push 성공.
+- 통합 smoke: node --check, sh -n, git diff --check, docker compose --env-file .env.example config --quiet PASS.
