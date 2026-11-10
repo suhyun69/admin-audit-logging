@@ -11,7 +11,12 @@ import org.springframework.stereotype.Component;
 public class AuditResponseMapper {
     public AuditItemAppResponse item(AuditEvent event) {
         return new AuditItemAppResponse(event.id(),event.occurredAt(),event.receivedAt(),event.eventType().name(),event.action(),event.actorId(),event.actorName(),event.actorRole(),
-                event.source().name(),event.result().name(),event.resourceType(),event.resourceId(),event.interactionId(),event.requestId());
+                event.source().name(),event.result().name(),event.resourceType(),event.resourceId(),event.interactionId(),event.requestId(),pagePath(event));
+    }
+    private String pagePath(AuditEvent event) {
+        if(event.eventType()!=com.example.demo.audit.domain.AuditEventType.PAGE_VIEW)return null;
+        Object path=AuditPrivacy.metadata(event.metadata()).get("pagePath");
+        return path instanceof String value?value:null;
     }
     public AuditDetailAppResponse detail(AuditEvent event,List<AuditChange> changes) {
         return new AuditDetailAppResponse(event.id(),event.occurredAt(),event.receivedAt(),event.eventType().name(),event.action(),event.actorId(),event.actorName(),event.actorRole(),

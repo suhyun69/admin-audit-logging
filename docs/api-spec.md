@@ -63,8 +63,13 @@ TanStack Query key는 사용자/역할 범위를 포함하고 로그아웃·401�
 
 `GET /api/v1/audit-logs/stream`은 쿠키 인증된 SSE 전용 경로다. ADMIN은 전체, OPERATOR/VIEWER는 본인 actorId 기록만 서버에서 필터링한다. 최초 연결은 과거 목록을 전송하지 않는다. `audit` 이벤트의 data는 기존 AuditItem이며, DB 커밋 이후 journal에 추가된 순서로 전달된다. 브라우저가 신고한 과거 occurredAt도 도착 순서대로 표시한다.
 
-SSE id는 `<서버 epoch UUID>:<sequence>` 커서다. `ready`(data `{}`)가 기준점을 설정하고, `audit`가 해당 커서와 로그를 전송한다. `Last-Event-ID` 재연결은 단일 인스턴스 메모리 journal 최근 1000개 범위에서 보충한다. 재시작·범위 초과·잘못된 커서는 `reset`(data `{"reason":"replay-unavailable"}`)과 새 기준점 후 `ready`를 전송한다. UI는 이 경우 목록을 비우고 복구 범위 제한을 표시한다. 영구 replay/다중 인스턴스 전달은 보장하지 않는다. UI는 AuditItem.id 기준 중복 제거 및 최근 200개 제한을 적용한다.
+SSE id는 `<서버 epoch UUID>:<sequence>` 커서다. `ready`(data `{}`)가 기준점을 설정하고, `audit`가 해당 커서와 로그를 전송한다. `Last-Event-ID` 재연결은 단일 인스턴스 메모리 journal 최근 1000개 범위에서 보충한다. 재시작·범위 초과·잘못된 커서는 `reset`(data `{"reason":"replay-unavailable"}`)과 새 기준점 후 `ready`를 전송한다. UI는 이 경우 기존 목록·중복 기억·읽기 위치를 유지하고 복구 범위 제한을 표시한 뒤 새 기준점 이후 로그만 추가한다(ADM-011). 영구 replay/다중 인스턴스 전달은 보장하지 않는다. UI는 AuditItem.id 기준 중복 제거 및 최근 200개 제한을 적용한다. 패널에는 로그 ID와 interactionId 텍스트를 표시하지 않는다. 내부 중복 제거·상세 연결·상관관계 식별에 사용하는 ID와 API 필드는 유지한다. 실시간 패널에서는 HTTP source 및 HTTP_REQUEST 이벤트를 표시하지 않는다. 서버 저장·SSE 전송·REST 조회와 상세/타임라인에는 HTTP 감사 기록을 유지한다.
 
 현재 단일 인스턴스당 동시 연결은 128개로 제한하며 초과 시 429를 반환한다. heartbeat 및 세션 재검증 간격은 2초이고 각 로그 전송 직전에도 인증을 확인한다. 연결은 최대 30분 후 종료되어 브라우저가 이어받기로 재연결한다. 세션이 무효화되면 `auth-expired`(data `{}`) 후 종료한다. heartbeat는 감사 로그가 아니며 스트림 자체의 조회를 반복 감사하지 않는다. BFF는 쿠키 및 Last-Event-ID를 고정 upstream으로 전달하며 응답을 버퍼링하지 않고 클라이언트 취소를 upstream에 전파한다. 검색·필터 파라미터는 스트림에 제공하지 않는다.
 
 감사 목록 REST API는 기존 인수·조회 계약을 유지한다. 콘솔 `/audit-logs`, `/audit-logs/me` 페이지는 대시보드로 이동하며 오른쪽 실시간 패널이 메뉴를 대체한다. 상세·타임라인 페이지와 권한은 유지한다.
+
+
+### 페이지 조회 대상 (ORC-007)
+
+AuditItem REST/SSE에 nullable `pagePath`를 추가한다. PAGE_VIEW일 때만 기존 허용 metadata.pagePath를 정제하여 제공하고 다른 이벤트는 null이다. query/hash·검색어·전체 metadata는 반환하지 않는다. 기존 source/actor 권한 필터는 동일하다. UI는 페이지 조회에 회원 관리/회원 상세 · 회원 #123/대시보드 등 목적지를 표시한다. 필드가 없는 과거 payload나 잘못된 경로는 페이지 정보 없음으로 처리한다. 회원 이름을 위한 추가 조회는 수행하지 않는다.

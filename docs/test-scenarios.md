@@ -76,3 +76,8 @@ qa는 PASS/FAIL/NOT RUN을 구분해 SHA·환경·명령·실제 DB 결과를 �
 | 누적/가독성 | UI 최근 200개 제한, 읽던 항목 위치 유지, 작은 화면 접기/펼치기 | admin unit/qa E2E·visual |
 | 순환 방지 | stream 접속·heartbeat 자체가 새 HTTP/DATA_READ 로그를 반복 생성하지 않음 | api 통합 |
 | 프레임워크 설정 | 실제 SpringBootTest context 기동, 실제 스트리밍 HTTP 수신 | api 통합 |
+
+
+## ADM-011 — 패널 표시 연속성
+
+같은 세션의 reset/ready/reconnect 후 기존 기록과 읽기 위치를 유지하고 새 로그만 추가한다. 중복 이벤트는 재삽입하지 않으며 기존 행 DOM node를 보존한다. 수신만으로 상세 Link prefetch가 발생하지 않고 명시 클릭 시 상세 화면으로 이동한다. 세션/사용자 변경과 로그아웃 시 기록 정리는 기존 보안 계약을 유지한다.

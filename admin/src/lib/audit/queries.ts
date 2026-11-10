@@ -6,7 +6,7 @@ import type { CursorPage } from "../users/queries.ts";
 export const eventTypes = ["AUTH_LOGIN_SUCCESS","AUTH_LOGIN_FAILURE","AUTH_LOGOUT","AUTH_UNAUTHENTICATED","AUTH_ACCESS_DENIED","PAGE_VIEW","BUTTON_CLICK","USER_SEARCH","FILTER_CHANGE","HTTP_REQUEST","DATA_READ","DATA_UPDATE","DATA_DELETE"] as const;
 export type AuditResult = "SUCCESS"|"FAILURE"|"DENIED"|"ATTEMPTED";
 export type AuditSource = "CLIENT"|"SECURITY"|"HTTP"|"BUSINESS"|"SYSTEM";
-export type AuditItem = { id:string;occurredAt:string;receivedAt:string;eventType:string;action:string;actorId:number|null;actorName:string|null;actorRole:string|null;source:AuditSource;result:AuditResult;resourceType:string|null;resourceId:string|null;interactionId:string|null;requestId:string|null };
+export type AuditItem = { id:string;occurredAt:string;receivedAt:string;eventType:string;action:string;actorId:number|null;actorName:string|null;actorRole:string|null;source:AuditSource;result:AuditResult;resourceType:string|null;resourceId:string|null;interactionId:string|null;requestId:string|null;pagePath?:string|null };
 export type AuditDetail = AuditItem & {sessionId:string|null;httpMethod:string|null;requestPath:string|null;statusCode:number|null;durationMs:number|null;ipAddress:string|null;userAgent:string|null;errorCode:string|null;metadata:Record<string,unknown>;changes:{fieldName:string;beforeValue:unknown;afterValue:unknown}[]};
 export type AuditFilters = { from:string;to:string;actorId:string;eventType:string;result:string;resourceType:string;resourceId:string;interactionId:string;requestId:string;size:number };
 export type AuditDraft = Omit<AuditFilters,"from"|"to"|"size"> & {fromLocal:string;toLocal:string};
