@@ -7,7 +7,7 @@ import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { apiRequest } from "@/lib/api/client";
 import type { Actor } from "@/lib/auth/types";
-import { isVisibleLiveLog, livePageLabel, parseLiveLog, prependLiveLog } from "@/lib/audit/live-feed";
+import { isVisibleLiveLog, liveButtonLabel, livePageLabel, parseLiveLog, prependLiveLog } from "@/lib/audit/live-feed";
 import type { AuditItem } from "@/lib/audit/queries";
 import { AuditResultBadge, AuditSourceBadge, eventLabels } from "./audit-badges";
 
@@ -98,6 +98,8 @@ const LiveAuditRow = memo(function LiveAuditRow({ item, canInspect }: { item: Au
   const eventLabel = eventLabels[item.eventType] ?? item.eventType;
   const title = item.eventType === "PAGE_VIEW"
     ? <>{eventLabel} - <span data-testid="audit-page-label">{livePageLabel(item.pagePath)}</span></>
-    : eventLabel;
+    : item.eventType === "BUTTON_CLICK"
+      ? <>{eventLabel} - <span data-testid="audit-button-label">{liveButtonLabel(item.action)}</span></>
+      : eventLabel;
   return <li data-log-id={item.id} data-actor-id={item.actorId ?? ""} data-source={item.source} data-result={item.result} className="px-5 py-4"><div className="flex flex-wrap items-center gap-2"><AuditSourceBadge source={item.source} /><AuditResultBadge result={item.result} /><time className="ml-auto text-[11px] text-muted-foreground" dateTime={item.occurredAt}>{time.format(new Date(item.occurredAt))}</time></div><p className="mt-3 text-sm font-medium">{canInspect ? <Link prefetch={false} className="hover:text-primary hover:underline" href={`/audit-logs/${item.id}`}>{title}</Link> : title}</p><p className="mt-1 break-words text-xs text-muted-foreground">{item.actorName ?? "미인증"}{item.resourceType ? ` · ${item.resourceType}${item.resourceId ? ` ${item.resourceId}` : ""}` : ""}</p><p className="mt-2 break-all font-mono text-[10px] text-muted-foreground">{item.action}</p></li>;
 });
