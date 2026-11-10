@@ -18,10 +18,10 @@
 | [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | MERGED |
 | [ADM-011](ADM-011-live-panel-incremental.md) | admin | 실시간 패널 기존 목록 유지·신규 항목 추가 | ORC-006 | MERGED |
 | [ADM-012](ADM-012-client-only-panel.md) | admin | 실시간 패널 CLIENT 전용 표시 | ADM-011, ORC-007 | MERGED |
-| [ADM-013](ADM-013-inline-page-title.md) | admin | 페이지 조회·대상 화면 한 줄 제목 | ADM-012, ORC-007 | APPROVED |
-| [ADM-014](ADM-014-button-label.md) | admin | 버튼 클릭 대상 문구 표시 | ADM-013 로컬, ADM-012 | APPROVED |
-| [ADM-015](ADM-015-modal-click-events.md) | api/admin/qa | 회원 상태 모달 버튼 CLIENT 수집 | ADM-012, ADM-013·014 로컬 | APPROVED |
-| [ADM-016](ADM-016-remove-dashboard-menu.md) | admin | 대시보드 주 메뉴 제거 | ADM-012, ADM-013·014·015 로컬 | APPROVED |
+| [ADM-013](ADM-013-inline-page-title.md) | admin | 페이지 조회·대상 화면 한 줄 제목 | ADM-012, ORC-007 | MERGED |
+| [ADM-014](ADM-014-button-label.md) | admin | 버튼 클릭 대상 문구 표시 | ADM-013 로컬, ADM-012 | MERGED |
+| [ADM-015](ADM-015-modal-click-events.md) | api/admin/qa | 회원 상태 모달 버튼 CLIENT 수집 | ADM-012, ADM-013·014 로컬 | MERGED |
+| [ADM-016](ADM-016-remove-dashboard-menu.md) | admin | 대시보드 주 메뉴 제거 | ADM-012, ADM-013·014·015 로컬 | MERGED |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
 | [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | MERGED |
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |

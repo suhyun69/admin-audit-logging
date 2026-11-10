@@ -1,7 +1,7 @@
 # ADM-015 — 회원 상태 확인 모달 버튼 CLIENT 로그
 
 - 담당: orchestra (계약·승인), api (수집 allowlist·백엔드 검증), admin (모달·트래킹·표시·단위 검증), qa (독립 E2E)
-- 상태: APPROVED (커밋·푸시 승인됨)
+- 상태: MERGED
 - 선행: ADM-012, ADM-013·ADM-014 로컬 변경
 - 현재 checkout 파일별 소유, 기존 사용자 next-env 및 미커밋 변경 보존. 커밋·푸시 없음.
 
@@ -40,3 +40,12 @@ API ClientEventsTest에서 새 allowlist와 기존 payload 제한/멱등성, Adm
 ## 게시 승인
 
 사용자의 대시보드 메뉴 제거 후 커밋·푸시 명령으로 보류 중이던 변경의 게시가 승인됐다. ADM-013·014·015·016을 하나의 게시 브랜치 `codex/adm-016-remove-dashboard-menu`에서 티켓별 커밋으로 구분한다. 사용자 기존 admin/next-env.d.ts 변경은 제외한다. 검증한 최종 제품 코드와 동일하며 게시 기록만 추가한다.
+
+
+## 커밋·원격 통합 기록
+
+- 티켓 구현 커밋: `493873d`, 게시 브랜치 `origin/codex/adm-016-remove-dashboard-menu` 푸시 성공.
+- integration 머지: `f177ffe96c7303450389b19688b7ee5693e66fcc`, 원격 푸시 성공.
+- 통합 smoke: live-feed unit + tracking unit + SSE BFF 계약 20 PASS / 0 FAIL / 0 SKIP. 제품 코드 추가 변경 없음.
+- 모달 변경의 기존 API targeted 25 PASS·production E2E 15 PASS 및 메뉴 변경의 최신 lint/typecheck·독립 검토 PASS 근거 유지.
+- 사용자 기존 admin/next-env.d.ts는 커밋에서 제외하고 보존했다.
