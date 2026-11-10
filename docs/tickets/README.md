@@ -17,6 +17,7 @@
 | [ADM-009](ADM-009-dashboard.md) | admin | 역할별 대시보드 | ADM-008, ADM-006, API-015 | MERGED |
 | [ADM-010](ADM-010-next-origin-normalization.md) | admin | Next.js Origin 정규화 결함 수정 | ADM-002, API-007 | MERGED |
 | [ADM-011](ADM-011-live-panel-incremental.md) | admin | 실시간 패널 기존 목록 유지·신규 항목 추가 | ORC-006 | MERGED |
+| [ADM-012](ADM-012-client-only-panel.md) | admin | 실시간 패널 CLIENT 전용 표시 | ADM-011, ORC-007 | MERGED |
 | [API-000](API-000-template-cleanup.md) | api | Todo 예제 제거와 구조 테스트 정리 | ORC-003 | MERGED |
 | [API-001](API-001-backend-foundation.md) | api | PostgreSQL·보안 의존성과 구조 기반 | API-000, INF-002 | MERGED |
 | [API-002](API-002-business-schema.md) | api | 업무 스키마 V1 | API-001 | MERGED |

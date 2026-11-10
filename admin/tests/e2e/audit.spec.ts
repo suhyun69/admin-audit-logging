@@ -29,7 +29,19 @@ async function expectPageVisit(page: Page, pending: ReturnType<typeof pageVisitR
   expect((await query.json()).items.find((event: { id: string; pagePath: string | null }) => event.id === eventId)?.pagePath).toBe(path);
 }
 
-test("live panel follows committed member changes across navigation and preserves detailed audit evidence", async ({ page }) => {
+async function emitPageVisit(page: Page, path: string) {
+  const result = await page.evaluate(async path => {
+    const csrf = await (await fetch("/api/v1/auth/csrf", { cache: "no-store" })).json();
+    const payload = { eventId: crypto.randomUUID(), interactionId: crypto.randomUUID(), eventType: "PAGE_VIEW", action: "PAGE_ENTER", pagePath: path, occurredAt: new Date().toISOString() };
+    const response = await fetch("/api/v1/audit-events/client", { method: "POST", headers: { "Content-Type": "application/json", [csrf.headerName]: csrf.token, "X-Interaction-ID": payload.interactionId }, body: JSON.stringify(payload) });
+    return { status: response.status, id: payload.eventId, acceptedId: (await response.json()).id };
+  }, path);
+  expect(result.status).toBe(201);
+  expect(result.acceptedId).toBe(result.id);
+  return uuid(result.id);
+}
+
+test("CLIENT only live panel follows navigation while server business audit evidence is preserved", async ({ page }) => {
   let connections = 0;
   page.on("request", request => { if (new URL(request.url()).pathname === "/api/v1/audit-logs/stream") connections++; });
   await loginAs(page, "ADMIN");
@@ -59,10 +71,13 @@ test("live panel follows committed member changes across navigation and preserve
   const request = uuid(patch.headers()["x-request-id"]);
   const interaction = uuid(patch.request().headers()["x-interaction-id"]);
   const business = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${request}' AND event_type='DATA_UPDATE' AND result='SUCCESS'`));
-  await expect(panel(page).locator(`[data-log-id="${business}"]`)).toBeVisible();
+  await expect(panel(page).locator(`[data-log-id="${business}"]`)).toHaveCount(0);
   await expect(panel(page).getByTestId("audit-log-id")).toHaveCount(0);
   await expect(panel(page).getByTestId("audit-interaction-id")).toHaveCount(0);
   await expect.poll(() => count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CLICK'`)).toBe(1);
+  const clickClient = uuid(database(`SELECT id FROM audit_logs WHERE interaction_id='${interaction}' AND source='CLIENT' AND action='USER_SUSPEND_CLICK'`));
+  await expect(panel(page).locator(`[data-log-id="${clickClient}"]`)).toBeVisible();
+  await expect(panel(page).locator('[data-log-id]:not([data-source="CLIENT"])')).toHaveCount(0);
   expect(count(`SELECT count(*) FROM audit_logs WHERE interaction_id='${interaction}' AND request_id='${request}' AND source='HTTP' AND status_code=200`)).toBe(1);
   await expect(panel(page).locator('[data-source="HTTP"]')).toHaveCount(0);
   expect(count(`SELECT count(*) FROM audit_log_changes WHERE audit_log_id='${business}' AND field_name='status' AND before_value='"ACTIVE"'::jsonb AND after_value='"SUSPENDED"'::jsonb`)).toBe(1);
@@ -70,11 +85,15 @@ test("live panel follows committed member changes across navigation and preserve
   const second = await apiChange(page, "ACTIVE", 1);
   expect(second.status).toBe(200);
   const secondBusiness = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${uuid(second.requestId)}' AND event_type='DATA_UPDATE' AND result='SUCCESS'`));
-  await expect(panel(page).locator(`[data-log-id="${secondBusiness}"]`)).toBeVisible();
+  await expect(panel(page).locator(`[data-log-id="${secondBusiness}"]`)).toHaveCount(0);
+  const nextVisit = pageVisitResponse(page, "/users");
+  await navigation.getByRole("link", { name: "회원 관리", exact: true }).click();
+  await expectPageVisit(page, nextVisit, "/users", "회원 관리");
+  const nextClient = uuid((await nextVisit).request().postDataJSON().eventId);
   const latest = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-log-id")));
-  expect(latest.indexOf(secondBusiness)).toBeLessThan(latest.indexOf(business));
-  expect(latest.filter(id => id === secondBusiness)).toHaveLength(1);
-  expect(previous).toContain(business);
+  expect(latest.indexOf(nextClient)).toBeLessThan(latest.indexOf(clickClient));
+  expect(latest.filter(id => id === nextClient)).toHaveLength(1);
+  expect(previous).toContain(clickClient);
   expect(connections).toBe(initialConnections);
 
   // The retired Explorer UI no longer owns these contracts; preserve API and detail coverage.
@@ -83,7 +102,7 @@ test("live panel follows committed member changes across navigation and preserve
   const body = await detail.json();
   expect(body.requestId).toBe(request);
   expect(body.changes).toContainEqual({ fieldName: "status", beforeValue: "ACTIVE", afterValue: "SUSPENDED" });
-  await panel(page).locator(`[data-log-id="${business}"]`).getByRole("link").click();
+  await page.goto(`/audit-logs/${business}`);
   await expect(page.getByRole("heading", { name: "감사 기록 상세", exact: true })).toBeVisible();
   await page.getByRole("link", { name: "타임라인 보기", exact: true }).click();
   await expect(page.getByRole("heading", { name: "상호작용 타임라인", exact: true })).toBeVisible();
@@ -138,20 +157,15 @@ test("VIEWER and OPERATOR live panels receive only their own new events and reta
       await loginAs(page, role);
       await connected(page);
       const owner = await actorId(page);
-      const foreignRead = await foreign.request.get("/api/v1/users/123");
-      expect(foreignRead.status()).toBe(200);
-      const foreignRequest = uuid(foreignRead.headers()["x-request-id"]);
-      const foreignId = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${foreignRequest}' AND event_type='DATA_READ' LIMIT 1`));
-      const ownRead = await page.request.get("/api/v1/users/123");
-      expect(ownRead.status()).toBe(200);
-      const ownRequest = uuid(ownRead.headers()["x-request-id"]);
-      const ownId = uuid(database(`SELECT id FROM audit_logs WHERE request_id='${ownRequest}' AND event_type='DATA_READ' LIMIT 1`));
+      const foreignId = await emitPageVisit(foreign, "/users/123");
+      const ownId = await emitPageVisit(page, "/users");
       await expect(panel(page).locator(`[data-log-id="${ownId}"]`)).toBeVisible();
       await expect(panel(page).locator(`[data-log-id="${foreignId}"]`)).toHaveCount(0);
       await expect(foreign.getByRole("complementary", { name: "실시간 감사 로그", exact: true }).locator(`[data-log-id="${ownId}"]`)).toBeVisible();
       const actors = await panel(page).locator("[data-log-id]").evaluateAll(rows => rows.map(row => row.getAttribute("data-actor-id")));
       expect(actors.length).toBeGreaterThan(0);
       expect(actors.every(id => id === String(owner))).toBe(true);
+      await expect(panel(page).locator('[data-log-id]:not([data-source="CLIENT"])')).toHaveCount(0);
       expect((await page.request.get("/api/v1/audit-logs")).status()).toBe(403);
       expect((await page.request.get(`/api/v1/audit-logs/${ownId}`)).status()).toBe(403);
       for (const path of [`/audit-logs/${randomUUID()}`, `/audit-logs/interactions/${randomUUID()}`]) {
@@ -186,7 +200,7 @@ test("live panel appends without replacing rows and preserves data across reconn
   await loginAs(page, "ADMIN");
   await connected(page);
   const owner = await actorId(page);
-  const fixture = (id: string) => ({ id, occurredAt: new Date().toISOString(), receivedAt: new Date().toISOString(), eventType: "DATA_READ", action: "QA_RENDER_FIXTURE", pagePath: null, actorId: owner, actorName: "Fixture", actorRole: "ADMIN", source: "BUSINESS", result: "SUCCESS", resourceType: "USER", resourceId: "123", interactionId: null, requestId: null });
+  const fixture = (id: string) => ({ id, occurredAt: new Date().toISOString(), receivedAt: new Date().toISOString(), eventType: "BUTTON_CLICK", action: "USER_SUSPEND_CLICK", pagePath: null, actorId: owner, actorName: "Fixture", actorRole: "ADMIN", source: "CLIENT", result: "ATTEMPTED", resourceType: "USER", resourceId: "123", interactionId: null, requestId: null });
   const firstIds = Array.from({ length: 150 }, () => randomUUID());
   const fixtureIds = new Set<string>(firstIds);
   const emit = (items: ReturnType<typeof fixture>[]) => {
@@ -204,13 +218,16 @@ test("live panel appends without replacing rows and preserves data across reconn
       qaOriginalRows: new Map([...document.querySelectorAll('[data-testid="live-audit-panel"] [data-log-id]')].map(row => [row.getAttribute("data-log-id"), row])),
     });
   });
-  const hiddenHttp = [
-    { ...fixture(randomUUID()), source: "HTTP", eventType: "DATA_READ" },
-    { ...fixture(randomUUID()), source: "BUSINESS", eventType: "HTTP_REQUEST" },
+  const hiddenSources = [
+    { ...fixture(randomUUID()), source: "HTTP", eventType: "HTTP_REQUEST" },
+    { ...fixture(randomUUID()), source: "BUSINESS", eventType: "DATA_READ" },
+    { ...fixture(randomUUID()), source: "SECURITY", eventType: "AUTH_LOGIN_SUCCESS" },
+    { ...fixture(randomUUID()), source: "SYSTEM", eventType: "DATA_READ" },
+    { ...fixture(randomUUID()), source: "CLIENT", eventType: "HTTP_REQUEST" },
   ];
-  await emit(hiddenHttp);
+  await emit(hiddenSources);
   await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
-  for (const item of hiddenHttp) await expect(panel(page).locator(`[data-log-id="${item.id}"]`)).toHaveCount(0);
+  for (const item of hiddenSources) await expect(panel(page).locator(`[data-log-id="${item.id}"]`)).toHaveCount(0);
   await emit([fixture(firstIds[149])]);
   await expect(panel(page).locator("[data-log-id]")).toHaveCount(150);
   const viewport = page.getByTestId("audit-stream-list");
