@@ -65,6 +65,6 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
     if (response.status === 403 && detail.code === "CSRF_INVALID") resetCsrfToken();
     throw new ApiError(response.status, detail);
   }
-  if (path === "/auth/login" || path === "/auth/logout") resetCsrfToken();
+  if (path === "/auth/login" || path === "/local/login" || path === "/auth/logout") resetCsrfToken();
   return response.status === 204 ? undefined as T : response.json() as Promise<T>;
 }

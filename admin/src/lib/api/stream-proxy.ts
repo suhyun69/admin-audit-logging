@@ -4,11 +4,13 @@ import type { ProxyOptions } from "./proxy.ts";
 export async function proxyAuditStream(request: Request, options: ProxyOptions): Promise<Response> {
   const failure = (status: number) => {
     const requestId = crypto.randomUUID();
-    const code = ({ 400: "VALIDATION_ERROR", 401: "UNAUTHENTICATED", 403: "ACCESS_DENIED", 405: "METHOD_NOT_ALLOWED" } as Record<number, string>)[status] ?? "UPSTREAM_UNAVAILABLE";
+    const code = ({ 400: "VALIDATION_ERROR", 401: "UNAUTHENTICATED", 403: "ACCESS_DENIED", 404: "NOT_FOUND", 405: "METHOD_NOT_ALLOWED" } as Record<number, string>)[status] ?? "UPSTREAM_UNAVAILABLE";
     return Response.json({ code, message: "실시간 로그에 연결할 수 없습니다.", requestId }, { status, headers: { "Cache-Control": "no-store", "X-Request-ID": requestId, ...(status === 405 ? { Allow: "GET" } : {}) } });
   };
   if (request.method !== "GET") return failure(405);
-  if (new URL(request.url).search) return failure(400);
+  const requestUrl = new URL(request.url);
+  if (!["/api/v1/audit-logs/stream", "/api/v1/local/audit-logs/stream"].includes(requestUrl.pathname)) return failure(404);
+  if (requestUrl.search) return failure(400);
   let origin: URL;
   try {
     origin = new URL(options.apiOrigin);
@@ -26,7 +28,7 @@ export async function proxyAuditStream(request: Request, options: ProxyOptions):
     if (value !== null) upstreamHeaders.set(name, value);
   }
   try {
-    const upstream = await (options.fetchImpl ?? fetch)(new URL("/api/v1/audit-logs/stream", origin), { headers: upstreamHeaders, cache: "no-store", redirect: "manual", signal: controller.signal });
+    const upstream = await (options.fetchImpl ?? fetch)(new URL(requestUrl.pathname, origin), { headers: upstreamHeaders, cache: "no-store", redirect: "manual", signal: controller.signal });
     clearTimeout(timeout);
     if (!upstream.ok || !upstream.body || !/^text\/event-stream(?:;|$)/i.test(upstream.headers.get("content-type") ?? "")) {
       await upstream.body?.cancel();

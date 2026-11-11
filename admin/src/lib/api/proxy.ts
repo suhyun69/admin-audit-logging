@@ -1,5 +1,7 @@
 const uuid = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
 const routes: readonly [RegExp, readonly string[]][] = [
+  [/^\/local\/accounts$/, ["GET"]],
+  [/^\/local\/login$/, ["POST"]],
   [/^\/auth\/(csrf|me)$/, ["GET"]],
   [/^\/auth\/(login|logout)$/, ["POST"]],
   [/^\/users$/, ["GET"]],

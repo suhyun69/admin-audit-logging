@@ -60,3 +60,19 @@ test("handshake timeout does not abort an established stream", async () => {
   assert.match(new TextDecoder().decode((await reader.read()).value), /event: audit/);
   await reader.cancel();
 });
+
+test("local preview stream shares streaming cancellation while allowing only its exact upstream path", async () => {
+  let aborted: AbortSignal | undefined;
+  let calls = 0;
+  const options = { apiOrigin: "http://api", fetchImpl: async (url: string | URL | Request, init?: RequestInit) => {
+    calls++; assert.equal(String(url), "http://api/api/v1/local/audit-logs/stream");
+    aborted = init?.signal ?? undefined;
+    return new Response(new ReadableStream<Uint8Array>({ start(controller) { controller.enqueue(new TextEncoder().encode("event: ready\ndata: {}\n\n")); } }), { headers: { "Content-Type": "text/event-stream" } });
+  } };
+  const response = await proxyAuditStream(new Request("http://console/api/v1/local/audit-logs/stream"), options);
+  assert.equal(response.status, 200); const reader = response.body!.getReader();
+  assert.match(new TextDecoder().decode((await reader.read()).value), /ready/);
+  await reader.cancel(); assert.equal(aborted?.aborted, true);
+  assert.equal((await proxyAuditStream(new Request("http://console/api/v1/local/other/stream"), options)).status, 404);
+  assert.equal(calls, 1);
+});

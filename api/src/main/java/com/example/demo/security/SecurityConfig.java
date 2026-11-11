@@ -23,7 +23,8 @@ public class SecurityConfig {
     @Bean PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
     @Bean AuthenticationProvider sessionAuthenticationProvider(AuthUseCase auth) { return new OpaqueSessionAuthenticationProvider(auth); }
     @Bean CsrfTokenRepository csrfTokenRepository() { return new SessionBoundCsrfTokenRepository(); }
-    @Bean SecurityFilterChain securityFilterChain(HttpSecurity http,AuthenticationProvider provider,CsrfTokenRepository csrf,ObjectMapper mapper,SecurityAuditRecorder audit) throws Exception {
+    @Bean SecurityFilterChain securityFilterChain(HttpSecurity http,AuthenticationProvider provider,CsrfTokenRepository csrf,ObjectMapper mapper,SecurityAuditRecorder audit,org.springframework.core.env.Environment environment) throws Exception {
+        boolean local=environment.acceptsProfiles(org.springframework.core.env.Profiles.of("local"));
         return http
                 .formLogin(config -> config.disable()).httpBasic(config -> config.disable()).logout(config -> config.disable())
                 .securityContext(config -> config.securityContextRepository(new NullSecurityContextRepository()))
@@ -32,8 +33,11 @@ public class SecurityConfig {
                 .requestCache(config -> config.requestCache(new NullRequestCache()))
                 .csrf(config -> config.csrfTokenRepository(csrf).csrfTokenRequestHandler(new CsrfTokenRequestAttributeHandler()))
                 .authorizeHttpRequests(config -> config
-                        .requestMatchers(request -> request.getDispatcherType()==jakarta.servlet.DispatcherType.ASYNC && request.getRequestURI().equals("/api/v1/audit-logs/stream")).permitAll()
-                        .requestMatchers(HttpMethod.GET,"/api/v1/auth/csrf","/actuator/health").permitAll()
+                        .requestMatchers(request -> request.getDispatcherType()==jakarta.servlet.DispatcherType.ASYNC && (request.getRequestURI().equals("/api/v1/audit-logs/stream") || local&&request.getRequestURI().equals("/api/v1/local/audit-logs/stream"))).permitAll()
+                        .requestMatchers(HttpMethod.GET,"/api/v1/auth/csrf","/actuator/health","/api/v1/local/accounts").permitAll()
+                        .requestMatchers(request -> local && (request.getMethod().equals("POST")&&request.getRequestURI().equals("/api/v1/local/login")
+                                ||request.getMethod().equals("GET")&&request.getRequestURI().equals("/api/v1/local/audit-logs/stream"))).permitAll()
+                        .requestMatchers("/api/v1/local/**").denyAll()
                         .requestMatchers(HttpMethod.POST,"/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.PATCH,"/api/v1/users/*/status").hasAnyRole("ADMIN","OPERATOR")
                         .requestMatchers(HttpMethod.GET,"/api/v1/audit-logs/me","/api/v1/audit-logs/summary","/api/v1/audit-logs/stream").authenticated()

@@ -9,7 +9,7 @@ type Context = { params: Promise<{ path: string[] }> };
 
 async function handle(request: Request, context: Context) {
   const { path } = await context.params;
-  if (path.join("/") === "audit-logs/stream") return proxyAuditStream(request, { apiOrigin: process.env.API_ORIGIN ?? "http://localhost:8080" });
+  if (["audit-logs/stream", "local/audit-logs/stream"].includes(path.join("/"))) return proxyAuditStream(request, { apiOrigin: process.env.API_ORIGIN ?? "http://localhost:8080" });
   return proxyApiRequest(request, path, { apiOrigin: process.env.API_ORIGIN ?? "http://localhost:8080" });
 }
 

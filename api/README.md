@@ -49,6 +49,12 @@ cd api
 
 비밀번호는 마이그레이션 실행 시 BCrypt로 해시합니다. 적용한 마이그레이션을 재실행해 계정을 중복 생성하지 않습니다.
 
+## local 계정 선택 로그인
+
+`local`에서 `GET /api/v1/local/accounts`는 활성 계정의 id·username·displayName·role만 반환합니다. UI는 선택한 username을 CSRF 헤더와 함께 `POST /api/v1/local/login`에 보내 비밀번호 입력 없이 개발 세션을 받습니다. 일반 로그인과 같은 8시간 쿠키·CSRF 회전·보안 감사를 사용합니다. 표준 `/api/v1/auth/login`의 비밀번호 요구사항은 유지합니다.
+
+로그인 전 개발 화면의 `GET /api/v1/local/audit-logs/stream`은 CLIENT 로그만 공개합니다. 일반 인증 스트림과 같은 ready/audit/reset·heartbeat·cursor 보충·연결 제한을 사용합니다. nonlocal에서는 계정 조회가 404이고 local 로그인·공개 스트림은 Security에서 차단됩니다. 이 기능은 local 개발 프로필에서만 활성화됩니다.
+
 ## 인증 요청 순서
 
 1. `GET /api/v1/auth/csrf`에서 쿠키와 `{token,headerName}`을 받습니다.

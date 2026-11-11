@@ -69,3 +69,20 @@ test("an old rejected CSRF request does not clear a new session request in fligh
   assert.equal((await newRequest).token, "new-token");
   assert.equal((await sharedRequest).token, "new-token");
 });
+
+test("local login submits selected username with CSRF and rotates it for the next mutation", async t => {
+  resetCsrfToken();
+  let issues = 0; const sent: { path: string; headers: Headers; body: unknown }[] = [];
+  t.mock.method(globalThis, "fetch", async (path: string, init: RequestInit) => {
+    if (path === "/api/v1/auth/csrf") return Response.json({ token: `local-csrf-${++issues}`, headerName: "X-CSRF-TOKEN" });
+    sent.push({ path, headers: new Headers(init.headers), body: init.body ? JSON.parse(String(init.body)) : undefined });
+    return path.endsWith("/logout") ? new Response(null, { status: 204 }) : Response.json({ id: 7, username: "new-admin", displayName: "New Admin", role: "ADMIN" });
+  });
+  await apiRequest("/local/login", { method: "POST", body: { username: "new-admin" } });
+  await apiRequest("/auth/logout", { method: "POST" });
+  assert.equal(sent[0].path, "/api/v1/local/login");
+  assert.deepEqual(sent[0].body, { username: "new-admin" });
+  assert.equal(sent[0].headers.get("X-CSRF-TOKEN"), "local-csrf-1");
+  assert.equal(sent[1].headers.get("X-CSRF-TOKEN"), "local-csrf-2");
+  assert.equal(issues, 2);
+});

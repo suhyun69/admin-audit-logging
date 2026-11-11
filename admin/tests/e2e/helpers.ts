@@ -51,9 +51,13 @@ export async function loginAs(page: Page, role: "ADMIN" | "OPERATOR" | "VIEWER")
   const username = `e2e_${role.toLowerCase()}_${suffix}`;
   database(`INSERT INTO admin_users(username,password_hash,display_name,role) SELECT '${username}',password_hash,'E2E ${role}','${role}' FROM admin_users WHERE username='${role.toLowerCase()}' ON CONFLICT(username) DO NOTHING`);
   await page.goto("/login");
-  await page.getByLabel("아이디", { exact: true }).fill(username);
-  await page.getByLabel("비밀번호", { exact: true }).fill("local-test-password");
+  await page.getByTestId("local-account-picker").selectOption(username);
+  const loggedIn = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/local/login" && response.request().method() === "POST");
   await page.getByRole("button", { name: "로그인", exact: true }).click();
+  const response = await loggedIn;
+  expect(response.status()).toBe(200);
+  expect(response.request().postDataJSON()).toEqual({ username });
+  expect(await response.json()).toMatchObject({ username, role });
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByRole("button", { name: "로그아웃" })).toBeVisible();
 }
