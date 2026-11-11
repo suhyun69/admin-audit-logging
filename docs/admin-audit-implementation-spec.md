@@ -499,3 +499,8 @@ Backend: JUnit 5 + Spring Security Test + Testcontainers(PostgreSQL). Frontend: 
 - [Spring Transaction-bound Events](https://docs.spring.io/spring-framework/reference/data-access/transaction/event.html)
 
 > **검증 완료:** 위 MVP 체크리스트는 실제 PostgreSQL·production 브라우저·Java21/Node24 원격 CI로 확인했다. CSRF 발급/전파·쿠키 프록시·필터·테스트 데이터의 증거와 후속 범위는 [최종 인수 보고](mvp-acceptance.md), 실행은 [README](../README.md)를 따른다.
+
+
+## ORC-008 개발 로그인 변경
+
+사용자 요청으로 local 프로필의 로그인 UI는 활성 DB 계정 드롭다운과 비밀번호 없는 선택 로그인 및 로그인 전 CLIENT 실시간 패널을 제공한다. 비local 기존 비밀번호 인증은 유지한다. 최신 계약·검증은 [ORC-008](tickets/ORC-008-local-account-login.md)과 [API 계약](api-spec.md)을 따른다. 취소된 ADM-017의 검색/필터 화면 제목 확장은 적용하지 않는다.

@@ -14,12 +14,13 @@ import { AuditResultBadge, AuditSourceBadge, eventLabels } from "./audit-badges"
 const time = new Intl.DateTimeFormat("ko-KR", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "Asia/Seoul" });
 
 /** Mounted in the shared console layout so page navigation does not reconnect. */
-export function LiveAuditPanel() {
+export function LiveAuditPanel({ mode = "authenticated" }: { mode?: "authenticated" | "local-preview" }) {
   const { actor, sessionEpoch } = useAuth();
-  return actor ? <LiveFeed key={`${actor.id}:${actor.role}:${sessionEpoch}`} actor={actor} /> : null;
+  if (mode === "local-preview") return <LiveFeed key="local-preview" actor={null} anonymous endpoint="/api/v1/local/audit-logs/stream" />;
+  return actor ? <LiveFeed key={`${actor.id}:${actor.role}:${sessionEpoch}`} actor={actor} anonymous={false} endpoint="/api/v1/audit-logs/stream" /> : null;
 }
 
-function LiveFeed({ actor }: { actor: Actor }) {
+function LiveFeed({ actor, anonymous, endpoint }: { actor: Actor | null; anonymous: boolean; endpoint: string }) {
   const [items, setItems] = useState<AuditItem[]>([]);
   // Also hide non-CLIENT rows retained by development Fast Refresh without clearing CLIENT rows.
   const visibleItems = items.filter(isVisibleLiveLog);
@@ -31,7 +32,7 @@ function LiveFeed({ actor }: { actor: Actor }) {
   const beforeUpdate = useRef<{ height: number; top: number; anchorId?: string; anchorOffset?: number } | null>(null);
 
   useEffect(() => {
-    const source = new EventSource("/api/v1/audit-logs/stream");
+    const source = new EventSource(endpoint);
     const authCheck = new AbortController();
     let checking = false;
     let disposed = false;
@@ -59,19 +60,19 @@ function LiveFeed({ actor }: { actor: Actor }) {
       if (disposed) return;
       source.close();
       setStatus("인증 만료");
-      window.dispatchEvent(new Event("audit:unauthenticated"));
+      if (!anonymous) window.dispatchEvent(new Event("audit:unauthenticated"));
     });
     source.onerror = () => {
       if (disposed) return;
       setStatus("재연결 중");
       // EventSource hides HTTP status; use the existing auth boundary on a 401.
-      if (!checking) {
+      if (!anonymous && !checking) {
         checking = true;
         void apiRequest<Actor>("/auth/me", { signal: authCheck.signal }).catch(() => {}).finally(() => { if (!disposed) checking = false; });
       }
     };
     return () => { disposed = true; source.close(); authCheck.abort(); };
-  }, []);
+  }, [anonymous, endpoint]);
 
   useLayoutEffect(() => {
     const before = beforeUpdate.current;
@@ -84,11 +85,11 @@ function LiveFeed({ actor }: { actor: Actor }) {
   }, [items]);
 
   return <aside aria-label="실시간 감사 로그" data-testid="live-audit-panel" className="min-w-0 border-t bg-card xl:sticky xl:top-0 xl:flex xl:h-dvh xl:flex-col xl:border-t-0 xl:border-l">
-    <div className="flex items-center justify-between gap-3 border-b px-5 py-5"><div><h2 className="flex items-center gap-2 font-semibold"><Activity className="size-4 text-primary" aria-hidden />실시간 감사 로그</h2><p className="mt-2 text-xs text-muted-foreground">{actor.role === "ADMIN" ? "전체 관리자 CLIENT 활동" : "내 계정의 CLIENT 활동"} · 새 기록부터 표시</p></div><Button variant="ghost" size="icon" className="xl:hidden" aria-label={expanded ? "감사 로그 접기" : "감사 로그 펼치기"} aria-expanded={expanded} aria-controls="live-audit-feed" onClick={() => setExpanded(value => !value)}>{expanded ? <ChevronDown aria-hidden /> : <ChevronUp aria-hidden />}</Button></div>
+    <div className="flex items-center justify-between gap-3 border-b px-5 py-5"><div><h2 className="flex items-center gap-2 font-semibold"><Activity className="size-4 text-primary" aria-hidden />실시간 감사 로그</h2><p className="mt-2 text-xs text-muted-foreground">{anonymous || actor?.role === "ADMIN" ? "전체 관리자 CLIENT 활동" : "내 계정의 CLIENT 활동"} · 새 기록부터 표시</p></div><Button variant="ghost" size="icon" className="xl:hidden" aria-label={expanded ? "감사 로그 접기" : "감사 로그 펼치기"} aria-expanded={expanded} aria-controls="live-audit-feed" onClick={() => setExpanded(value => !value)}>{expanded ? <ChevronDown aria-hidden /> : <ChevronUp aria-hidden />}</Button></div>
     <div className="flex items-center gap-2 border-b px-5 py-3 text-xs text-muted-foreground" role="status"><Radio className={`size-3.5 ${status === "실시간 연결됨" ? "text-emerald-600" : "text-amber-600"}`} aria-hidden /><span data-testid="audit-stream-status">{status}</span><span className="ml-auto">최근 {visibleItems.length}/200건</span></div>
     {notice && <p className="border-b bg-amber-50 px-5 py-3 text-xs leading-5 text-amber-800" role="status">{notice}</p>}
     <div id="live-audit-feed" data-testid="audit-stream-list" ref={viewport} className={`${expanded ? "block" : "hidden"} max-h-[60dvh] overflow-y-auto [overflow-anchor:none] xl:block xl:max-h-none xl:min-h-0 xl:flex-1`}>
-      {visibleItems.length === 0 ? <div className="px-6 py-16 text-center text-sm text-muted-foreground"><Radio className="mx-auto mb-4 size-8 opacity-40" aria-hidden /><p>새 감사 로그를 기다리고 있습니다.</p><p className="mt-2 text-xs leading-6">연결 이후 추가되는 기록이<br />위쪽에 하나씩 표시됩니다.</p></div> : <ol className="divide-y">{visibleItems.map(item => <LiveAuditRow key={item.id} item={item} canInspect={actor.role === "ADMIN"} />)}</ol>}
+      {visibleItems.length === 0 ? <div className="px-6 py-16 text-center text-sm text-muted-foreground"><Radio className="mx-auto mb-4 size-8 opacity-40" aria-hidden /><p>새 감사 로그를 기다리고 있습니다.</p><p className="mt-2 text-xs leading-6">연결 이후 추가되는 기록이<br />위쪽에 하나씩 표시됩니다.</p></div> : <ol className="divide-y">{visibleItems.map(item => <LiveAuditRow key={item.id} item={item} canInspect={!anonymous && actor?.role === "ADMIN"} />)}</ol>}
     </div>
   </aside>;
 }
