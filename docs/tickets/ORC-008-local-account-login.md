@@ -1,7 +1,7 @@
 # ORC-008 — 개발 계정 선택 로그인·로그인 전 감사 패널
 
 - 담당: api (local 전용 계정/로그인/SSE·보안·세션·검증), admin (드롭다운 로그인·BFF·익명 패널·검증), infra (실행 안내), qa (독립 E2E), orchestra (계약·승인)
-- 상태: APPROVED (커밋·푸시 승인됨)
+- 상태: MERGED
 - 시작 기준: master 984b8cf, 사용자 기존 admin/next-env.d.ts 변경 보존
 - 현재 checkout 파일별 단독 소유. 커밋·푸시 없음.
 
@@ -42,3 +42,11 @@ local 및 비local 실제 SpringBootTest context 필수. 계정 비밀값 배제
 ## 게시 승인
 
 사용자가 후속 명령으로 커밋·푸시를 승인했다. 브랜치 `codex/orc-008-local-account-login`에서 검증된 변경을 게시한다. 기존 사용자 admin/next-env.d.ts는 커밋에서 제외한다. 취소한 ADM-017 변경은 포함하지 않는다.
+
+
+## 커밋·원격 통합 기록
+
+- 구현 커밋: `60e7cd3`, `origin/codex/orc-008-local-account-login` 푸시 성공.
+- integration 머지: `206fb3c451e46c60a64fcbef609cce0f6c10c80f`, 원격 푸시 성공.
+- 통합 검증: 전체 frontend unit·BFF 계약 57 PASS / 0 FAIL / 0 SKIP. 제품 코드 추가 변경 없이 기존 backend 167 PASS 및 production E2E 19 PASS 근거 유지.
+- 기존 사용자 admin/next-env.d.ts 변경은 제외하고 보존했다. 취소된 ADM-017은 포함하지 않았다.
