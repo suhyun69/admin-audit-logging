@@ -14,6 +14,7 @@ type AuthContextValue = {
   loading: boolean;
   error: Error | null;
   login: (username: string, password: string) => Promise<void>;
+  localLogin: (username: string) => Promise<void>;
   logout: () => Promise<void>;
   refresh: () => void;
 };
@@ -57,10 +58,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("audit:unauthenticated", onUnauthorized);
   }, [boundary, clearBoundary, router]);
 
-  const login = async (username: string, password: string) => {
+  const establishSession = async (path: "/auth/login" | "/local/login", body: { username: string; password?: string }) => {
     const next = await clearBoundary();
     try {
-      const actor = await apiRequest<Actor>("/auth/login", { method: "POST", body: { username, password } });
+      const actor = await apiRequest<Actor>(path, { method: "POST", body });
       if (!boundary.isCurrent(next)) throw new Error("인증 상태가 변경되었습니다. 다시 로그인해 주세요.");
       queryClient.setQueryData(authQueryKey(next), actor);
       setSuspended(false);
@@ -70,6 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   };
+
+  const login = (username: string, password: string) => establishSession("/auth/login", { username, password });
+  const localLogin = (username: string) => establishSession("/local/login", { username });
 
   const logout = async () => {
     const next = await clearBoundary();
@@ -92,6 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading: suspended || (!isPublic && me.isPending),
     error: me.error,
     login,
+    localLogin,
     logout,
     refresh: () => { void me.refetch(); },
   }}>{children}</AuthContext.Provider>;

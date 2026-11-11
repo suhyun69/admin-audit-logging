@@ -78,3 +78,12 @@ AuditItem REST/SSE에 nullable `pagePath`를 추가한다. PAGE_VIEW일 때만 �
 ### 회원 상태 모달 CLIENT 액션 (ADM-015)
 
 기존 CLIENT 수집 API의 BUTTON_CLICK action에 USER_SUSPEND_CONFIRM_CLICK, USER_ACTIVATE_CONFIRM_CLICK, USER_STATUS_CANCEL_CLICK, USER_STATUS_CLOSE_CLICK을 추가한다. 기존 USER resource/회원 상세 pagePath 일치, 인증 actor, 멱등성·rate limit 규칙을 유지한다. 모달을 열 때의 interactionId를 사용하며 확인 PATCH도 동일 ID로 연결한다. 취소·닫기는 업무 변경을 의미하지 않고 모든 CLIENT 이벤트는 ATTEMPTED다.
+
+
+## 개발용 계정 선택 로그인 (ORC-008)
+
+local 프로필에서만 GET `/local/accounts`로 활성 계정 `{items:[{id,username,displayName,role}]}`를 조회하고, CSRF를 발급받아 POST `/local/login`에 `{username}`을 보내 비밀번호 없이 로그인한다. 응답·쿠키·CSRF 회전·세션 저장과 역할은 기존 로그인과 같다. 계정 목록에는 자격증명/토큰을 반환하지 않고 no-store다. 존재하지 않거나 비활성 계정은 로그인되지 않는다. 일반 `/auth/login` 비밀번호 검증은 계속 유지된다.
+
+로그인 전 local UI는 GET `/local/audit-logs/stream`에서 CLIENT 신규 로그를 수신한다. 단일 local 인스턴스의 모든 CLIENT이며 계정 선택값에 따른 인증 범위를 뜻하지 않는다. 기존 cursor·ready/reset·heartbeat·최대 연결/timeout/취소 규칙을 사용하고 HTTP·SECURITY·BUSINESS는 전달하지 않는다. 익명 화면에는 상세 링크가 없다. 로그인 후에는 기존 `/audit-logs/stream`의 세션·역할 범위를 적용하며 익명 스트림을 정리한다.
+
+비local에는 local controller/usecase/service가 등록되지 않는다. accounts GET만 기능 탐지를 위해 404를 반환하고, local login 및 local stream은 익명 401/인증 사용자 403으로 거부한다. UI는 accounts 404일 때만 기존 비밀번호 폼을 사용한다. BFF의 mutation 출처 검사·CSRF·고정 upstream/경로 허용 목록과 no-store는 유지한다.

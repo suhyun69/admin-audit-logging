@@ -37,6 +37,9 @@ public class AuthService {
         var account = sessions.findAccount(username).orElse(null);
         boolean matches = passwords.matches(password, account == null ? dummyHash : account.passwordHash());
         if (account == null || !account.enabled() || !matches) throw new ApiException(ErrorCode.INVALID_CREDENTIALS);
+        return issueSession(account);
+    }
+    IssuedSession issueSession(AdminAccount account) {
         byte[] bytes = new byte[32]; random.nextBytes(bytes);
         String token = Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
         var now = clock.instant();

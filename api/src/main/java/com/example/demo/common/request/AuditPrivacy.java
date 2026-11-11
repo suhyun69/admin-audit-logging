@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 public final class AuditPrivacy {
     private static final String UUID_PATH = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
     private static final Pattern PAGE = Pattern.compile("/(?:login|dashboard|users(?:/[1-9][0-9]{0,18})?|audit-logs(?:/(?:me|" + UUID_PATH + "|interactions/" + UUID_PATH + "))?)");
-    private static final Pattern API = Pattern.compile("/api/v1/(?:auth/(?:login|logout|me|csrf)|users(?:/[1-9][0-9]{0,18}(?:/status)?)?|audit-events/client|audit-logs(?:/(?:me|summary|" + UUID_PATH + "|interactions/" + UUID_PATH + "))?)");
+    private static final Pattern API = Pattern.compile("/api/v1/(?:local/(?:accounts|login)|auth/(?:login|logout|me|csrf)|users(?:/[1-9][0-9]{0,18}(?:/status)?)?|audit-events/client|audit-logs(?:/(?:me|summary|" + UUID_PATH + "|interactions/" + UUID_PATH + "))?)");
     private AuditPrivacy() {}
 
     public static UUID uuid(String input) {

@@ -18,6 +18,9 @@ public class AdminSessionPersistenceAdapter implements AdminSessionPort {
     @Override public Optional<AdminAccount> findAccount(String username) {
         return jdbc.query("SELECT * FROM admin_users WHERE username=?", (rs,n) -> account(rs),username).stream().findFirst();
     }
+    @Override public java.util.List<AdminAccount> enabledAccounts() {
+        return jdbc.query("SELECT id,username,'' AS password_hash,display_name,role,enabled FROM admin_users WHERE enabled=TRUE ORDER BY id",(rs,n)->account(rs));
+    }
     @Override public void createSession(AdminSession session) {
         jdbc.update("INSERT INTO admin_sessions(id,admin_user_id,token_hash,created_at,expires_at) VALUES (?,?,?,?,?)",
                 session.id(),session.adminUserId(),session.tokenHash(),Timestamp.from(session.createdAt()),Timestamp.from(session.expiresAt()));

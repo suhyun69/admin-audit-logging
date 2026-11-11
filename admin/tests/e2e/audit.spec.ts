@@ -179,7 +179,9 @@ test("VIEWER and OPERATOR live panels receive only their own new events and reta
       }
       await page.getByRole("button", { name: "로그아웃", exact: true }).click();
       await expect(page).toHaveURL(/\/login$/);
-      await expect(panel(page)).toHaveCount(0);
+      await expect(page.getByTestId("local-account-picker")).toBeVisible();
+      await connected(page);
+      await expect(panel(page).locator(`[data-log-id="${ownId}"]`)).toHaveCount(0);
     }
   } finally { await foreignContext.close(); }
 });
@@ -197,7 +199,8 @@ test("live panel appends without replacing rows and preserves data across reconn
     class FixtureEventSource extends EventTarget {
       onerror: ((event: Event) => void) | null = null;
       closed = false;
-      constructor() { super(); streams.push(this); queueMicrotask(() => this.dispatchEvent(new MessageEvent("ready", { data: "{}" }))); }
+      url: string;
+      constructor(url: string | URL) { super(); this.url = String(url); streams.push(this); queueMicrotask(() => this.dispatchEvent(new MessageEvent("ready", { data: "{}" }))); }
       close() { this.closed = true; }
     }
     window.EventSource = FixtureEventSource as unknown as typeof EventSource;
@@ -273,8 +276,8 @@ test("live panel appends without replacing rows and preserves data across reconn
   await expect(panel(page).locator("[data-log-id]").first()).toHaveAttribute("data-log-id", latestId);
   await expect(panel(page).locator("[data-log-id]")).toHaveCount(200);
   expect(await page.evaluate(() => {
-    const state = window as unknown as { qaOriginalPanel: Element; qaRetainedRows: Map<string, Element>; qaAuditStreams: EventTarget[] };
-    return state.qaOriginalPanel === document.querySelector('[data-testid="live-audit-panel"]') && state.qaAuditStreams.length === 1 &&
+    const state = window as unknown as { qaOriginalPanel: Element; qaRetainedRows: Map<string, Element>; qaAuditStreams: (EventTarget & { closed: boolean })[] };
+    return state.qaOriginalPanel === document.querySelector('[data-testid="live-audit-panel"]') && state.qaAuditStreams.filter(stream => !stream.closed).length === 1 &&
       [...document.querySelectorAll('[data-testid="live-audit-panel"] [data-log-id]')].every(row => !state.qaRetainedRows.has(row.getAttribute("data-log-id")!) || state.qaRetainedRows.get(row.getAttribute("data-log-id")!) === row);
   })).toBe(true);
   expect(prefetched.filter(path => fixtureIds.has(path.split("/").at(-1)!))).toEqual([]);
@@ -293,7 +296,12 @@ test("live panel appends without replacing rows and preserves data across reconn
   await expect(panel(page)).toContainText("기존 기록은 유지");
   await page.getByRole("button", { name: "로그아웃", exact: true }).click();
   await expect(page).toHaveURL(/\/login$/);
-  expect(await page.evaluate(() => (window as unknown as { qaAuditStreams: { closed: boolean }[] }).qaAuditStreams.every(stream => stream.closed))).toBe(true);
+  await expect(page.getByTestId("local-account-picker")).toBeVisible();
+  await connected(page);
+  expect(await page.evaluate(() => {
+    const streams = (window as unknown as { qaAuditStreams: { closed: boolean; url: string }[] }).qaAuditStreams;
+    return streams.slice(0, -1).every(stream => stream.closed) && !streams.at(-1)!.closed && streams.at(-1)!.url === "/api/v1/local/audit-logs/stream";
+  })).toBe(true);
 });
 
 test("revoked active SSE session ends the authenticated browser without another user request", async ({ page }) => {
@@ -302,5 +310,6 @@ test("revoked active SSE session ends the authenticated browser without another 
   const owner = await actorId(page);
   database(`UPDATE admin_sessions SET revoked_at=now() WHERE admin_user_id=${owner} AND revoked_at IS NULL`);
   await expect(page).toHaveURL(/\/login$/);
-  await expect(panel(page)).toHaveCount(0);
+  await expect(page.getByTestId("local-account-picker")).toBeVisible();
+  await connected(page);
 });

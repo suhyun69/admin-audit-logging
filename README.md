@@ -43,7 +43,7 @@ java -version
 
 처음에는 `.env.example`을 `.env`로 복사하고 Admin 의존성을 설치합니다. 기존 `.env`는 보존하며, 의존성 정의가 바뀌면 다시 설치합니다. macOS에서는 설치된 Java 21을 자동 탐색합니다. 다른 환경에서는 `JAVA_HOME`을 JDK 21로 지정하세요.
 
-실행기가 PostgreSQL → API(local 프로필·마이그레이션·개발 시드) → Admin 순서로 준비 상태를 확인합니다. 준비 완료 후 **http://localhost:3000**에서 `admin` / `local-test-password`로 로그인합니다. 최초 실행에는 의존성 다운로드 시간이 필요합니다.
+실행기가 PostgreSQL → API(local 프로필·마이그레이션·개발 시드) → Admin 순서로 준비 상태를 확인합니다. 준비 완료 후 **http://localhost:3000**의 로그인 화면에서 계정을 선택한 뒤 로그인합니다. `local` 프로필에서는 비밀번호 입력 없이 로그인할 수 있고, 로그인 전에도 오른쪽 패널에서 CLIENT 활동을 미리 볼 수 있습니다. 최초 실행에는 의존성 다운로드 시간이 필요합니다.
 
 `Ctrl+C`로 API와 Admin을 함께 종료합니다. PostgreSQL과 데이터는 보존하며 DB도 중지하려면 `docker compose stop postgres`를 실행합니다. 기동 실패 시 실행기가 시작한 앱 프로세스를 정리합니다.
 
@@ -98,7 +98,7 @@ API는 `http://localhost:8080`, 준비 상태는 `/actuator/health`입니다. Fl
 | `operator` | OPERATOR | 회원 조회·상태 변경, 본인 활동·대시보드 |
 | `viewer` | VIEWER | 회원 조회, 본인 활동·대시보드; 상태 변경 403 |
 
-세 개발 계정의 비밀번호는 **`local-test-password`**입니다. non-local 프로필에는 개발 시드가 적용되지 않으며 DB 비밀번호와 HTTPS 쿠키 설정을 외부 환경에서 제공해야 합니다.
+로컬 UI에서는 위 계정을 선택해 비밀번호 없이 로그인합니다. 일반 `POST /api/v1/auth/login`을 직접 호출할 때는 기존처럼 비밀번호가 필요하며, 세 개발 계정의 시드 비밀번호는 **`local-test-password`**입니다. 계정 선택 로그인과 로그인 전 CLIENT 미리보기는 `local` 프로필에서만 제공하며 production의 비밀번호 로그인은 그대로 유지합니다. non-local 프로필에는 개발 시드가 적용되지 않으며 DB 비밀번호와 HTTPS 쿠키 설정을 외부 환경에서 제공해야 합니다.
 
 ## Admin 실행
 
@@ -121,15 +121,15 @@ production 실행은 `npm run build` 후 `npm run start`입니다. 화면·자�
 브라우저는 같은 출처 `/api/v1/*`만 호출합니다. BFF가 고정 API upstream으로 인증·CSRF 쿠키와 허용 헤더를 전달합니다.
 
 1. 로그인 전에 `GET /api/v1/auth/csrf`로 CSRF 토큰과 세션 쿠키를 받습니다.
-2. 로그인 POST에 `X-CSRF-TOKEN`을 보내고 인증 쿠키를 받습니다.
+2. 로컬 UI에서는 계정을 선택하고 로그인하면 `POST /api/v1/local/login`에 `X-CSRF-TOKEN`을 보내고 인증 쿠키를 받습니다. 일반 `POST /api/v1/auth/login`은 아이디와 비밀번호를 사용합니다.
 3. 로그인·로그아웃 후 CSRF를 재발급받습니다. 상태 변경 요청도 현재 쿠키와 CSRF 토큰이 필요합니다.
-4. `admin`으로 로그인해 회원 목록에서 ID 123을 찾고 상세에서 상태를 변경합니다.
-5. 화면 오른쪽 실시간 감사 패널에서 새 BUTTON_CLICK·HTTP_REQUEST·DATA_UPDATE가 위쪽에 추가되는지 확인합니다. ADMIN은 전체 기록, OPERATOR·VIEWER는 본인 기록만 표시합니다.
+4. 로컬 로그인 화면에서 `admin`을 선택해 로그인하고 회원 목록에서 ID 123을 찾고 상세에서 상태를 변경합니다.
+5. 화면 오른쪽 실시간 감사 패널에서 새 CLIENT 활동(BUTTON_CLICK 등)이 위쪽에 추가되는지 확인합니다. ADMIN은 전체 사용자의 CLIENT 기록, OPERATOR·VIEWER는 본인 CLIENT 기록만 표시합니다. HTTP_REQUEST·DATA_UPDATE 등 서버 감사 기록도 계속 저장되지만 패널에는 표시하지 않습니다.
 6. `viewer`로는 조회만 가능하며 직접 변경 요청도 403이고 DB 상태가 바뀌지 않습니다.
 
 UI가 쿠키·CSRF 갱신·인증 캐시 초기화를 처리합니다. CLIENT의 ATTEMPTED는 브라우저가 신고한 시도이며 실제 업무 성공을 뜻하지 않습니다. CLIENT 전송 실패는 회원 변경을 막지 않고, 서버 BUSINESS 성공 감사 저장 실패는 업무 변경도 롤백합니다.
 
-수동 API 검증도 로그인 전 CSRF 발급과 cookie jar가 필요합니다. 명세의 단순 로그인 예시를 CSRF 없이 실행하면 403입니다. 상태 변경은 조회한 최신 `version`을 보내며 충돌은 409입니다. 쿠키·토큰·비밀번호·검색어 원문을 로그나 공유 산출물에 남기지 않습니다.
+수동 API 검증도 로그인 전 CSRF 발급과 cookie jar가 필요합니다. 일반 `/api/v1/auth/login`으로 로컬 개발 계정을 검증할 때는 비밀번호 `local-test-password`를 보냅니다. 명세의 단순 로그인 예시를 CSRF 없이 실행하면 403입니다. 상태 변경은 조회한 최신 `version`을 보내며 충돌은 409입니다. 쿠키·토큰·비밀번호·검색어 원문을 로그나 공유 산출물에 남기지 않습니다.
 
 ## 테스트
 
@@ -195,6 +195,6 @@ docker compose up -d --wait postgres
 - [에이전트 협업](docs/agent-workflow.md), [브랜치 전략](docs/branch-strategy.md)
 - [Admin 화면·smoke 문서](admin/README.md)
 
-실시간 감사 패널은 로그인 후 연결 시점부터 새 로그를 SSE로 수신합니다. 과거 목록·검색·필터는 표시하지 않으며 최근 200건을 유지합니다. 새 기록은 맨 위에 추가하며 로그 ID와 interaction ID는 패널에 표시하지 않습니다. 실시간 패널에는 CLIENT 활동만 표시하고 BUSINESS·SECURITY·HTTP 등 모든 서버 감사 기록은 그대로 유지합니다. 페이지 조회에는 회원 관리·회원 상세(회원 번호) 등 조회한 화면을 표시합니다. 단일 API 인스턴스의 최근 1000개 journal 범위에서 재연결을 보충하고, 재시작·범위 초과 시 중단 구간 안내와 함께 기존 화면 기록을 유지하고 새 기준점 이후 로그만 추가합니다.
+실시간 감사 패널은 로그인 후 연결 시점부터 새 로그를 SSE로 수신합니다. `local` 프로필에서는 로그인 화면 오른쪽에서도 CLIENT 기록을 미리 볼 수 있습니다. 로그인 전 미리보기는 로컬 개발 전용이며 production에서는 제공하지 않습니다. 과거 목록·검색·필터는 표시하지 않으며 최근 200건을 유지합니다. 새 기록은 맨 위에 추가하며 로그 ID와 interaction ID는 패널에 표시하지 않습니다. 실시간 패널에는 CLIENT 활동만 표시하고 BUSINESS·SECURITY·HTTP 등 모든 서버 감사 기록은 그대로 유지합니다. 페이지 조회에는 회원 관리·회원 상세(회원 번호) 등 조회한 화면을 표시합니다. 단일 API 인스턴스의 최근 1000개 journal 범위에서 재연결을 보충하고, 재시작·범위 초과 시 중단 구간 안내와 함께 기존 화면 기록을 유지하고 새 기준점 이후 로그만 추가합니다.
 
 Kafka/Outbox, 다중 인스턴스 스트림 전달, 관리자 설정 CRUD, 대규모 부하·장기 보존 확장은 후속 범위입니다.

@@ -137,7 +137,7 @@ async function main() {
   await ready(`${env.API_ORIGIN}/actuator/health`, api, 180000);
   const ui = start('npm', ['run', 'dev', '--', '--hostname', 'localhost', '--port', String(adminPort)], admin);
   await ready(`http://localhost:${adminPort}/login`, ui, 90000);
-  console.log(`\n프로젝트 준비 완료: http://localhost:${adminPort}\n개발 계정: admin / local-test-password\n종료: Ctrl+C`);
+  console.log(`\n프로젝트 준비 완료: http://localhost:${adminPort}\n로그인 화면에서 계정을 선택한 뒤 로그인하세요.\n종료: Ctrl+C`);
   await Promise.race([api.done, ui.done]);
   fail('API 또는 Admin이 종료되었습니다.');
 }

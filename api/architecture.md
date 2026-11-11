@@ -63,6 +63,10 @@ security adapter ──→ usecase 인터페이스
 - `requireExplicitAuthenticationStrategy(true)`로 일반 요청의 암묵적 인증 세션 전략을 제거합니다. 매번 재구성하는 인증을 새 로그인으로 오인해 CSRF를 폐기하지 않습니다. sessionCreationPolicy enum 설정 호출은 이 명시 전략과 조합하지 않습니다.
 - 쿠키는 HttpOnly·SameSite=Lax·Path=/이며 일반 프로필 Secure=true, local HTTP 개발 프로필은 false입니다.
 
+`local` 프로필에는 개발용 계정 선택 로그인이 추가됩니다. `GET /api/v1/local/accounts`는 DB의 활성 계정만 공개 Actor DTO로 반환하고 비밀번호·해시를 조회하지 않습니다. `POST /api/v1/local/login`은 CSRF 검증을 통과한 username을 받아 local 전용 application/usecase를 거쳐 일반 로그인과 같은 난수 세션 발급·해시 저장·8시간 만료·쿠키·CSRF 회전·성공/실패 보안 감사를 사용합니다. 일반 `/auth/login`의 비밀번호 검증은 유지합니다. 세션 발급의 공통 메서드는 auth application 패키지 내부에만 열려 있습니다.
+
+local 전용 controller/service/usecase는 `@Profile("local")`로 격리합니다. nonlocal에서 계정 탐지 GET만 공개 라우팅해 404로 개발 모드가 아님을 알리고, 나머지 `/api/v1/local/**`는 Security에서 거부합니다. 익명은 401, 인증 사용자는 403이며 유효 CSRF를 가진 요청도 비밀번호 없는 세션을 발급할 수 없습니다.
+
 Spring 6.5의 명시 전략과 sessionCreationPolicy 조합 제약은 [공식 구현](https://github.com/spring-projects/spring-security/blob/6.5.x/config/src/main/java/org/springframework/security/config/annotation/web/configurers/SessionManagementConfigurer.java)을 확인했고 반복·동시 요청 및 실제 Servlet HTTP 테스트로 검증했습니다.
 
 경로 matcher와 `AuthorizationUseCase`의 `@PreAuthorize`/서버 actor 검사를 함께 사용합니다. 상태 변경은 ADMIN/OPERATOR, 전체 감사·상세·타임라인은 ADMIN, 본인 조회·요약은 인증 사용자입니다. 본인 범위는 서버 actor ID로 강제하며 client actorId를 받지 않습니다.
@@ -138,6 +142,8 @@ JUnit·ArchUnit·Spring Security Test·MockMvc·실제 Servlet HTTP·Testcontain
 `GET /api/v1/audit-logs/stream`은 인증 사용자에게 SSE를 제공합니다. ADMIN은 전체, 다른 역할은 서버 인증 actor ID에 해당하는 항목만 받습니다. controller는 `AuditStreamUseCase`를 호출하며 응답은 기존 감사 요약 항목과 같은 App DTO입니다. 일반 HTTP 경로와 분리해 ASYNC 완료 dispatch만 해당 스트림에 허용합니다.
 
 두 영속성 어댑터는 실제 INSERT 성공 후 도메인 이벤트를 발행하고, `AuditStreamHub`가 `@TransactionalEventListener(AFTER_COMMIT)`에서 메모리 journal에 넣습니다. 일반/독립 writer와 CLIENT insert-once를 모두 포괄하며 rollback과 중복 CLIENT 재송은 발행되지 않습니다. 커밋 스레드에서는 네트워크 전송을 하지 않습니다. 구독별 virtual thread가 journal을 읽고 전송하며 연결 수는 128개로 제한합니다.
+
+로그인 전 개발 화면은 local 전용 `GET /api/v1/local/audit-logs/stream`을 익명으로 구독할 수 있습니다. 이 스트림은 같은 journal/상한/replay/timeout을 사용하되 CLIENT 출처만 내보내고 인증 만료 이벤트는 보내지 않습니다. HTTP·SECURITY·BUSINESS는 공개하지 않습니다. Hub도 local 활성 여부를 확인하므로 nonlocal의 내부 호출로 공개 구독을 열 수 없습니다. 두 스트림 경로 모두 HTTP 감사 대상에서 제외합니다.
 
 처음 연결은 현재 journal 위치를 기준으로 이후 이벤트만 받습니다. SSE `id`는 서버 epoch UUID와 커밋 후 수신 순번으로, 사용자 발생 시각이나 DB INSERT 시각 정렬과 무관합니다. `Last-Event-ID`로 재연결하면 보관 중인 이후 기록을 재전송합니다. journal은 최근 1000건으로 제한하고, 이전 서버 epoch/범위 밖 cursor 또는 느린 구독자의 overrun은 `reset` 후 `ready`로 명시합니다. 따라서 영구 전달 보장이나 다중 인스턴스 replay 저장소가 아닙니다. 브라우저는 감사 UUID 중복 제거와 reset 처리를 해야 합니다.
 

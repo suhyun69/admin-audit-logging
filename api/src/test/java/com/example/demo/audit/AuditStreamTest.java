@@ -33,11 +33,12 @@ class AuditStreamTest extends HttpApiTestSupport {
     class Stream implements AutoCloseable {
         final HttpURLConnection connection;
         final BufferedReader reader;
-        Stream(Session session,String cursor) throws Exception {
-            connection=(HttpURLConnection)new URI("http://localhost:"+port+"/api/v1/audit-logs/stream").toURL().openConnection();
+        Stream(Session session,String cursor) throws Exception {this(session,cursor,"/api/v1/audit-logs/stream");}
+        Stream(Session session,String cursor,String path) throws Exception {
+            connection=(HttpURLConnection)new URI("http://localhost:"+port+path).toURL().openConnection();
             connection.setReadTimeout(5000);connection.setConnectTimeout(5000);
             connection.setRequestProperty("Accept","text/event-stream");
-            connection.setRequestProperty("Cookie",session.auth().getName()+"="+session.auth().getValue());
+            if(session!=null)connection.setRequestProperty("Cookie",session.auth().getName()+"="+session.auth().getValue());
             if(cursor!=null)connection.setRequestProperty("Last-Event-ID",cursor);
             int status=connection.getResponseCode();
             if(status!=200)connection.disconnect();
@@ -169,6 +170,38 @@ class AuditStreamTest extends HttpApiTestSupport {
             assertThat(data.get("pagePath").asText()).isEqualTo("/users/123");
             assertThat(data.has("metadata")).isFalse();
             assertThat(frame.data()).doesNotContain("secret","private","?q=","#");
+        }
+    }
+    @Test void publicLocalStreamShowsOnlyNewClientEventsAndReplaysWithoutAuthentication() throws Exception {
+        Session session=login("admin");
+        String cursor;
+        UUID first=UUID.randomUUID(),second=UUID.randomUUID();
+        try(var stream=new Stream(null,null,"/api/v1/local/audit-logs/stream")) {
+            assertThat(stream.next().type()).isEqualTo("ready");
+            independent.record(event(1));
+            independent.record(AuditWriteAppRequest.event("AUTH_LOGIN_SUCCESS","LOGIN","SECURITY","SUCCESS"));
+            var payload=Map.of("eventId",first.toString(),"interactionId",UUID.randomUUID().toString(),
+                    "eventType","PAGE_VIEW","action","PAGE_ENTER","pagePath","/users?q=private-search#secret",
+                    "occurredAt",java.time.Instant.now().toString());
+            mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post("/api/v1/audit-events/client")
+                    .cookie(session.auth()).session(session.csrfSession()).header("X-CSRF-TOKEN",session.csrfToken())
+                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON).content(mapper.writeValueAsBytes(payload)))
+                    .andExpect(status().isCreated());
+            Frame frame=stream.next();var data=mapper.readTree(frame.data());
+            assertThat(frame.type()).isEqualTo("audit");assertThat(data.get("source").asText()).isEqualTo("CLIENT");
+            assertThat(data.get("id").asText()).isEqualTo(first.toString());
+            assertThat(data.get("pagePath").asText()).isEqualTo("/users");
+            assertThat(frame.data()).doesNotContain("private-search","secret","metadata","password","token");
+            cursor=frame.id();
+        }
+        independent.record(event(1));
+        independent.record(new AuditWriteAppRequest(second,java.time.Instant.now(),"PAGE_VIEW","PAGE_ENTER","CLIENT","ATTEMPTED",
+                new ActorSnapshot(1,"Admin","ADMIN",UUID.randomUUID()),null,null,null,null,Map.of("pagePath","/dashboard"),List.of(),null));
+        try(var replay=new Stream(null,cursor,"/api/v1/local/audit-logs/stream")) {
+            assertThat(replay.next().type()).isEqualTo("ready");
+            Frame frame=replay.next();var data=mapper.readTree(frame.data());
+            assertThat(data.get("id").asText()).isEqualTo(second.toString());
+            assertThat(data.get("source").asText()).isEqualTo("CLIENT");
         }
     }
     @Test void expiredAndDisabledSessionsAreTerminated() throws Exception {

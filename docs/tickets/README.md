@@ -52,6 +52,7 @@
 | [ORC-005](ORC-005-mvp-acceptance.md) | orchestra | 최종 검토와 MVP 승인 | INF-003 | MERGED |
 | [ORC-006](ORC-006-live-audit-panel.md) | orchestra/api/admin/qa | SSE 실시간 감사 패널 | ORC-005, INF-004 | MERGED |
 | [ORC-007](ORC-007-page-view-destination.md) | orchestra/api/admin/qa | 페이지 조회 화면·회원 번호 표시 | ORC-006, ADM-011 | MERGED |
+| [ORC-008](ORC-008-local-account-login.md) | orchestra/api/admin/infra/qa | 개발 계정 선택 로그인·공개 CLIENT 패널 | ORC-007, ADM-016 | MERGED |
 | [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | MERGED |
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | MERGED |
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | MERGED |

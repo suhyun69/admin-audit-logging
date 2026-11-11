@@ -27,9 +27,12 @@ public class AuditStreamHub {
     private final AuditResponseMapper mapper;
     private long sequence;
     private final long timeoutMs;
+    private final boolean local;
     public AuditStreamHub(AuthUseCase auth,AuditResponseMapper mapper,
-            @org.springframework.beans.factory.annotation.Value("${audit.stream.timeout-ms:1800000}") long timeoutMs) {
+            @org.springframework.beans.factory.annotation.Value("${audit.stream.timeout-ms:1800000}") long timeoutMs,
+            org.springframework.core.env.Environment environment) {
         this.auth=auth;this.mapper=mapper;this.timeoutMs=timeoutMs;
+        this.local=environment.acceptsProfiles(org.springframework.core.env.Profiles.of("local"));
     }
     record Entry(long sequence,AuditItemAppResponse item) {}
     record Batch(long latest,boolean reset,List<Entry> entries) {}
@@ -41,7 +44,14 @@ public class AuditStreamHub {
         while(journal.size()>CAPACITY) journal.removeFirst();
     }
 
-    public synchronized SseEmitter subscribe(ActorSnapshot actor,String token,String lastEventId) {
+    public SseEmitter subscribe(ActorSnapshot actor,String token,String lastEventId) {
+        return subscribe(actor,token,lastEventId,false);
+    }
+    public SseEmitter subscribeLocalClient(String lastEventId) {
+        if(!local)throw new ApiException(ErrorCode.ACCESS_DENIED);
+        return subscribe(null,null,lastEventId,true);
+    }
+    private synchronized SseEmitter subscribe(ActorSnapshot actor,String token,String lastEventId,boolean publicClient) {
         if(connections.size()>=MAX_CONNECTIONS) throw new ApiException(ErrorCode.RATE_LIMITED);
         long start=sequence;
         boolean reset=false;
@@ -61,7 +71,7 @@ public class AuditStreamHub {
         emitter.onTimeout(()->{close.run();emitter.complete();});
         emitter.onError(error->close.run());
         final long initial=start;final boolean initialReset=reset;
-        workers.submit(()->pump(connection,actor,token,initial,initialReset));
+        workers.submit(()->pump(connection,actor,token,initial,initialReset,publicClient));
         return emitter;
     }
     private boolean unavailable(long cursor) {
@@ -80,15 +90,15 @@ public class AuditStreamHub {
         return auth.authenticate(token).filter(session->session.sessionId().equals(actor.sessionId())
                 &&session.actor().id()==actor.id()&&session.actor().role().equals(actor.role())).isPresent();
     }
-    private void pump(Connection connection,ActorSnapshot actor,String token,long position,boolean reset) {
+    private void pump(Connection connection,ActorSnapshot actor,String token,long position,boolean reset,boolean publicClient) {
         try {
-            if(!valid(actor,token)) { send(connection,"auth-expired",position,Map.of());return; }
+            if(!publicClient&&!valid(actor,token)) { send(connection,"auth-expired",position,Map.of());return; }
             if(reset) send(connection,"reset",position,Map.of("reason","replay-unavailable"));
             send(connection,"ready",position,Map.of());
             long checked=System.nanoTime();
             while(!connection.closed().get()) {
                 if(System.nanoTime()-checked>=TimeUnit.SECONDS.toNanos(2)) {
-                    if(!valid(actor,token)) { send(connection,"auth-expired",position,Map.of());break; }
+                    if(!publicClient&&!valid(actor,token)) { send(connection,"auth-expired",position,Map.of());break; }
                     connection.emitter().send(SseEmitter.event().id(cursor(position)).comment("heartbeat"));
                     checked=System.nanoTime();
                 }
@@ -100,10 +110,10 @@ public class AuditStreamHub {
                     for(Entry entry:batch.entries()) {
                         if(connection.closed().get())break;
                         // Recheck before each item, including a slow replay batch.
-                        if(!valid(actor,token)) {
+                        if(!publicClient&&!valid(actor,token)) {
                             send(connection,"auth-expired",position,Map.of());return;
                         }
-                        if("ADMIN".equals(actor.role())||Objects.equals(entry.item().actorId(),actor.id())) {
+                        if(publicClient?"CLIENT".equals(entry.item().source()):"ADMIN".equals(actor.role())||Objects.equals(entry.item().actorId(),actor.id())) {
                             send(connection,"audit",entry.sequence(),entry.item());
                         }
                         position=entry.sequence();
