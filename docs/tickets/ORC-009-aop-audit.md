@@ -3,7 +3,7 @@
 담당: orchestra
 브랜치: `codex/orc-009-aop-audit`
 선행: ORC-008 (MERGED)
-상태: IN_PROGRESS
+상태: APPROVED
 
 ## 목표와 범위
 
@@ -19,7 +19,7 @@
 ## 필수 불변조건
 
 1. BUSINESS 성공 기록은 업무 변경과 같은 트랜잭션이다. 감사 저장 실패 시 업무도 롤백한다.
-2. 실패 기록은 업무 롤백 완료 후 독립 트랜잭션에서 저장한다. 인증 성공은 실제 커밋 이후 기록한다.
+2. BUSINESS 실패 기록은 업무 롤백 완료 후 독립 트랜잭션에서 저장한다. 인증 성공은 실제 커밋 이후 기록한다. 잘못된 자격증명의 인증 실패는 기존처럼 독립 observer로 기록한다.
 3. HTTP 필터 앞뒤의 경계를 유지하여 CSRF/인증/인가/잘못된 요청을 포함한다. SSE 제외 정책과 SECURITY 중복 방지를 유지한다.
 4. Spring AOP의 self-invocation, 비관리 객체와 final 메서드 한계를 고려하여 명시적 관리 Bean 경계를 사용한다. 컨트롤러 advice만으로 HTTP 수집을 대체하지 않는다.
 5. CLIENT 검증·멱등성·충돌·rate limit·신뢰 경계를 유지한다. 모든 writer를 포괄적으로 advice하여 재귀/중복 기록하지 않는다.
@@ -31,3 +31,8 @@
 - 실제 SpringBootTest context 및 PostgreSQL 회귀 결과, 트랜잭션/보안/CLIENT 검증을 제시한다.
 - 독립 qa의 FAIL/NOT RUN을 명시하고 필수 미검증을 숨긴 채 승인하지 않는다.
 - 실제 커밋/원격 브랜치/통합 SHA와 검증 결과를 후속 기록한다.
+
+## 진행 기록
+
+- qa 독립 계약 검토: PASS. 기존 성공 원자성·실패 독립성·인증 커밋 시점·HTTP 전체 경계 및 CLIENT 계약 보존 기준과 역할 배정을 확인했다. 구현 승인과 별개다.
+- qa 추가 파일 소유 배정: `api/src/test/java/com/example/demo/qa/AopAuditCommitContractTest.java` 단독 작성. BUSINESS 커밋 시점 실패의 rollback/실패 로그 독립 저장과 잘못된 입력의 업무 로그 제외를 확인한다. api 자체 테스트와 같은 파일을 수정하지 않는다.
