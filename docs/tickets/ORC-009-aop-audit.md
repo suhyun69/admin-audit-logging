@@ -3,7 +3,7 @@
 담당: orchestra
 브랜치: `codex/orc-009-aop-audit`
 선행: ORC-008 (MERGED)
-상태: APPROVED
+상태: MERGED
 
 ## 목표와 범위
 
@@ -36,3 +36,12 @@
 
 - qa 독립 계약 검토: PASS. 기존 성공 원자성·실패 독립성·인증 커밋 시점·HTTP 전체 경계 및 CLIENT 계약 보존 기준과 역할 배정을 확인했다. 구현 승인과 별개다.
 - qa 추가 파일 소유 배정: `api/src/test/java/com/example/demo/qa/AopAuditCommitContractTest.java` 단독 작성. BUSINESS 커밋 시점 실패의 rollback/실패 로그 독립 저장과 잘못된 입력의 업무 로그 제외를 확인한다. api 자체 테스트와 같은 파일을 수정하지 않는다.
+
+## 실제 통합 기록
+
+- API 구현 및 qa 추가 테스트: `d053c4b308ad2aa561b491bca4de985ea9cc0cb9`, 원격 `codex/api-019-aop-audit` 게시 성공.
+- ORC 계약/승인 기록: `f40a70a`, `51c1294`; ORC integration merge `4192e36`.
+- API integration merge: `c67dcd76b579b08e6845effe852538ddc9a5f701`, 원격 integration 게시 성공.
+- 통합 smoke: Java 21, `./gradlew --no-daemon test --tests '*AopAuditTransactionTest' --tests '*AopAuditCommitContractTest' --tests '*SecurityHttpAuditTest'`, 실제 SpringBootTest/PostgreSQL 포함 27 tests, failure/error/skipped 0. 로그 `/tmp/api-019-integration-smoke.log`.
+- 초기 코드 푸시는 게시 대상 소유권 근거 부족으로 자동 검토가 거부했다. 읽기 전용 GitHub 조회로 origin 소유자와 현재 로그인 계정 `suhyun69`, ADMIN 권한을 확인하고 기존 사용자 승인과 함께 재검토하여 정상 푸시했다.
+- 최종 master는 이 통합 기록 커밋을 포함하여 `--no-ff`로 병합 후 원격 반영한다.

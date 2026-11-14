@@ -3,7 +3,7 @@
 담당: api
 브랜치: `codex/api-019-aop-audit`
 선행: ORC-008 (MERGED), ORC-009 계약 배정
-상태: APPROVED
+상태: MERGED
 
 ## 목표
 
@@ -32,3 +32,12 @@ BUSINESS, SECURITY, HTTP, CLIENT 감사 기록 트리거를 Spring AOP로 이전
 - NOT RUN: admin build / 브라우저 E2E / 부하 검증. 백엔드 내부 리팩터링으로 API·이벤트 계약 변경 없음.
 - qa 독립 코드 검토 PASS, 구현 승인 권고. orchestra는 실제 diff와 위 검증 근거를 확인하여 APPROVED 결정. 미해결 필수 항목 없음.
 - 커밋/통합 SHA는 실제 생성·통합 후 아래 기록한다.
+
+## 실제 통합 기록
+
+- API 구현 및 qa 추가 테스트: `d053c4b308ad2aa561b491bca4de985ea9cc0cb9`, 원격 `codex/api-019-aop-audit` 게시 성공.
+- ORC 계약/승인 기록: `f40a70a`, `51c1294`; ORC integration merge `4192e36`.
+- API integration merge: `c67dcd76b579b08e6845effe852538ddc9a5f701`, 원격 integration 게시 성공.
+- 통합 smoke: Java 21, `./gradlew --no-daemon test --tests '*AopAuditTransactionTest' --tests '*AopAuditCommitContractTest' --tests '*SecurityHttpAuditTest'`, 실제 SpringBootTest/PostgreSQL 포함 27 tests, failure/error/skipped 0. 로그 `/tmp/api-019-integration-smoke.log`.
+- 초기 코드 푸시는 게시 대상 소유권 근거 부족으로 자동 검토가 거부했다. 읽기 전용 GitHub 조회로 origin 소유자와 현재 로그인 계정 `suhyun69`, ADMIN 권한을 확인하고 기존 사용자 승인과 함께 재검토하여 정상 푸시했다.
+- 최종 master는 이 통합 기록 커밋을 포함하여 `--no-ff`로 병합 후 원격 반영한다.
