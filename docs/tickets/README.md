@@ -40,6 +40,7 @@
 | [API-015](API-015-audit-summary.md) | api | 역할별 감사 요약 API | API-014 | MERGED |
 | [API-016](API-016-request-filter-bean-name.md) | api | 요청 컨텍스트 필터 Bean 이름 충돌 수정 | API-005 | MERGED |
 | [API-017](API-017-explicit-session-strategy.md) | api | CSRF 반복 요청 암묵 전략 결함 수정 | API-009 | MERGED |
+| [API-019](API-019-aop-audit.md) | api | AOP 기반 백엔드 감사 수집 | ORC-008, ORC-009 계약 | APPROVED |
 | [API-018](API-018-request-id-header.md) | api | 오류 requestId 단일 헤더 보장 | API-005, QA-002 | MERGED |
 | [INF-001](INF-001-postgres-compose.md) | infra | PostgreSQL Compose 구성 | ORC-002 | MERGED |
 | [INF-002](INF-002-local-env.md) | infra | 환경변수와 로컬 실행 절차 | INF-001, ORC-003 | MERGED |
@@ -52,6 +53,7 @@
 | [ORC-005](ORC-005-mvp-acceptance.md) | orchestra | 최종 검토와 MVP 승인 | INF-003 | MERGED |
 | [ORC-006](ORC-006-live-audit-panel.md) | orchestra/api/admin/qa | SSE 실시간 감사 패널 | ORC-005, INF-004 | MERGED |
 | [ORC-007](ORC-007-page-view-destination.md) | orchestra/api/admin/qa | 페이지 조회 화면·회원 번호 표시 | ORC-006, ADM-011 | MERGED |
+| [ORC-009](ORC-009-aop-audit.md) | orchestra/api/qa | 감사 수집 AOP 전환 계약·독립 검증·통합 | ORC-008 | APPROVED |
 | [ORC-008](ORC-008-local-account-login.md) | orchestra/api/admin/infra/qa | 개발 계정 선택 로그인·공개 CLIENT 패널 | ORC-007, ADM-016 | MERGED |
 | [QA-001](QA-001-verification-matrix.md) | qa | 인수 검증표와 테스트 데이터 전략 | ORC-004 | MERGED |
 | [QA-002](QA-002-security-contracts.md) | qa | 인증·권한 독립 검증 | QA-001, API-011, API-013, ADM-003 | MERGED |
