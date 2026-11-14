@@ -7,22 +7,20 @@ import com.example.demo.usecase.*;
 import com.example.demo.usecase.dto.*;
 import com.example.demo.usecase.support.AuditResponseMapper;
 import org.springframework.stereotype.Service;
+import com.example.demo.usecase.support.audit.*;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.List;
-import java.util.Map;
 
 @Service
 @Transactional
 public class AuditSearchTransactionUseCaseImpl implements AuditSearchTransactionUseCase {
     private final AuditQueryService queries;
-    private final AuditWriteUseCase audit;
     private final AuthorizationUseCase authorization;
     private final CursorCodec cursors;
     private final AuditResponseMapper mapper;
-    public AuditSearchTransactionUseCaseImpl(AuditQueryService queries,AuditWriteUseCase audit,AuthorizationUseCase authorization,CursorCodec cursors,AuditResponseMapper mapper) {
-        this.queries=queries;this.audit=audit;this.authorization=authorization;this.cursors=cursors;this.mapper=mapper;
+    public AuditSearchTransactionUseCaseImpl(AuditQueryService queries,AuthorizationUseCase authorization,CursorCodec cursors,AuditResponseMapper mapper) {
+        this.queries=queries;this.authorization=authorization;this.cursors=cursors;this.mapper=mapper;
     }
-    @Override public AuditPageAppResponse search(NormalizedAuditSearchAppRequest request) {
+    @Override @Audited(Operation.AUDIT_SEARCH) public AuditPageAppResponse search(NormalizedAuditSearchAppRequest request) {
         if(request.action().equals("AUDIT_ME")) {
             var actor=authorization.requireAuthenticated();
             if(!Long.valueOf(actor.id()).equals(request.actorId()))throw new org.springframework.security.access.AccessDeniedException("Access denied");
@@ -34,8 +32,6 @@ public class AuditSearchTransactionUseCaseImpl implements AuditSearchTransaction
         var page=found.stream().limit(request.size()).map(mapper::item).toList();
         String next=hasNext?cursors.audit(page.get(page.size()-1).occurredAt(),page.get(page.size()-1).id()):null;
         // Read the snapshot before inserting the audit of this query.
-        audit.record(AuditWriteAppRequest.event("DATA_READ",request.action(),"BUSINESS","SUCCESS")
-                .resource("AUDIT_LOG",null,Map.of("searched",true,"size",request.size(),"returnedCount",page.size()),List.of()));
         return new AuditPageAppResponse(page,next,hasNext);
     }
 }

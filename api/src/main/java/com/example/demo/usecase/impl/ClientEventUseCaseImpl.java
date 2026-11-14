@@ -1,8 +1,5 @@
 package com.example.demo.usecase.impl;
 
-import com.example.demo.audit.application.ClientAuditService;
-import com.example.demo.audit.domain.AuditSource;
-import com.example.demo.audit.domain.ClientEventIdentity;
 import com.example.demo.common.exception.ApiException;
 import com.example.demo.common.exception.ErrorCode;
 import com.example.demo.common.request.AuditPrivacy;
@@ -10,8 +7,7 @@ import com.example.demo.common.request.RequestContext;
 import com.example.demo.usecase.AuthorizationUseCase;
 import com.example.demo.usecase.ClientEventUseCase;
 import com.example.demo.usecase.dto.*;
-import com.example.demo.usecase.support.AuditRequestMapper;
-import com.example.demo.usecase.support.ClientEventRateLimiter;
+import com.example.demo.usecase.support.audit.ClientAuditSubmission;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.nio.charset.StandardCharsets;
@@ -23,12 +19,9 @@ import java.util.*;
 @Transactional
 public class ClientEventUseCaseImpl implements ClientEventUseCase {
     private final AuthorizationUseCase authorization;
-    private final ClientAuditService events;
-    private final AuditRequestMapper mapper;
-    private final ClientEventRateLimiter rate;
-    private final Clock clock;
-    public ClientEventUseCaseImpl(AuthorizationUseCase authorization,ClientAuditService events,AuditRequestMapper mapper,ClientEventRateLimiter rate,Clock clock) {
-        this.authorization=authorization;this.events=events;this.mapper=mapper;this.rate=rate;this.clock=clock;
+    private final ClientAuditSubmission submission;
+    public ClientEventUseCaseImpl(AuthorizationUseCase authorization,ClientAuditSubmission submission) {
+        this.authorization=authorization;this.submission=submission;
     }
     @Override public ClientEventAppResponse accept(ClientEventAppRequest request) {
         var actor=authorization.requireAuthenticated();
@@ -61,21 +54,8 @@ public class ClientEventUseCaseImpl implements ClientEventUseCase {
         String canonical=String.join("\n","v1",Long.toString(actor.id()),id.toString(),interaction.toString(),request.eventType(),request.action(),
                 type==null?"":type,resource==null?"":resource,page,occurred.toString());
         String digest=digest(canonical);
-        var existing=events.identity(id);
-        if(existing.isPresent()) { requireSame(existing.get(),actor.id(),digest);return new ClientEventAppResponse(id,false); }
-        Instant now=clock.instant();
-        if(occurred.isBefore(now.minus(Duration.ofHours(24)))||occurred.isAfter(now.plus(Duration.ofMinutes(5))))throw invalid();
-        var event=mapper.event(new AuditWriteAppRequest(id,occurred,request.eventType(),request.action(),"CLIENT","ATTEMPTED",actor,
+        return submission.submit(new AuditWriteAppRequest(id,occurred,request.eventType(),request.action(),"CLIENT","ATTEMPTED",actor,
                 interaction,context.requestId(),type,resource,Map.of("payloadDigest",digest,"pagePath",page),List.of(),null));
-        if(events.insertOnce(event)) {
-            if(!rate.acquire(actor.id(),now))throw new ApiException(ErrorCode.RATE_LIMITED);
-            return new ClientEventAppResponse(id,true);
-        }
-        requireSame(events.identity(id).orElseThrow(()->new ApiException(ErrorCode.EVENT_CONFLICT)),actor.id(),digest);
-        return new ClientEventAppResponse(id,false);
-    }
-    private void requireSame(ClientEventIdentity existing,long actorId,String digest) {
-        if(existing.source()!=AuditSource.CLIENT||!Objects.equals(existing.actorId(),actorId)||!digest.equals(existing.payloadDigest()))throw new ApiException(ErrorCode.EVENT_CONFLICT);
     }
     private ApiException invalid() { return new ApiException(ErrorCode.VALIDATION_ERROR); }
     private String digest(String value) {
