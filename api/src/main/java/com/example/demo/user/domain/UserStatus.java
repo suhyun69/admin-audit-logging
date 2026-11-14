@@ -1,2 +1,6 @@
 package com.example.demo.user.domain;
-public enum UserStatus { ACTIVE, SUSPENDED }
+
+public enum UserStatus {
+  ACTIVE,
+  SUSPENDED
+}

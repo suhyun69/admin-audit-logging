@@ -1,2 +1,7 @@
 package com.example.demo.auth.domain;
-public enum AdminRole { ADMIN, OPERATOR, VIEWER }
+
+public enum AdminRole {
+  ADMIN,
+  OPERATOR,
+  VIEWER
+}

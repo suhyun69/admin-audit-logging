@@ -107,6 +107,27 @@ CLIENT는 `ATTEMPTED`인 브라우저 신고이며 서버 확정 성공으로 �
 
 감사 metadata는 허용 키만 저장하고 pagePath/requestPath에서 query를 제거합니다. 비밀번호·토큰·쿠키·전체 요청/응답·검색 원문을 남기지 않습니다. 상세 조회에서도 과거 metadata와 변경 필드를 다시 정제합니다. 자세한 정책은 [이벤트 계약](../docs/event-catalog.md)을 참고합니다.
 
+## Java 코드 스타일
+
+백엔드 main/test Java 소스는 [Google Java Style](https://google.github.io/styleguide/javaguide.html)을 기준으로 포맷합니다. Gradle에는 Spotless `8.11.0`과 google-java-format `1.30.0`을 고정했으며, Google 기본 스타일(들여쓰기 2칸, 기본 100컬럼)을 사용합니다. wildcard import는 허용하지 않습니다. 문자열 리터럴을 나누는 선택 기능과 코드 리팩터링은 활성화하지 않습니다.
+
+Gradle 실행 JVM도 JDK 21로 맞춥니다. macOS에서는 다음처럼 설정할 수 있습니다.
+
+```bash
+export JAVA_HOME="$(/usr/libexec/java_home -v 21)"
+export PATH="$JAVA_HOME/bin:$PATH"
+cd api
+./gradlew spotlessApply          # main/test Java 전체 포맷 적용
+./gradlew spotlessCheck          # 수정 없이 포맷과 wildcard import 검사
+./gradlew check bootJar          # 포맷 검사 + 전체 테스트 + 실행 jar 빌드
+```
+
+`spotlessCheck`는 Gradle `check`에 자동 연결되므로 `build`에도 적용됩니다. `test`만 실행하면 포맷 검사는 실행되지 않습니다. `spotlessApply`는 파일을 수정하며, wildcard import는 명시적 import로 직접 고친 뒤 다시 실행해야 합니다. IDE에서도 같은 google-java-format 버전을 사용하고 import를 wildcard로 합치는 설정을 끕니다. 최종 판정은 저장소의 Gradle 명령을 기준으로 합니다.
+
+검사 대상은 `src/main/java/**/*.java`, `src/test/java/**/*.java`이며 생성물·SQL·Gradle 파일은 Java formatter 대상이 아닙니다. 이 검사는 포맷과 import 규칙을 자동화하며, 식별자 명명이나 설계처럼 검토가 필요한 Google Style 항목 전체를 lint하는 도구는 아닙니다.
+
+버전 선정 근거: [Spotless Gradle 공식 문서](https://github.com/diffplug/spotless/tree/main/plugin-gradle#requirements)는 Java 17 이상·Gradle 7.3 이상을 요구하고, [릴리스 기록](https://github.com/diffplug/spotless/blob/main/plugin-gradle/CHANGES.md)은 Gradle 9 대응 변경을 명시합니다. [google-java-format 1.30.0 공식 문서](https://github.com/google/google-java-format/blob/v1.30.0/README.md)는 포맷 대상 언어 버전 이상의 JDK 실행을 요구합니다. 이 저장소의 JDK 21·Gradle 9.2.1 조합에서는 실제 `spotlessApply`, `spotlessCheck`, `check`, `bootJar`로 검증합니다.
+
 ## 검증
 
 Docker가 실행 중인 상태에서 Java 21로 실행합니다. 테스트는 별도 PostgreSQL 17 컨테이너를 사용하며 local Compose DB를 초기화하지 않습니다.
