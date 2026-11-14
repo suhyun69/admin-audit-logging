@@ -1,3 +1,8 @@
 package com.example.demo.usecase;
-import com.example.demo.usecase.dto.*;
-public interface ChangeUserStatusTransactionUseCase { StatusChangeAppResponse change(long id,ChangeUserStatusAppRequest request); }
+
+import com.example.demo.usecase.dto.ChangeUserStatusAppRequest;
+import com.example.demo.usecase.dto.StatusChangeAppResponse;
+
+public interface ChangeUserStatusTransactionUseCase {
+  StatusChangeAppResponse change(long id, ChangeUserStatusAppRequest request);
+}

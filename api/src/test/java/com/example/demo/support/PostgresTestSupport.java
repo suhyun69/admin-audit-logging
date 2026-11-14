@@ -11,14 +11,17 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public abstract class PostgresTestSupport {
-    @Container
-    protected static final PostgreSQLContainer<?> POSTGRES = new PostgreSQLContainer<>("postgres:17")
-            .withDatabaseName("audit_test").withUsername("audit_test").withPassword("test-only-password");
+  @Container
+  protected static final PostgreSQLContainer<?> POSTGRES =
+      new PostgreSQLContainer<>("postgres:17")
+          .withDatabaseName("audit_test")
+          .withUsername("audit_test")
+          .withPassword("test-only-password");
 
-    @DynamicPropertySource
-    static void databaseProperties(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES::getUsername);
-        registry.add("spring.datasource.password", POSTGRES::getPassword);
-    }
+  @DynamicPropertySource
+  static void databaseProperties(DynamicPropertyRegistry registry) {
+    registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
+    registry.add("spring.datasource.username", POSTGRES::getUsername);
+    registry.add("spring.datasource.password", POSTGRES::getPassword);
+  }
 }

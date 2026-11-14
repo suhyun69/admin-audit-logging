@@ -11,8 +11,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional(propagation = Propagation.MANDATORY)
 public class AuditWriteUseCaseImpl implements AuditWriteUseCase {
-    private final AuditService audit;
-    private final AuditRequestMapper mapper;
-    public AuditWriteUseCaseImpl(AuditService audit, AuditRequestMapper mapper) { this.audit = audit; this.mapper = mapper; }
-    @Override public void record(AuditWriteAppRequest request) { audit.record(mapper.event(request), mapper.changes(request)); }
+  private final AuditService audit;
+  private final AuditRequestMapper mapper;
+
+  public AuditWriteUseCaseImpl(AuditService audit, AuditRequestMapper mapper) {
+    this.audit = audit;
+    this.mapper = mapper;
+  }
+
+  @Override
+  public void record(AuditWriteAppRequest request) {
+    audit.record(mapper.event(request), mapper.changes(request));
+  }
 }
