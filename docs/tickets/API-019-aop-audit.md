@@ -40,4 +40,4 @@ BUSINESS, SECURITY, HTTP, CLIENT 감사 기록 트리거를 Spring AOP로 이전
 - API integration merge: `c67dcd76b579b08e6845effe852538ddc9a5f701`, 원격 integration 게시 성공.
 - 통합 smoke: Java 21, `./gradlew --no-daemon test --tests '*AopAuditTransactionTest' --tests '*AopAuditCommitContractTest' --tests '*SecurityHttpAuditTest'`, 실제 SpringBootTest/PostgreSQL 포함 27 tests, failure/error/skipped 0. 로그 `/tmp/api-019-integration-smoke.log`.
 - 초기 코드 푸시는 게시 대상 소유권 근거 부족으로 자동 검토가 거부했다. 읽기 전용 GitHub 조회로 origin 소유자와 현재 로그인 계정 `suhyun69`, ADMIN 권한을 확인하고 기존 사용자 승인과 함께 재검토하여 정상 푸시했다.
-- 최종 master는 이 통합 기록 커밋을 포함하여 `--no-ff`로 병합 후 원격 반영한다.
+- 최종 구현 master merge: `452a226303dc0d0f5a6f06b1d606caf6dd2b3e82`, 원격 master push 성공. 기존 사용자 변경은 `admin/next-env.d.ts` 및 미추적 `blog/` 그대로 보존. 이 SHA 기록은 후속 관리 커밋으로 통합한다.
