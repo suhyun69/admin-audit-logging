@@ -35,7 +35,7 @@ jobs:
           cache-dependency-path: |
             api/build.gradle
             api/gradle/wrapper/gradle-wrapper.properties
-      - run: ./gradlew --no-daemon test bootJar
+      - run: ./gradlew --no-daemon spotlessCheck test bootJar
       - name: Report backend test counters
         run: |
           python3 - <<'PYTEST'
