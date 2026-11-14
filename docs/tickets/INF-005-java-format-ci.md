@@ -4,7 +4,7 @@
 브랜치: `codex/inf-005-java-format-ci`
 개발 선행: API-019 / ORC-009 (MERGED)
 통합 선행: API-020 Spotless 설정 (단독 브랜치에는 task가 없으므로 CI 통과 판정은 두 구현 통합 후 수행)
-상태: IN_PROGRESS
+상태: APPROVED
 
 ## 목표와 계약
 
@@ -19,3 +19,12 @@
 - 기존 `admin/next-env.d.ts` 및 미추적 `blog/` 변경 보존.
 
 실행한 검증·미실행 항목·브랜치 SHA·원격 통합 증거를 완료 후 기록한다. 자체 구현 완료와 독립 승인/통합을 구분한다.
+
+## 검토와 승인
+
+- qa 계약/CI 변경 독립 검토 PASS. CI 한 줄 `spotlessCheck test bootJar`, YAML 파싱/검사 assertion PASS.
+- API: Spotless 8.11.0 / google-java-format 1.30.0 고정, main/test Java 205파일 포맷. 와일드카드 import를 컴파일러 심볼로 명시적 import로 확장하고 금지 검사 추가. Google 가이드 전체 lint/명명 변경은 범위 제외.
+- 자체: Java21 `spotlessApply spotlessCheck check bootJar` PASS, 37 suites / 172 tests / failures/errors/skipped 모두0.
+- 독립 qa: `spotlessApply spotlessCheck --rerun-tasks` PASS(전후205파일 SHA256 동일), `check --dry-run`에서 spotless/test 자동 연결 PASS. javac21 import 제외 canonical AST205파일 차이0(textblock 해석값 포함). wildcard import0, `git diff --check` PASS.
+- NOT RUN: qa 전체 테스트 재실행(자체 증거 독립 집계), 브라우저 E2E. 원격 CI는 통합 후 확인.
+- orchestra 결정: APPROVED. 실제 diff/자체 검증/독립 QA 근거를 확인했다. 필수 미해결 항목 없음.

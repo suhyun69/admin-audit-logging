@@ -60,9 +60,9 @@
 | [QA-003](QA-003-transaction-races.md) | qa | 롤백·경합 독립 검증 | QA-001, API-011 | MERGED |
 | [QA-004](QA-004-playwright-e2e.md) | qa | MVP 브라우저 E2E | QA-002, QA-003, QA-005, ADM-009 | MERGED |
 | [QA-005](QA-005-audit-query-contracts.md) | qa | CLIENT·조회·커서 독립 검증 | QA-001, API-015 | MERGED |
-| [ORC-010](ORC-010-google-java-style.md) | orchestra | Google Java Style 적용 계약·검토·통합 | ORC-009 | IN_PROGRESS |
-| [API-020](API-020-google-java-style.md) | api | Google Java Style 포맷 및 빌드 검사 | ORC-009 | IN_PROGRESS |
-| [INF-005](INF-005-java-format-ci.md) | infra | CI Java 포맷 검사 | ORC-009 | IN_PROGRESS |
+| [ORC-010](ORC-010-google-java-style.md) | orchestra | Google Java Style 적용 계약·검토·통합 | ORC-009 | APPROVED |
+| [API-020](API-020-google-java-style.md) | api | Google Java Style 포맷 및 빌드 검사 | ORC-009 | APPROVED |
+| [INF-005](INF-005-java-format-ci.md) | infra | CI Java 포맷 검사 | ORC-009 | APPROVED |
 
 ## 배정과 상태 규칙
 
