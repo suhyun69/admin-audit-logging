@@ -150,3 +150,16 @@ JUnit·ArchUnit·Spring Security Test·MockMvc·실제 Servlet HTTP·Testcontain
 2초마다 DB 세션 유효성·계정 활성·역할을 검사하고 heartbeat를 보냅니다. 각 감사 항목을 전송하기 전에도 검사해, 폐기·만료·권한 변경 시 `auth-expired` 후 연결을 종료합니다. 구독은 30분 제한, disconnect/timeout/error와 앱 종료에서 정리합니다. 스트림은 로그 검색·추가 조회를 호출하지 않습니다.
 
 Kafka/Outbox, 다중 Pod 전달·rate 공유, 관리자 설정 CRUD, 감사 보존·파티셔닝과 외부 변조 방지 저장은 후속 범위입니다. 실행은 [README](README.md), 요구사항·이벤트 계약·독립 QA는 루트 docs를 따릅니다.
+
+## AOP 감사 수집 경계 (API-019)
+
+감사 이벤트 구성과 기록 트리거는 Spring AOP가 담당한다. 업무 유스케이스는 인증·입력 정규화·업무 처리만 수행하며, 수집 정책은 `usecase.support.audit`와 `security.TransportAuditAspect`에 있다. 로그 writer·영속성 어댑터 자체를 무차별 pointcut으로 감싸지 않아 재귀 수집을 방지하고, 메서드 인자/응답 전체를 직렬화하지 않는다.
+
+- `@Audited(Operation)`은 실제 업무 트랜잭션 메서드와 로그인·로그아웃에 명시한다. 트랜잭션 advisor 순서는 `0`, 성공 BUSINESS/auth advice는 `100`이므로 성공 BUSINESS INSERT는 업무 커밋 전에 같은 트랜잭션에 포함된다. 동일 상태 변경은 성공 이벤트를 만들지 않는다.
+- 실패 BUSINESS advice는 `-100`으로 실제 트랜잭션 밖에서 예외를 관찰하여 롤백/커밋 실패가 끝난 뒤 독립 writer를 호출한다. 외부 유스케이스의 입력 검증과 권한 검사 범위는 유지하고 보안 예외를 BUSINESS 실패로 중복 수집하지 않는다.
+- 로그인/로그아웃 성공은 기존 `AuditAfterCommit`으로 커밋 이후 관찰한다. 성공 advice에서 즉시 저장하지 않으므로 실제 커밋 실패/상위 트랜잭션 롤백에서 거짓 성공이 발생하지 않는다. 실패 인증은 익명 actor와 SECURITY 중복 방지 정책을 유지한다.
+- `OncePerRequestFilter`의 final/protected 메서드는 직접 AOP 대상으로 삼지 않는다. 외곽 `HttpAuditFilter`가 관리 Bean `HttpAuditExecution.execute`에 전체 체인을 위임하고 그 advice의 finally에서 HTTP를 기록한다. 컨트롤러 이전 보안 거부와 잘못된 interaction UUID도 포함되며 SSE 제외 정책은 필터에 유지한다. 요청 종료 후 ThreadLocal이 정리되어도 요청 속성의 snapshot으로 기록한다.
+- 보안 필터/인가 유스케이스는 `SecurityFailureObserver` 관리 Bean에 실패를 전달하며 해당 호출의 advice가 SECURITY를 수집한다. 필터와 Security 설정의 람다를 직접 프록시하려 하지 않는다.
+- CLIENT 입력 허용 목록·인증 actor 강제·payload digest 구성은 수집 유스케이스에 유지한다. 별도 관리 Bean `ClientAuditSubmission`의 advice가 replay identity/insert-once/rate-limit/동시 충돌을 담당한다. 중복 검사 후 최초 제출의 시간 범위를 검사하므로 동일 payload의 오래된 재전송은 기존처럼 200이다. 전체 수집은 외부 CLIENT 트랜잭션에 참여해 제한 초과 시 INSERT도 롤백하며 중복은 SSE를 다시 발행하지 않는다.
+
+Spring proxy를 거쳐야 수집되므로 감사 메서드는 관리 Bean의 외부 호출 경계로 유지한다. self-invocation이나 직접 `new`로 만든 객체로 옮기지 않는다. 기존 HTTP/API 응답과 이벤트 계약은 변경하지 않는다.
