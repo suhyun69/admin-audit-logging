@@ -21,7 +21,7 @@ export type ClientEvent = Readonly<{
   resourceId?: string;
 }>;
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const allowedPage = new RegExp(`^(?:/login|/dashboard|/users(?:/[1-9]\\d*)?|/audit-logs(?:/me|/[0-9a-f-]{36}|/interactions/[0-9a-f-]{36})?)$`, "i");
+const allowedPage = new RegExp(`^(?:/login|/dashboard|/iam|/users(?:/[1-9]\\d*)?|/audit-logs(?:/me|/[0-9a-f-]{36}|/interactions/[0-9a-f-]{36})?)$`, "i");
 const actions: Record<ClientEventType, readonly ClientAction[]> = {
   PAGE_VIEW: ["PAGE_ENTER"], BUTTON_CLICK: ["USER_SUSPEND_CLICK", "USER_ACTIVATE_CLICK", "USER_SUSPEND_CONFIRM_CLICK", "USER_ACTIVATE_CONFIRM_CLICK", "USER_STATUS_CANCEL_CLICK", "USER_STATUS_CLOSE_CLICK"],
   USER_SEARCH: ["USER_SEARCH_SUBMIT"], FILTER_CHANGE: ["USER_STATUS_FILTER", "AUDIT_FILTER_CHANGE"],

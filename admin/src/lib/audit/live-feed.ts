@@ -2,12 +2,13 @@ import type { AuditItem } from "./queries.ts";
 
 export const LIVE_LOG_LIMIT = 200;
 const uuidPath = "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
-const allowedPagePath = new RegExp(`^/(?:login|dashboard|users(?:/[1-9][0-9]{0,18})?|audit-logs(?:/me|/${uuidPath}|/interactions/${uuidPath})?)$`);
+const allowedPagePath = new RegExp(`^/(?:login|dashboard|iam|users(?:/[1-9][0-9]{0,18})?|audit-logs(?:/me|/${uuidPath}|/interactions/${uuidPath})?)$`);
 
 export function livePageLabel(pagePath: string | null | undefined): string {
   if (!pagePath || !allowedPagePath.test(pagePath)) return "페이지 정보 없음";
   const labels: Record<string, string> = {
     "/users": "회원 관리",
+    "/iam": "접근 권한 관리",
     "/dashboard": "대시보드",
     "/login": "로그인",
     "/audit-logs": "감사 로그",
