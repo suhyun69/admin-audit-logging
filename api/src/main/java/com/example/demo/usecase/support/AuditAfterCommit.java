@@ -8,12 +8,23 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Component
 public class AuditAfterCommit {
-    private final ObserveAuditUseCase observer;
-    public AuditAfterCommit(ObserveAuditUseCase observer) { this.observer=observer; }
-    public void record(AuditWriteAppRequest event) {
-        if(!TransactionSynchronizationManager.isSynchronizationActive()) { observer.record(event); return; }
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override public void afterCommit() { observer.record(event); }
-        });
+  private final ObserveAuditUseCase observer;
+
+  public AuditAfterCommit(ObserveAuditUseCase observer) {
+    this.observer = observer;
+  }
+
+  public void record(AuditWriteAppRequest event) {
+    if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+      observer.record(event);
+      return;
     }
+    TransactionSynchronizationManager.registerSynchronization(
+        new TransactionSynchronization() {
+          @Override
+          public void afterCommit() {
+            observer.record(event);
+          }
+        });
+  }
 }

@@ -11,12 +11,15 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 @Service
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 public class AuditStreamUseCaseImpl implements AuditStreamUseCase {
-    private final AuthorizationUseCase authorization;
-    private final AuditStreamHub hub;
-    public AuditStreamUseCaseImpl(AuthorizationUseCase authorization, AuditStreamHub hub) {
-        this.authorization=authorization; this.hub=hub;
-    }
-    public SseEmitter subscribe(String token,String lastEventId) {
-        return hub.subscribe(authorization.requireAuthenticated(),token,lastEventId);
-    }
+  private final AuthorizationUseCase authorization;
+  private final AuditStreamHub hub;
+
+  public AuditStreamUseCaseImpl(AuthorizationUseCase authorization, AuditStreamHub hub) {
+    this.authorization = authorization;
+    this.hub = hub;
+  }
+
+  public SseEmitter subscribe(String token, String lastEventId) {
+    return hub.subscribe(authorization.requireAuthenticated(), token, lastEventId);
+  }
 }
