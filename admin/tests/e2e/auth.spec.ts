@@ -77,7 +77,7 @@ test("an expired browser cookie leads through real unauthorized me to login", as
 });
 
 test("local login lists enabled accounts and its anonymous side panel receives only new CLIENT events", async ({ page, browser, baseURL }) => {
-  database("INSERT INTO admin_users(username,password_hash,display_name,role,enabled) SELECT 'e2e_disabled_picker',password_hash,'Disabled fixture','VIEWER',false FROM admin_users WHERE username='admin' ON CONFLICT(username) DO UPDATE SET enabled=false");
+  database("INSERT INTO admin_users(username,email,password_hash,display_name,role,enabled) SELECT 'e2e_disabled_picker','e2e_disabled_picker@e2e.invalid',password_hash,'Disabled fixture','VIEWER',false FROM admin_users WHERE username='admin' ON CONFLICT(username) DO UPDATE SET enabled=false");
   let meRequests = 0;
   page.on("request", request => { if (new URL(request.url()).pathname === "/api/v1/auth/me") meRequests++; });
   await page.addInitScript(() => {
@@ -198,7 +198,7 @@ test("account loading errors remain retryable and only a missing local endpoint 
 test("an account disabled after selection is rejected without issuing a local session", async ({ page, context }) => {
   const suffix = createHash("sha256").update(test.info().testId).digest("hex").slice(0, 12);
   const username = `e2e_disabled_after_list_${suffix}`;
-  database(`INSERT INTO admin_users(username,password_hash,display_name,role) SELECT '${username}',password_hash,'E2E disabled after list','VIEWER' FROM admin_users WHERE username='admin'`);
+  database(`INSERT INTO admin_users(username,email,password_hash,display_name,role) SELECT '${username}','${username}@e2e.invalid',password_hash,'E2E disabled after list','VIEWER' FROM admin_users WHERE username='admin'`);
   await page.goto("/login");
   await page.getByTestId("local-account-picker").selectOption(username);
   database(`UPDATE admin_users SET enabled=false WHERE username='${username}'`);
