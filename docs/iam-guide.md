@@ -179,7 +179,7 @@ npm run test:e2e
 
 독립 QA 전체 Java 빌드: **41 suites / 199 tests / failures·errors·skipped 모두 0**. 실제 SpringBootTest context, PostgreSQL Flyway 업그레이드, 권한 경합·감사 원자성, 범용 어노테이션, SQL 범위와 totalElements, 직접 DENY, 만료, 그룹·계정 비활성, 권한 상승 방어를 포함한다. 배치 성능은 리소스 1개와 100개일 때 정책 조회 횟수가 동일하고 리소스 배치 resolver 호출이 1회임을 검증했다.
 
-Admin 단위/BFF **53개 PASS**, lint/typecheck PASS. 실제 production API JAR + Next.js build/start + Chromium + 격리 PostgreSQL의 전체 E2E는 기존 19개와 IAM 4개로 구성한다. 상세 실행 결과는 [QA 보고](iam-qa-report.md)에 기록한다. IAM 미리보기와 Matrix 화면도 실제 스크린샷으로 시각 검토했다.
+Admin 단위/BFF **53개 PASS**, lint/typecheck PASS. 실제 production API JAR + Next.js build/start + Chromium + 격리 PostgreSQL의 전체 E2E **23/23 PASS**(기존 19개 + IAM 4개, 실패·건너뜀 0)다. 최종 UI 선택 그룹 제거 회귀와 최신 production build를 포함한다. 상세 실행 결과는 [QA 보고](iam-qa-report.md)에 기록한다. IAM 미리보기와 Matrix 화면도 실제 스크린샷으로 시각 검토했다.
 
 이번 변경에서 도입하지 않은 것과 검증 한계:
 

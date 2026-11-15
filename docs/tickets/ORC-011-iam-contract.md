@@ -3,7 +3,7 @@
 담당: orchestra
 브랜치: `codex/orc-011-iam-contract`
 선행: ORC-010
-상태: IN_PROGRESS
+상태: APPROVED
 
 ## 목표와 계약
 
@@ -17,4 +17,8 @@
 
 ## 결과와 통합
 
-진행 중. 구현 SHA, 실제 명령/결과, qa 근거와 승인/머지 SHA를 완료 시 기록한다.
+qa 최종 계약·사용문서 독립 검토 PASS. 실제 diff와 독립 검증(API199·Admin53·E2E23/실패·건너뜀0), 시각 검토 근거를 확인하여 orchestra가 로컬 결과를 APPROVED로 결정했다.
+
+계약 로컬 커밋: `ebf3c6a`, `15eaabf`, `5e0b5d2`, `210fd1d`. 구현 SHA와 한계는 [IAM 계약](../iam-implementation.md)과 [QA 보고](../iam-qa-report.md)를 따른다. 로컬 전달 브랜치는 `codex/iam-local-review`다.
+
+사용자 지시에 따라 원격 push, integration/master 반영과 배포는 하지 않았다. 원격 통합을 뜻하는 MERGED로 표시하지 않는다.

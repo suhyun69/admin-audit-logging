@@ -19,7 +19,7 @@
 - 기존 ADMIN은 명시적 전역 정책 `global_admin`으로 이관한다. 이후 문자열 ADMIN 역할만으로 전역 접근을 허용하지 않는다. OPERATOR/VIEWER는 기본 그룹 역할로 이관한다.
 - 실제 존재하는 `user:read`, `user:update`를 통합 예제로 적용한다. payment/auction 업무 도메인을 임의 생성하지 않는다. 신규 리소스는 배치 resolver와 permission 등록으로 확장한다.
 - 기본 DENY, 비활성 계정/그룹·미소속 차단, 유효한 명시 DENY 우선, ALLOW 다음 역할 ALLOW. 리소스의 실제 그룹과 요청 그룹이 다르면 거부한다.
-- 명시 전역 관리자만 그룹 소속 검사를 면제한다. 전역 관리자도 업무 리소스의 비활성 그룹과 직접 DENY를 우회하지 않는다. ALL 업무 목록 쿼리에도 활성 그룹 및 유효한 직접 DENY 제외 조건을 적용한다.
+- 명시 전역 관리자만 그룹 소속 검사를 면제한다. 전역 관리자도 업무 리소스의 비활성 그룹과 직접 DENY를 우회하지 않는다. ALL 업무 목록 쿼리에는 활성 그룹 조건을 적용한다. 유효한 직접 DENY가 있으면 GROUPS로 전환하고 SQL의 groupIds 조건으로 해당 그룹을 제외한다.
 - 명시 전역 정책의 lifecycle 예외: `global_admin`의 `iam:group/manage`는 비활성 그룹 조회·수정·재활성화를 허용한다. 직접 DENY와 계정 비활성은 이 예외에서도 우선한다. 일반 그룹 관리자와 모든 업무 리소스에는 예외가 적용되지 않는다. 이를 AuthorizationService의 같은 평가 경로에서 처리하고 별도 우회 코드를 두지 않는다.
 - 전역 역할 정의/권한 편집은 전역 관리자 전용이며 공유 역할은 모든 그룹에 영향이 있으므로 해당 관리 권한의 ALL scope가 필요하다. 그룹 관리 권한으로 다른 그룹이나 전역 정책을 변경할 수 없다.
 
@@ -54,4 +54,8 @@ qa 독립 계약 검토 후 전역 정책의 그룹 소속 예외·비활성 그
 
 사용자 최종 지시(2026-11-15): **로컬 구현·검증까지만 진행한다. 원격 push 및 integration/master 반영은 하지 않는다.** 따라서 독립 worktree의 로컬 티켓 브랜치와 별도 로컬 검증 브랜치에서만 작업한다. 기존 일반 원격 게시 승인보다 이 지시가 우선한다.
 
-구현 및 독립 검증 진행 중. 완료/검토 SHA와 실제 명령 결과는 티켓과 최종 보고에 기록한다. 실행하지 않은 검증은 통과로 표시하지 않는다. 원격 반영 없이 티켓을 MERGED로 표시하지 않는다.
+최종 독립 검증 PASS: Java21 전체 build 41 suites/199 tests/실패·오류·건너뜀0, Admin 단위53개 및 lint/typecheck, 최신 production build를 포함한 실제 BFF/Chromium/PostgreSQL E2E23개 모두 통과했다. Matrix/변경 미리보기 화면을 시각 검토했다. qa의 최종 계약·사용문서 독립 검토를 반영했다.
+
+orchestra 결정: 로컬 결과 APPROVED. 실제 명령 결과와 미검증 한계는 [사용 안내](iam-guide.md)와 [독립 QA 보고](iam-qa-report.md)에 기록했다. 다중 Pod·대규모 부하/EXPLAIN·원격 CI·배포는 미실행이다. 원격 반영 없이 티켓을 MERGED로 표시하지 않는다.
+
+로컬 구현 SHA: API `26b9fe0`, Admin `3087aa2` + `b146697` + `0e8ae57`, 실행 문서 `912f25d`, 독립 QA `2dc293e`. 최종 전달은 `codex/iam-local-review`다. master/origin/master는 `4d3e5e2`, integration은 `ff46bd9`를 유지했다.

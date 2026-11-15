@@ -3,7 +3,7 @@
 담당: qa
 브랜치: `codex/qa-006-iam-verification`
 선행: ORC-011 계약; 완성 API/Admin에서 최종 검증
-상태: IN_PROGRESS
+상태: APPROVED
 
 ## 목표와 계약
 
@@ -17,4 +17,8 @@
 
 ## 결과와 통합
 
-진행 중. 구현 SHA, 실제 명령/결과, qa 근거와 승인/머지 SHA를 완료 시 기록한다.
+로컬 QA 커밋: `2dc293edf8e2ffd74cfe548269df8548cbe3a399`. 독립 Java6개와 IAM E2E4시나리오 및 최종 보고를 작성했다. API 전체199개, Admin 단위53개, 최신 production 실제E2E23개와 lint/typecheck 모두 PASS(실패·건너뜀0). 격리 리소스 정리도 PASS다.
+
+orchestra는 실제 테스트 diff·XML/브라우저 결과·QA 보고를 확인하여 로컬 인수를 APPROVED로 결정했다. 초기 sandbox EPERM와 추가 E2E locator 실패는 최종 재실행으로 해결했으며 보고서에 이력을 보존했다. 실행하지 않은 부하/다중Pod/EXPLAIN을 PASS로 표시하지 않았다.
+
+원격 작업과 integration/master 반영은 하지 않았다. 원격 통합을 뜻하는 MERGED로 표시하지 않는다.

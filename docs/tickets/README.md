@@ -1,8 +1,10 @@
 # 구현 티켓 목록
 
-재검토 결과 42개 티켓으로 세분화했다. 현재 상태는 아래 목록과 각 티켓의 증거 기록을 따른다. ORC-002의 api/.git 제거 부분만 사용자 요청으로 선행 수행했다.
+초기 MVP는 재검토 결과 42개 티켓으로 세분화했고 후속 요청별 티켓을 아래에 추가했다. 현재 상태는 아래 목록과 각 티켓의 증거 기록을 따른다. ORC-002의 api/.git 제거 부분만 사용자 요청으로 선행 수행했다.
 각 브랜치는 선행 작업이 승인·원격 integration에 통합된 시점에 생성한다.
 [브랜치 전략](../branch-strategy.md)과 [재검토 결과](../ticket-review.md)를 따른다.
+
+2026-11-15 IAM 요청은 사용자의 최종 지시에 따라 **로컬 구현·검증만** 수행한다. 원격 push 및 integration/master 반영은 하지 않는다. 따라서 해당 티켓의 로컬 검토 완료 상태는 APPROVED이며 원격 통합을 뜻하는 MERGED로 표시하지 않는다. [IAM 계약](../iam-implementation.md)을 따른다.
 
 | ID | 담당 | 작업 | 선행 티켓 | 상태 |
 |---|---|---|---|---|
@@ -64,12 +66,12 @@
 | [API-020](API-020-google-java-style.md) | api | Google Java Style 포맷 및 빌드 검사 | ORC-009 | MERGED |
 | [INF-005](INF-005-java-format-ci.md) | infra | CI Java 포맷 검사 | ORC-009 | MERGED |
 
-| [ORC-011](ORC-011-iam-contract.md) | orchestra | IAM 계약·배정·독립 검토·통합 | ORC-010 | IN_PROGRESS |
-| [API-021](API-021-iam.md) | api | IAM 데이터 계층·평가 엔진·관리 API·기존 회원 통합 | ORC-011 계약 | IN_REVIEW |
-| [ADM-017](ADM-017-iam.md) | admin | IAM 관리 UI·BFF·allowedActions 연계 | ORC-011 계약; 연동 검증은 API-021 | IN_REVIEW |
-| [QA-006](QA-006-iam-verification.md) | qa | IAM 독립 검증 | ORC-011 계약; 완성 API/Admin에서 최종 검증 | IN_PROGRESS |
+| [ORC-011](ORC-011-iam-contract.md) | orchestra | IAM 계약·배정·독립 검토·통합 | ORC-010 | APPROVED |
+| [API-021](API-021-iam.md) | api | IAM 데이터 계층·평가 엔진·관리 API·기존 회원 통합 | ORC-011 계약 | APPROVED |
+| [ADM-017](ADM-017-iam.md) | admin | IAM 관리 UI·BFF·allowedActions 연계 | ORC-011 계약; 연동 검증은 API-021 | APPROVED |
+| [QA-006](QA-006-iam-verification.md) | qa | IAM 독립 검증 | ORC-011 계약; 완성 API/Admin에서 최종 검증 | APPROVED |
 
-| [INF-006](INF-006-iam-docs.md) | infra | IAM 실행 문서 갱신 | ORC-011 계약 | IN_REVIEW |
+| [INF-006](INF-006-iam-docs.md) | infra | IAM 실행 문서 갱신 | ORC-011 계약 | APPROVED |
 
 ## 배정과 상태 규칙
 
