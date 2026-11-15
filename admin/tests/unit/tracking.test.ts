@@ -90,3 +90,16 @@ test("modal buttons preserve their opening interaction and require the same memb
   }
   assert.equal(ids.size, actions.length);
 });
+
+
+test("IAM page visits strip query/hash and reject unapproved or PII routes", () => {
+  const event = createClientEvent({ eventType: "PAGE_VIEW", action: "PAGE_ENTER", pagePath: "/iam?email=private@example.com#secret" });
+  assert(event); assert.equal(event.pagePath, "/iam"); assert.equal(JSON.stringify(event).includes("private"), false);
+  const visits = new PageVisitTracker();
+  assert.equal(visits.shouldTrack("1:ADMIN", "/iam"), true);
+  assert.equal(visits.shouldTrack("1:ADMIN", "/iam?email=private@example.com"), false);
+  for (const path of ["/iam/", "/iam/users/private@example.com", "/iam-admin", "/iam%2fusers", "https://example.test/iam"]) {
+    assert.equal(sanitizePagePath(path), undefined);
+    assert.equal(createClientEvent({ eventType: "PAGE_VIEW", action: "PAGE_ENTER", pagePath: path }), undefined);
+  }
+});
