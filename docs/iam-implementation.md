@@ -5,10 +5,11 @@
 ## 분석과 재사용
 
 - 모노레포: `api/` Spring Boot 3.5.16, Java 21, Gradle 9.2.1; `admin/` Next.js 16.4.5, React 19.3.1, TypeScript 5.9.3.
-- 인증은 DB의 opaque session + BCrypt + 세션에 결합한 CSRF이며 JWT로 교체하지 않는다. Spring Security 의존 버전은 Boot BOM으로 관리한다.
+- 인증은 DB의 opaque session + BCrypt + 세션에 결합한 CSRF이며 JWT로 교체하지 않는다. Spring Security 6.5.11은 Boot BOM으로 관리하며 `dependencyInsight --dependency spring-security-core --configuration runtimeClasspath`로 실제 해석 버전을 확인했다.
 - PostgreSQL 17/Flyway, Spring Data JPA 의존성 및 JdbcTemplate 영속 어댑터를 사용한다. 기존 controller → usecase → application/port → adapter 경계를 유지한다.
 - Redis 없음. 캐시 없이 매 요청 최신 정책을 읽는다. 멀티 Pod에서도 DB 커밋 이후 동일한 정책을 사용한다.
 - JUnit 5, ArchUnit, PostgreSQL Testcontainers, 프론트 Node 단위 테스트와 Playwright를 재사용한다.
+- 새 IAM API와 업무 회원 API를 범용 권한 엔진으로 보호한다. UUID 감사 로그의 기존 ADMIN/본인 활동 조회 정책은 유지한다. 신규 IAM 권한 변경 감사는 별도 IAM 권한으로 보호한다. 기존 감사 조회까지 그룹 IAM으로 이관하는 것은 이번 변경에서 임의로 수행하지 않는다.
 
 ## 주체와 리소스
 
@@ -18,8 +19,9 @@
 - 기존 ADMIN은 명시적 전역 정책 `global_admin`으로 이관한다. 이후 문자열 ADMIN 역할만으로 전역 접근을 허용하지 않는다. OPERATOR/VIEWER는 기본 그룹 역할로 이관한다.
 - 실제 존재하는 `user:read`, `user:update`를 통합 예제로 적용한다. payment/auction 업무 도메인을 임의 생성하지 않는다. 신규 리소스는 배치 resolver와 permission 등록으로 확장한다.
 - 기본 DENY, 비활성 계정/그룹·미소속 차단, 유효한 명시 DENY 우선, ALLOW 다음 역할 ALLOW. 리소스의 실제 그룹과 요청 그룹이 다르면 거부한다.
-- 명시 전역 관리자만 그룹 소속 검사를 면제한다. 전역 관리자도 비활성 그룹과 직접 DENY를 우회하지 않는다. ALL 목록 쿼리에도 활성 그룹 및 유효한 직접 DENY 제외 조건을 적용한다.
-- 전역 역할 정의/권한 편집은 전역 관리자 전용이다. 그룹 관리 권한으로 다른 그룹이나 전역 정책을 변경할 수 없다.
+- 명시 전역 관리자만 그룹 소속 검사를 면제한다. 전역 관리자도 업무 리소스의 비활성 그룹과 직접 DENY를 우회하지 않는다. ALL 업무 목록 쿼리에도 활성 그룹 및 유효한 직접 DENY 제외 조건을 적용한다.
+- 명시 전역 정책의 lifecycle 예외: `global_admin`의 `iam:group/manage`는 비활성 그룹 조회·수정·재활성화를 허용한다. 직접 DENY와 계정 비활성은 이 예외에서도 우선한다. 일반 그룹 관리자와 모든 업무 리소스에는 예외가 적용되지 않는다. 이를 AuthorizationService의 같은 평가 경로에서 처리하고 별도 우회 코드를 두지 않는다.
+- 전역 역할 정의/권한 편집은 전역 관리자 전용이며 공유 역할은 모든 그룹에 영향이 있으므로 해당 관리 권한의 ALL scope가 필요하다. 그룹 관리 권한으로 다른 그룹이나 전역 정책을 변경할 수 없다.
 
 ## 변경 범위와 배정
 
@@ -30,7 +32,7 @@
 | ADM-017 | admin | `admin/src` IAM UI·BFF·회원 allowedActions, `admin/tests` | draft/미리보기/BFF 단위, lint/typecheck/build |
 | QA-006 | qa | `docs/iam-qa-report.md` | 독립 API/UI 검증, 실패/미검증 공개 |
 
-각 구현자는 자신의 영역 테스트 파일을 작성한다. 별도 독립 인수 테스트 `admin/tests/e2e/iam-acceptance.spec.ts`는 qa가 소유한다. qa는 제품 구현 파일을 수정하지 않고 재현 결과를 보고하며 orchestra가 수정 요청과 통합 결정을 기록한다. 각 브랜치/worktree는 독립하며 API 계약을 먼저 합의하고 Admin이 이를 따른다.
+각 구현자는 자신의 영역 테스트 파일을 작성한다. 별도 독립 인수 테스트 `admin/tests/e2e/iam-acceptance.spec.ts`와 `api/src/test/java/com/example/demo/iam/IamSecurityRegressionTest.java`는 qa가 소유한다. qa는 제품 구현 파일을 수정하지 않고 재현 결과를 보고하며 orchestra가 수정 요청과 통합 결정을 기록한다. 각 브랜치/worktree는 독립하며 API 계약을 먼저 합의하고 Admin이 이를 따른다.
 
 ## 구현 순서와 완료 조건
 
