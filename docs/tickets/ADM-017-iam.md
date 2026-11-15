@@ -3,7 +3,7 @@
 담당: admin
 브랜치: `codex/adm-017-iam`
 선행: ORC-011 계약; 연동 검증은 API-021
-상태: IN_PROGRESS
+상태: IN_REVIEW
 
 ## 목표와 계약
 
@@ -17,4 +17,8 @@
 
 ## 결과와 통합
 
-진행 중. 구현 SHA, 실제 명령/결과, qa 근거와 승인/머지 SHA를 완료 시 기록한다.
+로컬 구현 커밋: `3087aa24a77daa3b70e25b98922f85a9de5ab15c` (`codex/adm-017-iam`).
+
+자체 검증: 단위/BFF 51/51, lint/typecheck/production build PASS. QA 독립 재실행: 단위51/51 및 lint PASS. 실제 API/BFF/브라우저 연동은 QA-006 로컬 검증 브랜치에서 진행 중.
+
+사용자 최종 범위에 따라 원격 게시 및 integration/master 반영은 하지 않는다. 구현 완료와 최종 검토 승인을 구분한다.
