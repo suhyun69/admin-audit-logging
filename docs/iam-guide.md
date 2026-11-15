@@ -144,4 +144,48 @@ ID는 실제 카탈로그에서 조회한 값을 사용한다. 그룹 관리자�
 
 ## 검증과 로컬 전달
 
-사용자의 최종 범위는 로컬 구현·검증이다. 원격 push 및 integration/master 반영은 하지 않는다. 구현 티켓별 로컬 브랜치와 별도 통합 검증 worktree를 사용한다. 실제 파일·명령·테스트 개수·SHA는 완료 후 이 문서와 티켓에 추가한다.
+사용자의 최종 범위는 로컬 구현·검증이다. 원격 push 및 integration/master 반영은 하지 않는다. 구현 티켓별 로컬 브랜치와 별도 통합 검증 worktree를 사용한다. 실제 검증과 소스 SHA는 아래 및 티켓에 기록한다.
+
+
+주요 구현 파일:
+
+| 영역 | 파일 |
+|---|---|
+| 마이그레이션 | `api/src/main/resources/db/migration/V4__iam.sql` |
+| 공통 계약 | `api/src/main/java/com/example/demo/common/authorization/{AuthorizationService,AccessScope,ResourceResolver,RequirePermission,PermissionDecision}.java` |
+| 평가 엔진 | `api/src/main/java/com/example/demo/usecase/impl/AuthorizationEngineUseCaseImpl.java` |
+| 관리 트랜잭션 | `api/src/main/java/com/example/demo/usecase/impl/IamManagementUseCaseImpl.java` |
+| 관리 API / 경계 | `api/src/main/java/com/example/demo/controller/IamController.java`, `security/RequirePermissionAspect.java` |
+| DB 연계 | `api/src/main/java/com/example/demo/iam/adapter/out/persistence/{IamPersistenceAdapter,UserResourceResolver}.java` |
+| 업무 API 연계 | `ReadUsersTransactionUseCaseImpl`, `ChangeUserStatusTransactionUseCaseImpl`, `UserPersistenceAdapter`, 회원 DTO |
+| 관리 화면 | `admin/src/app/(console)/iam/page.tsx`, `admin/src/components/iam/iam-console.tsx` |
+| 미리보기 / BFF | `admin/src/lib/iam/{types,draft}.ts`, `admin/src/lib/api/proxy.ts` |
+| 자체 검증 | `api/src/test/java/com/example/demo/iam/{IamIntegrationTest,IamAnnotationTest,IamMigrationTest}.java`, `admin/tests/unit/iam.test.ts` |
+| 독립 검증 | `api/src/test/java/com/example/demo/iam/IamSecurityRegressionTest.java`, `admin/tests/e2e/iam-acceptance.spec.ts` |
+
+재현 명령은 기존 [README](../README.md)의 Java21/Docker/Node 설정을 따른다.
+
+```bash
+# api/에서
+./gradlew build
+
+# admin/에서 각각 실행
+npm run lint
+npm run typecheck
+npm run test:unit
+npm run build
+npm run test:e2e
+```
+
+독립 QA 전체 Java 빌드: **41 suites / 199 tests / failures·errors·skipped 모두 0**. 실제 SpringBootTest context, PostgreSQL Flyway 업그레이드, 권한 경합·감사 원자성, 범용 어노테이션, SQL 범위와 totalElements, 직접 DENY, 만료, 그룹·계정 비활성, 권한 상승 방어를 포함한다. 배치 성능은 리소스 1개와 100개일 때 정책 조회 횟수가 동일하고 리소스 배치 resolver 호출이 1회임을 검증했다.
+
+Admin 단위/BFF **53개 PASS**, lint/typecheck PASS. 실제 production API JAR + Next.js build/start + Chromium + 격리 PostgreSQL의 전체 E2E는 기존 19개와 IAM 4개로 구성한다. 상세 실행 결과는 [QA 보고](iam-qa-report.md)에 기록한다. IAM 미리보기와 Matrix 화면도 실제 스크린샷으로 시각 검토했다.
+
+이번 변경에서 도입하지 않은 것과 검증 한계:
+
+- 결제·경매 업무 도메인은 기존 프로젝트에 없어 만들지 않았다. 범용 resolver/permission 계약으로 확장할 수 있으며 실제 적용 예시는 업무 회원이다.
+- Redis/권한 캐시는 없다. AuthorizationService/영속 포트/정책 버전이 확장 지점이며 최신 DB 정책을 사용한다.
+- 기존 UUID 감사 API의 역할 정책과 로그인 방식은 유지한다. 새 IAM 변경 감사에는 IAM 권한을 적용한다.
+- 소유자·담당자·개별 레코드 예외 정책은 실제 요구 도메인이 없어 구현하지 않았다. 현재 접근 범위는 그룹 및 명시 전역 정책이다.
+- 실제 다중 Pod 배포 실험, 대규모 부하 및 EXPLAIN 분석은 실행하지 않았다. 단일 정책 행 잠금의 쓰기 처리량은 운영 부하에서 추가 검증해야 한다.
+- 원격 CI·원격 게시·integration/master 반영·배포는 사용자 범위에 따라 수행하지 않았다.
