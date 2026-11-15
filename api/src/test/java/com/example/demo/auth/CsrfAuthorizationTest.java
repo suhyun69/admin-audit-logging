@@ -148,7 +148,7 @@ class CsrfAuthorizationTest extends PostgresTestSupport {
   }
 
   @Test
-  void roleMatchersReserveGlobalAuditAndWritesButAllowOwnReadEndpoints() throws Exception {
+  void routeMatchersReserveGlobalAuditAndDelegateWritesToIam() throws Exception {
     for (String username : new String[] {"admin", "operator", "viewer"}) {
       var actor = login(username);
       String csrf = token(csrf(actor.session(), actor.cookie()));
@@ -157,7 +157,7 @@ class CsrfAuthorizationTest extends PostgresTestSupport {
                   .cookie(actor.cookie())
                   .session(actor.session())
                   .header("X-CSRF-TOKEN", csrf))
-          .andExpect(status().is(username.equals("viewer") ? 403 : 204));
+          .andExpect(status().isNoContent());
       for (String path :
           new String[] {
             "/api/v1/audit-logs",

@@ -23,7 +23,7 @@ class AuditQueryPlanTest extends PostgresTestSupport {
     Flyway.configure().dataSource(ds).load().migrate();
     var jdbc = new JdbcTemplate(ds);
     jdbc.update(
-        "INSERT INTO admin_users(username,password_hash,display_name,role) VALUES ('admin','test-only','Admin','ADMIN'),('operator','test-only','Operator','OPERATOR'),('viewer','test-only','Viewer','VIEWER'),('sparse','test-only','Sparse','VIEWER')");
+        "INSERT INTO admin_users(username,password_hash,display_name,role,email) VALUES ('admin','test-only','Admin','ADMIN',gen_random_uuid()::text||'@test.invalid'),('operator','test-only','Operator','OPERATOR',gen_random_uuid()::text||'@test.invalid'),('viewer','test-only','Viewer','VIEWER',gen_random_uuid()::text||'@test.invalid'),('sparse','test-only','Sparse','VIEWER',gen_random_uuid()::text||'@test.invalid')");
     jdbc.update(
         """
                 INSERT INTO audit_logs(id,occurred_at,event_type,action,actor_id,source,result)

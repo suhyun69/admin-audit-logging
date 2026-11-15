@@ -43,7 +43,7 @@ class AuditWriterTest extends PostgresTestSupport {
         "TRUNCATE audit_log_changes,audit_logs,admin_sessions,admin_users,users RESTART IDENTITY CASCADE");
     jdbc.update("INSERT INTO users(email,name) VALUES ('member@example.test','Member')");
     jdbc.update(
-        "INSERT INTO admin_users(username,password_hash,display_name,role) VALUES ('admin','hash','Admin','ADMIN')");
+        "INSERT INTO admin_users(username,password_hash,display_name,role,email) VALUES ('admin','hash','Admin','ADMIN',gen_random_uuid()::text||'@test.invalid')");
     var context = new RequestContext(UUID.randomUUID(), UUID.randomUUID(), Instant.now());
     context.setActor(new ActorSnapshot(1, "Admin", "ADMIN", UUID.randomUUID()));
     RequestContext.install(context);

@@ -29,7 +29,7 @@ class NonLocalDevelopmentIsolationTest extends HttpApiTestSupport {
   @Test
   void authenticatedNonLocalUsersStillCannotUseLocalLoginOrPublicStream() throws Exception {
     jdbc.update(
-        "INSERT INTO admin_users(username,password_hash,display_name,role) VALUES ('admin',?,'Admin','ADMIN')",
+        "INSERT INTO admin_users(username,password_hash,display_name,role,email) VALUES ('admin',?,'Admin','ADMIN',gen_random_uuid()::text||'@test.invalid')",
         passwords.encode("local-test-password"));
     try {
       var admin = login("admin");

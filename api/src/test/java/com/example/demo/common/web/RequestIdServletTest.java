@@ -54,7 +54,7 @@ class RequestIdServletTest extends PostgresTestSupport {
               .readTree(send(client, "GET", "/auth/csrf", null, null).body())
               .get("token")
               .asText();
-      verify(send(client, "GET", "/users/9223372036854775807", null, null), 404);
+      verify(send(client, "GET", "/users/9223372036854775807", null, null), 403);
       verify(
           send(
               client,

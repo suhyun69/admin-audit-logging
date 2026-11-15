@@ -9,4 +9,17 @@ public record UserAppResponse(
     String status,
     long version,
     Instant createdAt,
-    Instant updatedAt) {}
+    Instant updatedAt,
+    long groupId,
+    java.util.Set<String> allowedActions) {
+  public UserAppResponse(
+      long id,
+      String email,
+      String name,
+      String status,
+      long version,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(id, email, name, status, version, createdAt, updatedAt, 1L, java.util.Set.of());
+  }
+}

@@ -16,11 +16,11 @@ class ProductionSeedIsolationTest extends PostgresTestSupport {
 
   @Test
   void nonLocalApplicationDoesNotDiscoverOrCreateDevelopmentAccounts() {
-    assertThat(flyway.info().current().getVersion().toString()).isEqualTo("2");
+    assertThat(flyway.info().current().getVersion().toString()).isEqualTo("4");
     assertThat(
             jdbc.queryForObject(
                 "SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class))
-        .isEqualTo(2);
+        .isEqualTo(3);
     assertThat(jdbc.queryForObject("SELECT count(*) FROM admin_users", Integer.class)).isZero();
     assertThat(jdbc.queryForObject("SELECT count(*) FROM users", Integer.class)).isZero();
   }

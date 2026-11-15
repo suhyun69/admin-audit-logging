@@ -10,7 +10,9 @@ public record UserWebResponse(
     String status,
     long version,
     Instant createdAt,
-    Instant updatedAt) {
+    Instant updatedAt,
+    long groupId,
+    java.util.Set<String> allowedActions) {
   public static UserWebResponse from(UserAppResponse user) {
     return new UserWebResponse(
         user.id(),
@@ -19,6 +21,8 @@ public record UserWebResponse(
         user.status(),
         user.version(),
         user.createdAt(),
-        user.updatedAt());
+        user.updatedAt(),
+        user.groupId(),
+        user.allowedActions());
   }
 }

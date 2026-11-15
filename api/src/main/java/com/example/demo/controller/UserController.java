@@ -28,6 +28,10 @@ public class UserController {
     this.changes = changes;
   }
 
+  @com.example.demo.common.authorization.RequirePermission(
+      resource = "user",
+      action = "read",
+      mode = com.example.demo.common.authorization.PermissionMode.SCOPE)
   @GetMapping
   public UsersPageWebResponse list(
       @RequestParam(required = false) String q,
@@ -37,6 +41,10 @@ public class UserController {
     return UsersPageWebResponse.from(reads.list(new UserSearchAppRequest(q, status, size, cursor)));
   }
 
+  @com.example.demo.common.authorization.RequirePermission(
+      resource = "user",
+      action = "update",
+      resourceId = "#id")
   @PatchMapping("/{id}/status")
   public StatusChangeWebResponse change(
       @PathVariable long id, @Valid @RequestBody ChangeUserStatusWebRequest request) {
@@ -44,6 +52,10 @@ public class UserController {
         changes.change(id, new ChangeUserStatusAppRequest(request.status(), request.version())));
   }
 
+  @com.example.demo.common.authorization.RequirePermission(
+      resource = "user",
+      action = "read",
+      resourceId = "#id")
   @GetMapping("/{id}")
   public UserWebResponse detail(@PathVariable long id) {
     return UserWebResponse.from(reads.detail(id));

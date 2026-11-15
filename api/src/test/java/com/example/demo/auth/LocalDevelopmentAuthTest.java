@@ -24,9 +24,9 @@ class LocalDevelopmentAuthTest extends HttpApiTestSupport {
   @Test
   void enabledAccountListComesFromDatabaseWithoutCredentialFields() throws Exception {
     jdbc.update(
-        "INSERT INTO admin_users(username,password_hash,display_name,role) SELECT 'local-dynamic',password_hash,'Dynamic account','VIEWER' FROM admin_users WHERE username='admin'");
+        "INSERT INTO admin_users(username,password_hash,display_name,role,email) SELECT 'local-dynamic',password_hash,'Dynamic account','VIEWER',gen_random_uuid()::text||'@test.invalid' FROM admin_users WHERE username='admin'");
     jdbc.update(
-        "INSERT INTO admin_users(username,password_hash,display_name,role,enabled) SELECT 'local-disabled',password_hash,'Disabled account','ADMIN',false FROM admin_users WHERE username='admin'");
+        "INSERT INTO admin_users(username,password_hash,display_name,role,enabled,email) SELECT 'local-disabled',password_hash,'Disabled account','ADMIN',false,gen_random_uuid()::text||'@test.invalid' FROM admin_users WHERE username='admin'");
     var response =
         mvc.perform(get("/api/v1/local/accounts"))
             .andExpect(status().isOk())

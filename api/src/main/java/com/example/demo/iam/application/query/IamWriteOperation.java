@@ -1,0 +1,13 @@
+package com.example.demo.iam.application.query;
+
+public enum IamWriteOperation {
+  DELETE_ROLE_PERMISSIONS,
+  ADD_ROLE_PERMISSION,
+  DELETE_ROLE,
+  ADD_MEMBERSHIP,
+  DELETE_MEMBER_ROLES,
+  ADD_MEMBER_ROLE,
+  DELETE_OVERRIDE,
+  UPSERT_OVERRIDE,
+  REMOVE_MEMBERSHIP
+}
