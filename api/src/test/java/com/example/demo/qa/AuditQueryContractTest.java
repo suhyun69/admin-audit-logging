@@ -87,7 +87,7 @@ class AuditQueryContractTest extends AuditContractFixture {
   }
 
   @Test
-  void actualMemberReadSuccessAndMissingFailureAreAuditedWithoutSearchText() throws Exception {
+  void actualMemberReadSuccessAndMissingDenialAreAuditedWithoutSearchText() throws Exception {
     Actor actor = login("admin");
     var success =
         mvc.perform(get("/api/v1/users/123").cookie(actor.cookie()))
@@ -102,12 +102,12 @@ class AuditQueryContractTest extends AuditContractFixture {
         .isEqualTo(1);
     var missing =
         mvc.perform(get("/api/v1/users/999999").cookie(actor.cookie()))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
             .andReturn();
     assertThat(
             jdbc.queryForObject(
-                "SELECT count(*) FROM audit_logs WHERE request_id=? AND action='USER_DETAIL' AND result='FAILURE'",
+                "SELECT count(*) FROM audit_logs WHERE request_id=? AND event_type='AUTH_ACCESS_DENIED' AND result='DENIED'",
                 Integer.class,
                 requestId(missing)))
         .isEqualTo(1);

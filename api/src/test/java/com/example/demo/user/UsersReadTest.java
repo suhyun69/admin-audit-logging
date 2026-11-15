@@ -94,7 +94,7 @@ class UsersReadTest extends HttpApiTestSupport {
   }
 
   @Test
-  void detailSuccessAndMissingMemberFailureAreAuditedWithSameRequestId() throws Exception {
+  void detailSuccessAndOpaqueMissingDenialHaveRequestCorrelatedAudit() throws Exception {
     var success =
         mvc.perform(get("/api/v1/users/123").cookie(admin.auth()))
             .andExpect(status().isOk())
@@ -109,16 +109,15 @@ class UsersReadTest extends HttpApiTestSupport {
         .isEqualTo("SUCCESS");
     var missing =
         mvc.perform(get("/api/v1/users/999999").cookie(admin.auth()))
-            .andExpect(status().isNotFound())
-            .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"))
+            .andExpect(status().isForbidden())
+            .andExpect(jsonPath("$.code").value("ACCESS_DENIED"))
             .andReturn();
     var failure =
         jdbc.queryForMap(
-            "SELECT result,error_code,resource_id FROM audit_logs WHERE request_id=? AND source='BUSINESS'",
+            "SELECT result,error_code FROM audit_logs WHERE request_id=? AND event_type='AUTH_ACCESS_DENIED'",
             requestId(missing));
-    assertThat(failure.get("result")).isEqualTo("FAILURE");
-    assertThat(failure.get("error_code")).isEqualTo("USER_NOT_FOUND");
-    assertThat(failure.get("resource_id")).isEqualTo("999999");
+    assertThat(failure.get("result")).isEqualTo("DENIED");
+    assertThat(failure.get("error_code")).isEqualTo("ACCESS_DENIED");
   }
 
   @Test

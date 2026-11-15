@@ -56,11 +56,12 @@ class MemberTransactionContractTest extends PostgresTestSupport {
     String hash = new BCryptPasswordEncoder().encode("transaction-contract-password");
     for (String role : new String[] {"ADMIN", "OPERATOR", "VIEWER"})
       jdbc.update(
-          "INSERT INTO admin_users(username,password_hash,display_name,role) VALUES (?,?,?,?)",
+          "INSERT INTO admin_users(username,password_hash,display_name,role,email) VALUES (?,?,?,?,gen_random_uuid()::text||'@test.invalid')",
           role.toLowerCase(java.util.Locale.ROOT),
           hash,
           "QA " + role,
           role);
+    com.example.demo.support.IamTestFixtures.seedLegacyRoles(jdbc);
     jdbc.update(
         "INSERT INTO users(id,email,name) OVERRIDING SYSTEM VALUE VALUES (123,'member123@example.test','Contract member')");
   }
@@ -230,13 +231,14 @@ class MemberTransactionContractTest extends PostgresTestSupport {
         while (System.nanoTime() < deadline) {
           waiting =
               jdbc.queryForObject(
-                  "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE 'UPDATE users SET status%'",
+                  "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND(query LIKE '%iam_policy_version%FOR UPDATE%' OR query LIKE 'SELECT id FROM users%FOR UPDATE%')",
                   Integer.class);
           if (waiting == 2) break;
           Thread.sleep(20);
         }
         assertThat(waiting)
-            .as("Both actual UPDATE statements must reach the held row before releasing it")
+            .as(
+                "Both actual requests must reach the policy or resource serialization lock before release")
             .isEqualTo(2);
       } finally {
         lock.commit();

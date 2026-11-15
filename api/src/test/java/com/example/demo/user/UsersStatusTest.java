@@ -206,13 +206,13 @@ class UsersStatusTest extends HttpApiTestSupport {
         while (System.nanoTime() < deadline) {
           waiting =
               jdbc.queryForObject(
-                  "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND query LIKE 'UPDATE users SET status%'",
+                  "SELECT count(*) FROM pg_stat_activity WHERE datname=current_database() AND wait_event_type='Lock' AND (query LIKE 'UPDATE users SET status%' OR query LIKE '%iam_policy_version%FOR UPDATE%')",
                   Integer.class);
           if (waiting == 2) break;
           Thread.sleep(20);
         }
         assertThat(waiting)
-            .as("both UPDATE statements reached the database before releasing the lock")
+            .as("both requests reached database serialization locks before release")
             .isEqualTo(2);
       } finally {
         statement.execute("SELECT pg_advisory_unlock(901101)");
@@ -233,12 +233,12 @@ class UsersStatusTest extends HttpApiTestSupport {
   }
 
   @Test
-  void missingMemberIs404AndVersionMustBePresentNonNegativeInteger() throws Exception {
+  void missingMemberIsOpaque403AndVersionMustBePresentNonNegativeInteger() throws Exception {
     var actor = login("admin");
     var missing =
         change(actor, "999999", "{\"status\":\"SUSPENDED\",\"version\":0}", UUID.randomUUID());
-    assertThat(missing.getResponse().getStatus()).isEqualTo(404);
-    assertThat(businessCount(missing, "FAILURE")).isEqualTo(1);
+    assertThat(missing.getResponse().getStatus()).isEqualTo(403);
+    assertThat(businessCount(missing, "FAILURE")).isZero();
     for (String body :
         new String[] {
           "{\"status\":\"DELETED\",\"version\":0}",

@@ -409,7 +409,7 @@ class ClientEventsTest extends HttpApiTestSupport {
   void sixtyNewEventsPerActorAreAllowedAndRetryDoesNotConsumeQuotaWhile429RollsBack()
       throws Exception {
     jdbc.update(
-        "INSERT INTO admin_users(username,password_hash,display_name,role) SELECT 'rate-client',password_hash,'Rate client','VIEWER' FROM admin_users WHERE username='viewer'");
+        "INSERT INTO admin_users(username,password_hash,display_name,role,email) SELECT 'rate-client',password_hash,'Rate client','VIEWER',gen_random_uuid()::text||'@test.invalid' FROM admin_users WHERE username='viewer'");
     var actor = login("rate-client");
     Map<String, Object> original = null;
     for (int n = 0; n < 60; n++) {

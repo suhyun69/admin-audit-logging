@@ -37,11 +37,12 @@ abstract class AuditContractFixture extends PostgresTestSupport {
     String hash = new BCryptPasswordEncoder().encode("audit-contract-password");
     for (String role : new String[] {"ADMIN", "OPERATOR", "VIEWER"})
       jdbc.update(
-          "INSERT INTO admin_users(username,password_hash,display_name,role) VALUES (?,?,?,?)",
+          "INSERT INTO admin_users(username,password_hash,display_name,role,email) VALUES (?,?,?,?,gen_random_uuid()::text||'@test.invalid')",
           role.toLowerCase(java.util.Locale.ROOT),
           hash,
           "QA " + role,
           role);
+    com.example.demo.support.IamTestFixtures.seedLegacyRoles(jdbc);
     jdbc.update(
         "INSERT INTO users(id,email,name) OVERRIDING SYSTEM VALUE VALUES (123,'member123@example.test','Contract member')");
   }

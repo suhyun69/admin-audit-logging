@@ -53,6 +53,35 @@ class AuditPrivacyTest {
   }
 
   @Test
+  void iamPathsAreExplicitlyAllowlistedWithoutQueryOrUnknownSegments() {
+    assertThat(AuditPrivacy.pagePath("/iam?user=private@example.test")).isEqualTo("/iam");
+    for (String path :
+        java.util.List.of(
+            "/iam/me",
+            "/iam/users",
+            "/iam/users/2",
+            "/iam/users/2/groups/10/access",
+            "/iam/users/2/effective-permissions",
+            "/iam/users/2/overrides/3",
+            "/iam/groups/10/members/2",
+            "/iam/roles/matrix",
+            "/iam/permissions",
+            "/iam/check",
+            "/iam/audit-logs"))
+      assertThat(AuditPrivacy.requestPath("/api/v1" + path + "?q=private"))
+          .isEqualTo("/api/v1" + path);
+    for (String path :
+        java.util.List.of(
+            "/iam/users/person@example.test",
+            "/iam/users/2/private",
+            "/iam/roles/matrix/extra",
+            "/iam/groups/0/members/2"))
+      assertThat(AuditPrivacy.requestPath("/api/v1" + path)).isEqualTo("/api/v1/[unmatched]");
+    assertThatThrownBy(() -> AuditPrivacy.pagePath("/iam/private@example.test"))
+        .isInstanceOf(RuntimeException.class);
+  }
+
+  @Test
   void userAgentIsBoundedAndControlCharactersRemoved() {
     assertThat(AuditPrivacy.userAgent("a\r\nb")).isEqualTo("ab");
     assertThat(AuditPrivacy.userAgent("a".repeat(600))).hasSize(512);
