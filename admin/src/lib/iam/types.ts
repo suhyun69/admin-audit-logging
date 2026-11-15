@@ -1,0 +1,13 @@
+export type Group = { id: number; name: string; enabled: boolean; memberCount: number };
+export type Role = { id: number; code: string; name: string; permissionIds: number[]; affectedUserCount: number };
+export type Permission = { id: number; code: string; resource: string; action: string; name: string };
+export type Membership = { groupId: number; groupName: string; roles: Pick<Role, "id" | "code" | "name">[] };
+export type IamUser = { id: number; username: string; email: string; displayName: string; enabled: boolean; globalAdmin: boolean; groups: Pick<Group, "id" | "name">[]; roles: string[]; memberships?: Membership[] };
+export type Page<T> = { items: T[]; totalElements: number; page?: number; size?: number };
+export type Effect = "ALLOW" | "DENY" | null;
+export type EffectivePermission = { permissionId: number; code: string; resource: string; action: string; inherited: boolean; overrideReason?: string; override: Effect; expiresAt: string | null; allowed: boolean; reason: string };
+export type OverrideDraft = { effect: Effect; expiresAt: string; reason: string };
+export type AuditEntry = { id: number; actorId: number; targetUserId: number | null; changeType: string; before: unknown; after: unknown; occurredAt: string; requestId: string };
+export type Check = { userId: number; groupId: number; resource: string; action: string; resourceId?: number };
+export type Decision = { allowed: boolean; reason: string };
+export type Mutation = { path: string; method: "POST" | "PUT" | "DELETE"; body?: unknown };

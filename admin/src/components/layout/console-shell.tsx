@@ -18,6 +18,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const [logoutError, setLogoutError] = useState("");
   const nav = [
     { href: "/users", label: "회원 관리", icon: Users },
+    { href: "/iam", label: "접근 권한 관리", icon: ShieldCheck },
   ];
   return <ProtectedContent><RouteTracker /><div className="min-h-screen lg:grid lg:grid-cols-[200px_minmax(0,1fr)] xl:grid-cols-[200px_minmax(0,1fr)_33vw]">
     <aside className="flex flex-col bg-[#13223b] text-slate-200 lg:sticky lg:top-0 lg:h-screen">

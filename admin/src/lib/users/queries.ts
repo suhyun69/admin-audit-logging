@@ -3,7 +3,7 @@ import { createInteractionId } from "../audit/track-event.ts";
 import type { Actor } from "../auth/types.ts";
 
 export type UserStatus = "ACTIVE" | "SUSPENDED";
-export type User = { id: number; email: string; name: string; status: UserStatus; version: number; createdAt: string; updatedAt: string };
+export type User = { groupId: number; allowedActions: string[]; id: number; email: string; name: string; status: UserStatus; version: number; createdAt: string; updatedAt: string };
 export type CursorPage<T> = { items: T[]; nextCursor: string | null; hasNext: boolean };
 export type UsersFilters = { q: string; status: "ALL" | UserStatus; size: number };
 export type UsersRequest = { filters: UsersFilters; cursor?: string; history: (string | undefined)[]; interactionId: string };
