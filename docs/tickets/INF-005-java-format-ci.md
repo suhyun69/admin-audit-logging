@@ -4,7 +4,7 @@
 브랜치: `codex/inf-005-java-format-ci`
 개발 선행: API-019 / ORC-009 (MERGED)
 통합 선행: API-020 Spotless 설정 (단독 브랜치에는 task가 없으므로 CI 통과 판정은 두 구현 통합 후 수행)
-상태: APPROVED
+상태: MERGED
 
 ## 목표와 계약
 
@@ -28,3 +28,14 @@
 - 독립 qa: `spotlessApply spotlessCheck --rerun-tasks` PASS(전후205파일 SHA256 동일), `check --dry-run`에서 spotless/test 자동 연결 PASS. javac21 import 제외 canonical AST205파일 차이0(textblock 해석값 포함). wildcard import0, `git diff --check` PASS.
 - NOT RUN: qa 전체 테스트 재실행(자체 증거 독립 집계), 브라우저 E2E. 원격 CI는 통합 후 확인.
 - orchestra 결정: APPROVED. 실제 diff/자체 검증/독립 QA 근거를 확인했다. 필수 미해결 항목 없음.
+
+## 실제 통합
+
+- API 구현: `58a92660cd83c7b2b3f119d8876ac28cd2f70c31`, 원격 티켓 브랜치 게시 성공.
+- CI 구현: `8e5865eccacf514ccfcc05e59cdc38879581b7f7`, 원격 티켓 브랜치 게시 성공.
+- 계약/승인: `b859d40`, `a948352`.
+- 두 구현/계약 integration 통합: `fb36b82f14fc37cc51d90e5aff2fb051d0030f1c`, 원격 push 성공.
+- 통합 Java21 `./gradlew --no-daemon spotlessCheck bootJar` PASS(5s). 원본 Java 소스는 독립 검증된 API 티켓과 동일하다.
+- 원격 CI: https://github.com/suhyun69/admin-audit-logging/actions/runs/43655048637 (실행 결과는 아래 추가 기록).
+
+- 원격 CI 최종 결과: 모든 job SUCCESS. Java 21 PostgreSQL contracts(`spotlessCheck test bootJar`), Compose, Node24 admin checks, isolated production browser contracts 성공. 로컬 E2E는 미실행이나 원격 E2E는 실제 PASS다.
