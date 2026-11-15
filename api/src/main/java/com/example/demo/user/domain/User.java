@@ -9,4 +9,16 @@ public record User(
     UserStatus status,
     long version,
     Instant createdAt,
-    Instant updatedAt) {}
+    Instant updatedAt,
+    long groupId) {
+  public User(
+      long id,
+      String email,
+      String name,
+      UserStatus status,
+      long version,
+      Instant createdAt,
+      Instant updatedAt) {
+    this(id, email, name, status, version, createdAt, updatedAt, 1L);
+  }
+}

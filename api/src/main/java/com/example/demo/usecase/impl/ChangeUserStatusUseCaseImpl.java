@@ -26,7 +26,7 @@ public class ChangeUserStatusUseCaseImpl implements ChangeUserStatusUseCase {
 
   @Override
   public StatusChangeAppResponse change(long id, ChangeUserStatusAppRequest request) {
-    authorization.requireUserWrite();
+    authorization.requireAuthenticated();
     if (id <= 0 || request.version() == null || request.version() < 0 || request.status() == null)
       throw new ApiException(ErrorCode.VALIDATION_ERROR);
     try {

@@ -39,7 +39,7 @@ test("page views name their destination and identify member details by member nu
   const uuid = "13c5da3a-36d1-4b83-a122-d9cc4db35f52";
   const paths: [string, string][] = [
     ["/users", "회원 관리"], ["/users/123", "회원 상세 · 회원 #123"],
-    ["/dashboard", "대시보드"], ["/login", "로그인"],
+    ["/dashboard", "대시보드"], ["/login", "로그인"], ["/iam", "접근 권한 관리"],
     ["/audit-logs", "감사 로그"], ["/audit-logs/me", "내 활동"],
     [`/audit-logs/${uuid}`, "감사 기록 상세"],
     [`/audit-logs/interactions/${uuid}`, "상호작용 타임라인"],
@@ -70,4 +70,14 @@ test("button click labels identify the member status action", () => {
 });
 test("unknown button actions use the safe missing-information label", () => {
   for (const action of ["", "UNKNOWN_CLICK", "PAGE_ENTER", "constructor", "<private>"]) assert.equal(liveButtonLabel(action), "버튼 정보 없음");
+});
+
+
+test("IAM stream paths allow only the exact route and never display sensitive suffixes", () => {
+  const event = { ...item("iam-page"), source: "CLIENT", eventType: "PAGE_VIEW", pagePath: "/iam" };
+  assert.deepEqual(parseLiveLog(JSON.stringify(event)), event);
+  for (const pagePath of ["/iam?email=private@example.com", "/iam#private", "/iam/users/private@example.com", "/iam/", "/iam-admin", "https://example.test/iam"]) {
+    assert.equal(livePageLabel(pagePath), "페이지 정보 없음");
+    assert.equal(parseLiveLog(JSON.stringify({ ...event, pagePath }))?.pagePath, null);
+  }
 });

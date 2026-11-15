@@ -41,6 +41,60 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
   }
 
   @Override
+  public List<User> findScoped(
+      String search,
+      UserStatus status,
+      int limit,
+      Long afterId,
+      boolean all,
+      java.util.Set<Long> groups) {
+    if (!all && groups.isEmpty()) return List.of();
+    var params =
+        new MapSqlParameterSource()
+            .addValue("all", all)
+            .addValue("groups", groups.isEmpty() ? java.util.Set.of(-1L) : groups)
+            .addValue("limit", limit);
+    String sql = scopedWhere(search, status, params);
+    if (afterId != null) {
+      sql += " AND id>:afterId";
+      params.addValue("afterId", afterId);
+    }
+    return jdbc.query(
+        "SELECT * FROM users WHERE " + sql + " ORDER BY id ASC LIMIT :limit",
+        params,
+        (rs, n) -> map(rs));
+  }
+
+  @Override
+  public long countScoped(
+      String search, UserStatus status, boolean all, java.util.Set<Long> groups) {
+    if (!all && groups.isEmpty()) return 0;
+    var params =
+        new MapSqlParameterSource()
+            .addValue("all", all)
+            .addValue("groups", groups.isEmpty() ? java.util.Set.of(-1L) : groups);
+    return jdbc.queryForObject(
+        "SELECT count(*) FROM users WHERE " + scopedWhere(search, status, params),
+        params,
+        Long.class);
+  }
+
+  private String scopedWhere(String search, UserStatus status, MapSqlParameterSource params) {
+    String sql =
+        "EXISTS(SELECT 1 FROM iam_groups g WHERE g.id=users.group_id AND g.enabled=TRUE) AND(:all OR group_id IN(:groups))";
+    if (search != null && !search.isEmpty()) {
+      sql += " AND(email ILIKE :search ESCAPE '!' OR name ILIKE :search ESCAPE '!')";
+      params.addValue(
+          "search", "%" + search.replace("!", "!!").replace("%", "!%").replace("_", "!_") + "%");
+    }
+    if (status != null) {
+      sql += " AND status=:status";
+      params.addValue("status", status.name());
+    }
+    return sql;
+  }
+
+  @Override
   public Optional<User> findById(long id) {
     return jdbc
         .query(
@@ -70,6 +124,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
         UserStatus.valueOf(rs.getString("status")),
         rs.getLong("version"),
         rs.getTimestamp("created_at").toInstant(),
-        rs.getTimestamp("updated_at").toInstant());
+        rs.getTimestamp("updated_at").toInstant(),
+        rs.getLong("group_id"));
   }
 }

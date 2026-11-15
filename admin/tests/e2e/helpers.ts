@@ -49,7 +49,9 @@ export async function loginAs(page: Page, role: "ADMIN" | "OPERATOR" | "VIEWER")
   // Each scenario has its own actor quota; do not reset or bypass the application's rate limiter.
   const suffix = createHash("sha256").update(test.info().testId).digest("hex").slice(0, 16);
   const username = `e2e_${role.toLowerCase()}_${suffix}`;
-  database(`INSERT INTO admin_users(username,password_hash,display_name,role) SELECT '${username}',password_hash,'E2E ${role}','${role}' FROM admin_users WHERE username='${role.toLowerCase()}' ON CONFLICT(username) DO NOTHING`);
+  database(`INSERT INTO admin_users(username,email,password_hash,display_name,role,global_admin) SELECT '${username}','${username}@e2e.invalid',password_hash,'E2E ${role}','${role}',${role === 'ADMIN' ? 'true' : 'false'} FROM admin_users WHERE username='${role.toLowerCase()}' ON CONFLICT(username) DO NOTHING`);
+  database(`INSERT INTO iam_group_members(user_id,group_id) SELECT id,1 FROM admin_users WHERE username='${username}' ON CONFLICT DO NOTHING;
+    INSERT INTO iam_group_member_roles(user_id,group_id,role_id) SELECT u.id,1,r.id FROM admin_users u JOIN iam_roles r ON r.code='${role === "VIEWER" ? "VIEWER" : "OPERATOR"}' WHERE u.username='${username}' ON CONFLICT DO NOTHING`);
   await page.goto("/login");
   await page.getByTestId("local-account-picker").selectOption(username);
   const loggedIn = page.waitForResponse(response => new URL(response.url()).pathname === "/api/v1/local/login" && response.request().method() === "POST");

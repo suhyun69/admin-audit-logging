@@ -8,6 +8,16 @@ import java.util.Optional;
 public interface UserRepositoryPort {
   List<User> find(String search, UserStatus status, int limit, Long afterId);
 
+  List<User> findScoped(
+      String search,
+      UserStatus status,
+      int limit,
+      Long afterId,
+      boolean all,
+      java.util.Set<Long> groupIds);
+
+  long countScoped(String search, UserStatus status, boolean all, java.util.Set<Long> groupIds);
+
   Optional<User> findById(long id);
 
   boolean changeStatus(long id, long expectedVersion, UserStatus target);

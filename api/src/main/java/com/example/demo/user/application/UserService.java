@@ -24,6 +24,21 @@ public class UserService {
     return users.find(search, status, limit, afterId);
   }
 
+  public List<User> findScoped(
+      String search,
+      UserStatus status,
+      int limit,
+      Long afterId,
+      boolean all,
+      java.util.Set<Long> groups) {
+    return users.findScoped(search, status, limit, afterId, all, groups);
+  }
+
+  public long countScoped(
+      String search, UserStatus status, boolean all, java.util.Set<Long> groups) {
+    return users.countScoped(search, status, all, groups);
+  }
+
   public UserStatusChange changeStatus(long id, long expectedVersion, UserStatus target) {
     var before = detail(id);
     if (before.version() != expectedVersion) throw new ApiException(ErrorCode.VERSION_CONFLICT);

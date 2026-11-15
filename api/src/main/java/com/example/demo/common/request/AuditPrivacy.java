@@ -12,14 +12,31 @@ public final class AuditPrivacy {
       "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}";
   private static final Pattern PAGE =
       Pattern.compile(
-          "/(?:login|dashboard|users(?:/[1-9][0-9]{0,18})?|audit-logs(?:/(?:me|"
+          "/(?:iam|login|dashboard|users(?:/[1-9][0-9]{0,18})?|audit-logs(?:/(?:me|"
               + UUID_PATH
               + "|interactions/"
               + UUID_PATH
               + "))?)");
+  private static final String IAM_ID = "[1-9][0-9]{0,18}";
+  private static final String IAM_API =
+      "iam/(?:me|users(?:/"
+          + IAM_ID
+          + "(?:/effective-permissions|/overrides/"
+          + IAM_ID
+          + "|/groups/"
+          + IAM_ID
+          + "/access)?)?|groups(?:/"
+          + IAM_ID
+          + "(?:/members/"
+          + IAM_ID
+          + ")?)?|roles(?:/(?:matrix|"
+          + IAM_ID
+          + "))?|permissions|check|audit-logs)";
   private static final Pattern API =
       Pattern.compile(
-          "/api/v1/(?:local/(?:accounts|login)|auth/(?:login|logout|me|csrf)|users(?:/[1-9][0-9]{0,18}(?:/status)?)?|audit-events/client|audit-logs(?:/(?:me|summary|"
+          "/api/v1/(?:"
+              + IAM_API
+              + "|local/(?:accounts|login)|auth/(?:login|logout|me|csrf)|users(?:/[1-9][0-9]{0,18}(?:/status)?)?|audit-events/client|audit-logs(?:/(?:me|summary|"
               + UUID_PATH
               + "|interactions/"
               + UUID_PATH

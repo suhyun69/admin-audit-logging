@@ -19,11 +19,11 @@ class LocalSeedTest extends PostgresTestSupport {
 
   @Test
   void localApplicationBootsWithBcryptAccountsAndSafeMemberSequence() {
-    assertThat(flyway.info().current().getVersion().toString()).isEqualTo("3");
+    assertThat(flyway.info().current().getVersion().toString()).isEqualTo("4");
     assertThat(
             jdbc.queryForObject(
                 "SELECT count(*) FROM flyway_schema_history WHERE success", Integer.class))
-        .isEqualTo(3);
+        .isEqualTo(4);
     assertThat(jdbc.queryForObject("SELECT count(*) FROM admin_users", Integer.class)).isEqualTo(3);
     var encoder = new BCryptPasswordEncoder();
     for (var row : jdbc.queryForList("SELECT username, password_hash, role FROM admin_users")) {
