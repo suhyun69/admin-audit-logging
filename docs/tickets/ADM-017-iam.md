@@ -19,6 +19,8 @@
 
 로컬 구현 커밋: `3087aa24a77daa3b70e25b98922f85a9de5ab15c` (`codex/adm-017-iam`).
 
-자체 검증: 단위/BFF 51/51, lint/typecheck/production build PASS. QA 독립 재실행: 단위51/51 및 lint PASS. 실제 API/BFF/브라우저 연동은 QA-006 로컬 검증 브랜치에서 진행 중.
+후속 감사 추적 커밋: `b146697233baa848a88bfb0a9362f40eacd16292` (/iam allowlist·라벨·개인정보 경로 회귀).
+
+자체 검증: 단위/BFF 53/53, lint/typecheck/production build PASS. QA 독립 재실행: 단위53/53 및 lint/typecheck PASS. 실제 API/BFF/브라우저 연동은 QA-006 로컬 검증 브랜치에서 진행 중.
 
 사용자 최종 범위에 따라 원격 게시 및 integration/master 반영은 하지 않는다. 구현 완료와 최종 검토 승인을 구분한다.

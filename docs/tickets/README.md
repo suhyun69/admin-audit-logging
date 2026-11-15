@@ -65,9 +65,11 @@
 | [INF-005](INF-005-java-format-ci.md) | infra | CI Java 포맷 검사 | ORC-009 | MERGED |
 
 | [ORC-011](ORC-011-iam-contract.md) | orchestra | IAM 계약·배정·독립 검토·통합 | ORC-010 | IN_PROGRESS |
-| [API-021](API-021-iam.md) | api | IAM 데이터 계층·평가 엔진·관리 API·기존 회원 통합 | ORC-011 계약 | IN_PROGRESS |
+| [API-021](API-021-iam.md) | api | IAM 데이터 계층·평가 엔진·관리 API·기존 회원 통합 | ORC-011 계약 | IN_REVIEW |
 | [ADM-017](ADM-017-iam.md) | admin | IAM 관리 UI·BFF·allowedActions 연계 | ORC-011 계약; 연동 검증은 API-021 | IN_REVIEW |
 | [QA-006](QA-006-iam-verification.md) | qa | IAM 독립 검증 | ORC-011 계약; 완성 API/Admin에서 최종 검증 | IN_PROGRESS |
+
+| [INF-006](INF-006-iam-docs.md) | infra | IAM 실행 문서 갱신 | ORC-011 계약 | IN_REVIEW |
 
 ## 배정과 상태 규칙
 

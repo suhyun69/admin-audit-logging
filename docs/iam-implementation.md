@@ -30,7 +30,8 @@
 | ORC-011 | orchestra | 이 계약, tickets, 최종 사용/검증 문서 | qa 독립 계약 검토 |
 | API-021 | api | `api/src/main`의 IAM 마이그레이션·포트·어댑터·usecase·controller·보안·회원 연계, `api/src/test` | PostgreSQL 통합, 18개 권한 요구사항, 실제 SpringBootTest, build |
 | ADM-017 | admin | `admin/src` IAM UI·BFF·회원 allowedActions, `admin/tests` | draft/미리보기/BFF 단위, lint/typecheck/build |
-| QA-006 | qa | `docs/iam-qa-report.md` | 독립 API/UI 검증, 실패/미검증 공개 |
+| INF-006 | infra | 루트 README.md IAM 실행/마이그레이션 설명 | diff·링크·명령 보존 독립 검토 |
+| QA-006 | qa | `docs/iam-qa-report.md`, 독립 IAM Java/E2E 테스트 | 독립 API/UI 검증, 실패/미검증 공개 |
 
 각 구현자는 자신의 영역 테스트 파일을 작성한다. 별도 독립 인수 테스트 `admin/tests/e2e/iam-acceptance.spec.ts`와 `api/src/test/java/com/example/demo/iam/IamSecurityRegressionTest.java`는 qa가 소유한다. qa는 제품 구현 파일을 수정하지 않고 재현 결과를 보고하며 orchestra가 수정 요청과 통합 결정을 기록한다. 각 브랜치/worktree는 독립하며 API 계약을 먼저 합의하고 Admin이 이를 따른다.
 
